@@ -304,7 +304,7 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="w-5 h-5 text-primary" />
-            Funil de Vendas Completo
+            Funil de Vendas - Combinado
           </CardTitle>
         </CardHeader>
         <CardContent>
