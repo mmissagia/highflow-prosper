@@ -19,6 +19,7 @@ import LeadDetail from "./pages/crm/LeadDetail";
 import EventosList from "./pages/eventos/EventosList";
 import EventoDetail from "./pages/eventos/EventoDetail";
 import PitchEditor from "./pages/eventos/PitchEditor";
+import ConstrutorEstrategias from "./pages/eventos/ConstrutorEstrategias";
 
 // Comunicação
 import Campanhas from "./pages/comunicacao/Campanhas";
@@ -64,6 +65,7 @@ const App = () => (
                   <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
                   <Route path="/eventos/pitch" element={<PitchEditor />} />
                   <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
+                  <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
 
                   {/* Comunicação */}
                   <Route path="/comunicacao/campanhas" element={<Campanhas />} />

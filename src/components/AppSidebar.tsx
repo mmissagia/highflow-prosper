@@ -19,7 +19,8 @@ import {
   Heart,
   UserCog,
   Crown,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -68,6 +69,7 @@ const menuStructure = [
       { title: "Lista de Eventos", url: "/eventos", icon: CalendarDays },
       { title: "Detalhe do Evento", url: "/eventos/detalhe", icon: Eye },
       { title: "Editor de Pitch", url: "/eventos/pitch", icon: FileEdit },
+      { title: "Construtor de Estratégias", url: "/eventos/estrategias", icon: Sparkles },
     ],
   },
   {
