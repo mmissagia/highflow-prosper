@@ -11,15 +11,14 @@ import {
   MarkerType,
   Panel,
   BackgroundVariant,
+  type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
-  Plus, 
   Save, 
   Trash2, 
   FolderOpen,
@@ -29,14 +28,10 @@ import {
   Heart,
   Package,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  FileText,
+  Loader2
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 
 import StrategyNode from '@/components/estrategias/StrategyNode';
+import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
@@ -60,14 +56,7 @@ const elementTypes = [
   { type: 'produto-fisico', label: 'Produto Físico', icon: Package, color: 'bg-pink-500' },
 ];
 
-// Estratégias salvas de exemplo
-const savedStrategies = [
-  { id: '1', name: 'Funil Clássico High-Ticket', nodes: 4, createdAt: '2024-01-15' },
-  { id: '2', name: 'Lançamento Evento + Mentoria', nodes: 6, createdAt: '2024-01-10' },
-  { id: '3', name: 'Low-Ticket para VIP', nodes: 3, createdAt: '2024-01-05' },
-];
-
-const initialNodes = [
+const getDefaultNodes = (): Node[] => [
   {
     id: '1',
     type: 'strategyNode',
@@ -75,73 +64,19 @@ const initialNodes = [
     data: { 
       label: 'E-book Gratuito', 
       type: 'low-ticket',
-      metrics: { leads: 1250, conversao: '15%' }
+      metrics: { leads: 0, conversao: '0%' }
     },
-  },
-  {
-    id: '2',
-    type: 'strategyNode',
-    position: { x: 400, y: 200 },
-    data: { 
-      label: 'Imersão Presencial', 
-      type: 'evento',
-      metrics: { leads: 187, conversao: '42%' }
-    },
-  },
-  {
-    id: '3',
-    type: 'strategyNode',
-    position: { x: 700, y: 100 },
-    data: { 
-      label: 'Mentoria Elite', 
-      type: 'pitch',
-      metrics: { leads: 78, conversao: '28%' }
-    },
-  },
-  {
-    id: '4',
-    type: 'strategyNode',
-    position: { x: 700, y: 300 },
-    data: { 
-      label: 'Mentoria Grupo', 
-      type: 'mentoria',
-      metrics: { leads: 45, conversao: '65%' }
-    },
-  },
-];
-
-const initialEdges = [
-  { 
-    id: 'e1-2', 
-    source: '1', 
-    target: '2', 
-    animated: true,
-    style: { stroke: 'hsl(221 83% 53%)' },
-    markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
-  },
-  { 
-    id: 'e2-3', 
-    source: '2', 
-    target: '3',
-    animated: true,
-    style: { stroke: 'hsl(160 84% 39%)' },
-    markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(160 84% 39%)' },
-  },
-  { 
-    id: 'e2-4', 
-    source: '2', 
-    target: '4',
-    animated: true,
-    style: { stroke: 'hsl(160 84% 39%)' },
-    markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(160 84% 39%)' },
   },
 ];
 
 export default function ConstrutorEstrategias() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(getDefaultNodes());
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [strategyName, setStrategyName] = useState('Nova Estratégia');
+  const [currentStrategyId, setCurrentStrategyId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({
@@ -171,18 +106,58 @@ export default function ConstrutorEstrategias() {
   };
 
   const deleteSelectedNodes = () => {
-    setNodes((nds) => nds.filter((node) => !(node as any).selected));
+    setNodes((nds) => nds.filter((node) => !node.selected));
     setEdges((eds) => {
-      const selectedNodeIds = nodes.filter((n) => (n as any).selected).map((n) => n.id);
+      const selectedNodeIds = nodes.filter((n) => n.selected).map((n) => n.id);
       return eds.filter((edge) => !selectedNodeIds.includes(edge.source) && !selectedNodeIds.includes(edge.target));
     });
   };
 
-  const loadStrategy = (strategyId: string) => {
-    // Em produção, carregaria do banco de dados
-    console.log('Carregando estratégia:', strategyId);
+  const loadStrategy = (strategy: Strategy) => {
+    setCurrentStrategyId(strategy.id);
+    setStrategyName(strategy.name);
+    setNodes(strategy.nodes.length > 0 ? strategy.nodes : getDefaultNodes());
+    setEdges(strategy.edges);
     setIsDialogOpen(false);
   };
+
+  const handleSave = () => {
+    if (currentStrategyId) {
+      updateStrategy.mutate({ 
+        id: currentStrategyId, 
+        name: strategyName, 
+        nodes, 
+        edges 
+      });
+    } else {
+      createStrategy.mutate({ 
+        name: strategyName, 
+        nodes, 
+        edges 
+      }, {
+        onSuccess: (data) => {
+          setCurrentStrategyId(data.id);
+        }
+      });
+    }
+  };
+
+  const handleNewStrategy = () => {
+    setCurrentStrategyId(null);
+    setStrategyName('Nova Estratégia');
+    setNodes(getDefaultNodes());
+    setEdges([]);
+  };
+
+  const handleDeleteStrategy = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteStrategy.mutate(id);
+    if (currentStrategyId === id) {
+      handleNewStrategy();
+    }
+  };
+
+  const isSaving = createStrategy.isPending || updateStrategy.isPending;
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col gap-4">
@@ -200,11 +175,17 @@ export default function ConstrutorEstrategias() {
             </div>
             <p className="text-muted-foreground text-sm">
               Arraste para mover • Conecte os nós para criar a jornada
+              {currentStrategyId && <span className="ml-2 text-primary">(Editando)</span>}
             </p>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleNewStrategy}>
+            <FileText className="w-4 h-4" />
+            Nova
+          </Button>
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2">
@@ -217,23 +198,43 @@ export default function ConstrutorEstrategias() {
                 <DialogTitle>Estratégias Salvas</DialogTitle>
               </DialogHeader>
               <div className="space-y-2 mt-4">
-                {savedStrategies.map((strategy) => (
-                  <Card 
-                    key={strategy.id} 
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => loadStrategy(strategy.id)}
-                  >
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{strategy.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {strategy.nodes} elementos • Criada em {strategy.createdAt}
-                        </p>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    </CardContent>
-                  </Card>
-                ))}
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : strategies.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    Nenhuma estratégia salva ainda
+                  </p>
+                ) : (
+                  strategies.map((strategy) => (
+                    <Card 
+                      key={strategy.id} 
+                      className={`cursor-pointer hover:bg-muted/50 transition-colors ${currentStrategyId === strategy.id ? 'ring-2 ring-primary' : ''}`}
+                      onClick={() => loadStrategy(strategy)}
+                    >
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{strategy.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {strategy.nodes.length} elementos • Atualizada em {new Date(strategy.updated_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={(e) => handleDeleteStrategy(strategy.id, e)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -243,8 +244,8 @@ export default function ConstrutorEstrategias() {
             Excluir Selecionado
           </Button>
           
-          <Button className="gap-2">
-            <Save className="w-4 h-4" />
+          <Button className="gap-2" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Salvar Estratégia
           </Button>
         </div>
