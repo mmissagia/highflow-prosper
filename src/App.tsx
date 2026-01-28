@@ -2,13 +2,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 // CRM
 import Pipeline from "./pages/crm/Pipeline";
@@ -35,57 +38,88 @@ import PainelProdutor from "./pages/entrega/PainelProdutor";
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppLayout() {
+  return (
+    <ProtectedRoute>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col">
+            <header className="h-16 border-b border-border bg-background flex items-center px-6">
+              <SidebarTrigger className="mr-4" />
+            </header>
+            <main className="flex-1 p-6 bg-muted/30">
+              <Routes>
+                {/* Dashboard */}
+                <Route path="/" element={<Dashboard />} />
+
+                {/* CRM */}
+                <Route path="/crm/pipeline" element={<Pipeline />} />
+                <Route path="/crm/leads" element={<LeadsList />} />
+                <Route path="/crm/lead" element={<LeadDetail />} />
+                <Route path="/crm/lead/:id" element={<LeadDetail />} />
+
+                {/* Eventos */}
+                <Route path="/eventos" element={<EventosList />} />
+                <Route path="/eventos/detalhe" element={<EventoDetail />} />
+                <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
+                <Route path="/eventos/pitch" element={<PitchEditor />} />
+                <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
+                <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
+
+                {/* Comunicação */}
+                <Route path="/comunicacao/campanhas" element={<Campanhas />} />
+                <Route path="/comunicacao/automacoes" element={<Automacoes />} />
+                <Route path="/comunicacao/editor" element={<EditorMensagens />} />
+                <Route path="/comunicacao/conversas" element={<Conversas />} />
+
+                {/* Entrega */}
+                <Route path="/entrega/cursos" element={<MeusCursos />} />
+                <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
+                <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
+                <Route path="/entrega/mentor" element={<PainelMentor />} />
+                <Route path="/entrega/produtor" element={<PainelProdutor />} />
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+          </div>
+        </div>
+      </SidebarProvider>
+    </ProtectedRoute>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full">
-            <AppSidebar />
-            <div className="flex-1 flex flex-col">
-              <header className="h-16 border-b border-border bg-background flex items-center px-6">
-                <SidebarTrigger className="mr-4" />
-              </header>
-              <main className="flex-1 p-6 bg-muted/30">
-                <Routes>
-                  {/* Dashboard */}
-                  <Route path="/" element={<Dashboard />} />
-
-                  {/* CRM */}
-                  <Route path="/crm/pipeline" element={<Pipeline />} />
-                  <Route path="/crm/leads" element={<LeadsList />} />
-                  <Route path="/crm/lead" element={<LeadDetail />} />
-                  <Route path="/crm/lead/:id" element={<LeadDetail />} />
-
-                  {/* Eventos */}
-                  <Route path="/eventos" element={<EventosList />} />
-                  <Route path="/eventos/detalhe" element={<EventoDetail />} />
-                  <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
-                  <Route path="/eventos/pitch" element={<PitchEditor />} />
-                  <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
-                  <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
-
-                  {/* Comunicação */}
-                  <Route path="/comunicacao/campanhas" element={<Campanhas />} />
-                  <Route path="/comunicacao/automacoes" element={<Automacoes />} />
-                  <Route path="/comunicacao/editor" element={<EditorMensagens />} />
-                  <Route path="/comunicacao/conversas" element={<Conversas />} />
-
-                  {/* Entrega */}
-                  <Route path="/entrega/cursos" element={<MeusCursos />} />
-                  <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
-                  <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
-                  <Route path="/entrega/mentor" element={<PainelMentor />} />
-                  <Route path="/entrega/produtor" element={<PainelProdutor />} />
-
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-            </div>
-          </div>
-        </SidebarProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/*" element={<AppLayout />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

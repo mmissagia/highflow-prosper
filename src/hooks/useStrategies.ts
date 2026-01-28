@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import type { Node, Edge } from '@xyflow/react';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -34,28 +35,36 @@ const parseStrategy = (db: DbStrategy): Strategy => ({
 export function useStrategies() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: strategies = [], isLoading } = useQuery({
-    queryKey: ['strategies'],
+    queryKey: ['strategies', user?.id],
     queryFn: async () => {
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from('strategies')
         .select('*')
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
       
       if (error) throw error;
       return (data as DbStrategy[]).map(parseStrategy);
     },
+    enabled: !!user,
   });
 
   const createStrategy = useMutation({
     mutationFn: async ({ name, nodes, edges }: { name: string; nodes: Node[]; edges: Edge[] }) => {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('strategies')
         .insert({ 
           name, 
           nodes: nodes as unknown as Json, 
-          edges: edges as unknown as Json 
+          edges: edges as unknown as Json,
+          user_id: user.id
         })
         .select()
         .single();

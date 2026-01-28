@@ -20,10 +20,12 @@ import {
   UserCog,
   Crown,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  LogOut
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Sidebar,
@@ -98,6 +100,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { signOut, user } = useAuth();
 
   const isActiveGroup = (items: { url: string }[]) => {
     return items.some((item) => currentPath === item.url || currentPath.startsWith(item.url + "/"));
@@ -167,6 +170,22 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* User & Logout */}
+        <div className="mt-auto border-t border-sidebar-border p-4">
+          {state === "expanded" && user && (
+            <p className="text-xs text-sidebar-foreground/60 mb-2 truncate">
+              {user.email}
+            </p>
+          )}
+          <button
+            onClick={() => signOut()}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            {state === "expanded" && <span>Sair</span>}
+          </button>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
