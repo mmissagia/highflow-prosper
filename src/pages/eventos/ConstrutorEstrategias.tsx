@@ -12,6 +12,7 @@ import {
   Panel,
   BackgroundVariant,
   type Node,
+  type Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -30,7 +31,8 @@ import {
   ArrowRight,
   Sparkles,
   FileText,
-  Loader2
+  Loader2,
+  Database
 } from "lucide-react";
 import {
   Dialog,
@@ -49,6 +51,7 @@ const nodeTypes = {
 
 // Tipos de elementos disponíveis
 const elementTypes = [
+  { type: 'base-leads', label: 'Base de Leads', icon: Database, color: 'bg-cyan-500' },
   { type: 'low-ticket', label: 'Low-Ticket', icon: ShoppingCart, color: 'bg-blue-500' },
   { type: 'evento', label: 'Evento', icon: Calendar, color: 'bg-purple-500' },
   { type: 'pitch', label: 'Pitch/Oferta', icon: Target, color: 'bg-orange-500' },
@@ -60,7 +63,17 @@ const getDefaultNodes = (): Node[] => [
   {
     id: '1',
     type: 'strategyNode',
-    position: { x: 100, y: 200 },
+    position: { x: 50, y: 200 },
+    data: { 
+      label: 'Minha Base de Leads', 
+      type: 'base-leads',
+      metrics: { leads: 1000, conversao: '100%' }
+    },
+  },
+  {
+    id: '2',
+    type: 'strategyNode',
+    position: { x: 300, y: 200 },
     data: { 
       label: 'E-book Gratuito', 
       type: 'low-ticket',
@@ -69,9 +82,22 @@ const getDefaultNodes = (): Node[] => [
   },
 ];
 
+const getDefaultEdges = (): Edge[] => [
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    animated: true,
+    style: { stroke: 'hsl(221 83% 53%)' },
+    markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+    label: '→',
+    labelStyle: { fill: 'hsl(var(--muted-foreground))', fontWeight: 500 },
+  },
+];
+
 export default function ConstrutorEstrategias() {
   const [nodes, setNodes, onNodesChange] = useNodesState(getDefaultNodes());
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(getDefaultEdges());
   const [strategyName, setStrategyName] = useState('Nova Estratégia');
   const [currentStrategyId, setCurrentStrategyId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -146,7 +172,7 @@ export default function ConstrutorEstrategias() {
     setCurrentStrategyId(null);
     setStrategyName('Nova Estratégia');
     setNodes(getDefaultNodes());
-    setEdges([]);
+    setEdges(getDefaultEdges());
   };
 
   const handleDeleteStrategy = (id: string, e: React.MouseEvent) => {

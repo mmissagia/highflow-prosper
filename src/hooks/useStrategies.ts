@@ -74,10 +74,11 @@ export function useStrategies() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
-      toast({ title: 'Estratégia criada com sucesso!' });
+      toast({ title: 'Estratégia criada com sucesso!', description: 'Sua jornada de vendas foi salva.' });
     },
-    onError: () => {
-      toast({ title: 'Erro ao criar estratégia', variant: 'destructive' });
+    onError: (error) => {
+      console.error('Error creating strategy:', error);
+      toast({ title: 'Erro ao criar estratégia', description: 'Verifique sua conexão e tente novamente.', variant: 'destructive' });
     },
   });
 
@@ -99,10 +100,11 @@ export function useStrategies() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
-      toast({ title: 'Estratégia salva com sucesso!' });
+      toast({ title: 'Estratégia salva com sucesso!', description: 'Alterações persistidas.' });
     },
-    onError: () => {
-      toast({ title: 'Erro ao salvar estratégia', variant: 'destructive' });
+    onError: (error) => {
+      console.error('Error updating strategy:', error);
+      toast({ title: 'Erro ao salvar estratégia', description: 'Verifique sua conexão e tente novamente.', variant: 'destructive' });
     },
   });
 

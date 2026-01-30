@@ -9,34 +9,46 @@ import {
   Heart, 
   Package,
   Users,
-  TrendingUp
+  TrendingUp,
+  Database
 } from "lucide-react";
 
-const typeConfig = {
+export const typeConfig = {
+  'base-leads': {
+    icon: Database,
+    color: 'border-cyan-500 bg-cyan-500/10',
+    badgeColor: 'bg-cyan-500 text-white',
+    label: 'Base de Leads'
+  },
   'low-ticket': { 
     icon: ShoppingCart, 
     color: 'border-blue-500 bg-blue-500/10',
-    badgeColor: 'bg-blue-500 text-white'
+    badgeColor: 'bg-blue-500 text-white',
+    label: 'Low-Ticket'
   },
   'evento': { 
     icon: Calendar, 
     color: 'border-purple-500 bg-purple-500/10',
-    badgeColor: 'bg-purple-500 text-white'
+    badgeColor: 'bg-purple-500 text-white',
+    label: 'Evento'
   },
   'pitch': { 
     icon: Target, 
     color: 'border-orange-500 bg-orange-500/10',
-    badgeColor: 'bg-orange-500 text-white'
+    badgeColor: 'bg-orange-500 text-white',
+    label: 'Pitch/Oferta'
   },
   'mentoria': { 
     icon: Heart, 
     color: 'border-green-500 bg-green-500/10',
-    badgeColor: 'bg-green-500 text-white'
+    badgeColor: 'bg-green-500 text-white',
+    label: 'Mentoria'
   },
   'produto-fisico': { 
     icon: Package, 
     color: 'border-pink-500 bg-pink-500/10',
-    badgeColor: 'bg-pink-500 text-white'
+    badgeColor: 'bg-pink-500 text-white',
+    label: 'Produto Físico'
   },
 };
 
@@ -53,16 +65,19 @@ function StrategyNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as StrategyNodeData;
   const config = typeConfig[nodeData.type] || typeConfig['low-ticket'];
   const Icon = config.icon;
+  const isBaseLeads = nodeData.type === 'base-leads';
 
   return (
     <>
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        className="!w-3 !h-3 !bg-primary !border-2 !border-background"
-      />
+      {!isBaseLeads && (
+        <Handle 
+          type="target" 
+          position={Position.Left} 
+          className="!w-3 !h-3 !bg-primary !border-2 !border-background"
+        />
+      )}
       
-      <Card className={`min-w-[180px] border-2 ${config.color} ${selected ? 'ring-2 ring-primary ring-offset-2' : ''} transition-all hover:shadow-lg`}>
+      <Card className={`min-w-[200px] border-2 ${config.color} ${selected ? 'ring-2 ring-primary ring-offset-2' : ''} transition-all hover:shadow-lg`}>
         <CardContent className="p-3">
           <div className="flex items-center gap-2 mb-2">
             <div className={`w-8 h-8 rounded-lg ${config.badgeColor} flex items-center justify-center`}>
