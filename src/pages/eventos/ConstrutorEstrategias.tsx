@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -101,8 +101,23 @@ export default function ConstrutorEstrategias() {
   const [strategyName, setStrategyName] = useState('Nova Estratégia');
   const [currentStrategyId, setCurrentStrategyId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
 
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
+
+  // Carregar automaticamente a última estratégia salva
+  useEffect(() => {
+    if (!isLoading && strategies.length > 0 && !hasLoadedInitial) {
+      const lastStrategy = strategies[0]; // Já ordenadas por updated_at desc
+      setCurrentStrategyId(lastStrategy.id);
+      setStrategyName(lastStrategy.name);
+      setNodes(lastStrategy.nodes.length > 0 ? lastStrategy.nodes : getDefaultNodes());
+      setEdges(lastStrategy.edges);
+      setHasLoadedInitial(true);
+    } else if (!isLoading && strategies.length === 0 && !hasLoadedInitial) {
+      setHasLoadedInitial(true);
+    }
+  }, [isLoading, strategies, hasLoadedInitial, setNodes, setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({
