@@ -32,6 +32,9 @@ import Conversas from "./pages/comunicacao/Conversas";
 
 // Entrega
 import MeusCursos from "./pages/entrega/MeusCursos";
+
+// Conexões
+import Conexoes from "./pages/Conexoes";
 import MinhasMentorias from "./pages/entrega/MinhasMentorias";
 import PainelMentor from "./pages/entrega/PainelMentor";
 import PainelProdutor from "./pages/entrega/PainelProdutor";
@@ -97,6 +100,9 @@ function AppLayout() {
                 <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
                 <Route path="/entrega/mentor" element={<PainelMentor />} />
                 <Route path="/entrega/produtor" element={<PainelProdutor />} />
+
+                {/* Conexões */}
+                <Route path="/conexoes" element={<Conexoes />} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

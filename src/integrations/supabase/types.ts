@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      connections: {
+        Row: {
+          api_key_encrypted: string | null
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          provider: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          provider: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lead_sources: {
+        Row: {
+          cached_count: number | null
+          connection_id: string | null
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          name: string
+          provider: string | null
+          reference_id: string | null
+          reference_name: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cached_count?: number | null
+          connection_id?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          name: string
+          provider?: string | null
+          reference_id?: string | null
+          reference_name?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cached_count?: number | null
+          connection_id?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+          provider?: string | null
+          reference_id?: string | null
+          reference_name?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_sources_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strategies: {
         Row: {
           created_at: string

@@ -21,7 +21,8 @@ import {
   Crown,
   ChevronRight,
   Sparkles,
-  LogOut
+  LogOut,
+  Plug
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -92,6 +93,13 @@ const menuStructure = [
       { title: "Minhas Mentorias", url: "/entrega/mentorias", icon: Heart },
       { title: "Painel do Mentor", url: "/entrega/mentor", icon: UserCog },
       { title: "Painel do Produtor", url: "/entrega/produtor", icon: Crown },
+    ],
+  },
+  {
+    title: "Conexões",
+    icon: Plug,
+    items: [
+      { title: "Integrações", url: "/conexoes", icon: Plug },
     ],
   },
 ];
