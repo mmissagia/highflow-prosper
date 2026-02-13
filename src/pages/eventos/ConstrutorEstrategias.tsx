@@ -23,16 +23,10 @@ import {
   Save, 
   Trash2, 
   FolderOpen,
-  ShoppingCart,
-  Calendar,
-  Target,
-  Heart,
-  Package,
   ArrowRight,
   Sparkles,
   FileText,
   Loader2,
-  Database
 } from "lucide-react";
 import {
   Dialog,
@@ -43,21 +37,13 @@ import {
 } from "@/components/ui/dialog";
 
 import StrategyNode from '@/components/estrategias/StrategyNode';
+import ElementPanel, { type ElementType } from '@/components/estrategias/ElementPanel';
+import { computeEdgesWithConversion } from '@/components/estrategias/useEdgeConversion';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
 };
-
-// Tipos de elementos disponíveis
-const elementTypes = [
-  { type: 'base-leads', label: 'Base de Leads', icon: Database, color: 'bg-cyan-500' },
-  { type: 'low-ticket', label: 'Low-Ticket', icon: ShoppingCart, color: 'bg-blue-500' },
-  { type: 'evento', label: 'Evento', icon: Calendar, color: 'bg-purple-500' },
-  { type: 'pitch', label: 'Pitch/Oferta', icon: Target, color: 'bg-orange-500' },
-  { type: 'mentoria', label: 'Mentoria', icon: Heart, color: 'bg-green-500' },
-  { type: 'produto-fisico', label: 'Produto Físico', icon: Package, color: 'bg-pink-500' },
-];
 
 const getDefaultNodes = (): Node[] => [
   {
@@ -73,7 +59,7 @@ const getDefaultNodes = (): Node[] => [
   {
     id: '2',
     type: 'strategyNode',
-    position: { x: 300, y: 200 },
+    position: { x: 320, y: 200 },
     data: { 
       label: 'E-book Gratuito', 
       type: 'low-ticket',
@@ -88,10 +74,8 @@ const getDefaultEdges = (): Edge[] => [
     source: '1',
     target: '2',
     animated: true,
-    style: { stroke: 'hsl(221 83% 53%)' },
+    style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
     markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
-    label: '→',
-    labelStyle: { fill: 'hsl(var(--muted-foreground))', fontWeight: 500 },
   },
 ];
 
@@ -105,10 +89,10 @@ export default function ConstrutorEstrategias() {
 
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
 
-  // Carregar automaticamente a última estratégia salva
+  // Auto-load last saved strategy
   useEffect(() => {
     if (!isLoading && strategies.length > 0 && !hasLoadedInitial) {
-      const lastStrategy = strategies[0]; // Já ordenadas por updated_at desc
+      const lastStrategy = strategies[0];
       setCurrentStrategyId(lastStrategy.id);
       setStrategyName(lastStrategy.name);
       setNodes(lastStrategy.nodes.length > 0 ? lastStrategy.nodes : getDefaultNodes());
@@ -119,18 +103,28 @@ export default function ConstrutorEstrategias() {
     }
   }, [isLoading, strategies, hasLoadedInitial, setNodes, setEdges]);
 
+  // Auto-compute conversion on edges whenever nodes change
+  useEffect(() => {
+    setEdges((eds) => computeEdgesWithConversion(nodes, eds));
+  }, [nodes, setEdges]);
+
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({
-      ...params,
-      animated: true,
-      style: { stroke: 'hsl(221 83% 53%)' },
-      markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
-    }, eds)),
-    [setEdges],
+    (params: Connection) => {
+      setEdges((eds) => {
+        const newEdges = addEdge({
+          ...params,
+          animated: true,
+          style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+        }, eds);
+        return computeEdgesWithConversion(nodes, newEdges);
+      });
+    },
+    [setEdges, nodes],
   );
 
-  const addNode = (elementType: typeof elementTypes[0]) => {
-    const newNode = {
+  const addNode = (element: ElementType) => {
+    const newNode: Node = {
       id: `node-${Date.now()}`,
       type: 'strategyNode',
       position: { 
@@ -138,8 +132,8 @@ export default function ConstrutorEstrategias() {
         y: Math.random() * 300 + 100 
       },
       data: { 
-        label: `Novo ${elementType.label}`, 
-        type: elementType.type,
+        label: element.label, 
+        type: element.type,
         metrics: { leads: 0, conversao: '0%' }
       },
     };
@@ -147,11 +141,10 @@ export default function ConstrutorEstrategias() {
   };
 
   const deleteSelectedNodes = () => {
+    const selectedIds = nodes.filter((n) => n.selected).map((n) => n.id);
+    if (selectedIds.length === 0) return;
     setNodes((nds) => nds.filter((node) => !node.selected));
-    setEdges((eds) => {
-      const selectedNodeIds = nodes.filter((n) => n.selected).map((n) => n.id);
-      return eds.filter((edge) => !selectedNodeIds.includes(edge.source) && !selectedNodeIds.includes(edge.target));
-    });
+    setEdges((eds) => eds.filter((e) => !selectedIds.includes(e.source) && !selectedIds.includes(e.target)));
   };
 
   const loadStrategy = (strategy: Strategy) => {
@@ -164,21 +157,10 @@ export default function ConstrutorEstrategias() {
 
   const handleSave = () => {
     if (currentStrategyId) {
-      updateStrategy.mutate({ 
-        id: currentStrategyId, 
-        name: strategyName, 
-        nodes, 
-        edges 
-      });
+      updateStrategy.mutate({ id: currentStrategyId, name: strategyName, nodes, edges });
     } else {
-      createStrategy.mutate({ 
-        name: strategyName, 
-        nodes, 
-        edges 
-      }, {
-        onSuccess: (data) => {
-          setCurrentStrategyId(data.id);
-        }
+      createStrategy.mutate({ name: strategyName, nodes, edges }, {
+        onSuccess: (data) => setCurrentStrategyId(data.id),
       });
     }
   };
@@ -193,44 +175,37 @@ export default function ConstrutorEstrategias() {
   const handleDeleteStrategy = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     deleteStrategy.mutate(id);
-    if (currentStrategyId === id) {
-      handleNewStrategy();
-    }
+    if (currentStrategyId === id) handleNewStrategy();
   };
 
   const isSaving = createStrategy.isPending || updateStrategy.isPending;
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col gap-4">
-      {/* Header */}
+    <div className="h-[calc(100vh-8rem)] flex flex-col gap-3">
+      {/* Compact Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <Input 
-                value={strategyName}
-                onChange={(e) => setStrategyName(e.target.value)}
-                className="text-2xl font-bold border-none bg-transparent p-0 h-auto focus-visible:ring-0"
-              />
-            </div>
-            <p className="text-muted-foreground text-sm">
-              Arraste para mover • Conecte os nós para criar a jornada
-              {currentStrategyId && <span className="ml-2 text-primary">(Editando)</span>}
-            </p>
-          </div>
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-5 h-5 text-primary shrink-0" />
+          <Input 
+            value={strategyName}
+            onChange={(e) => setStrategyName(e.target.value)}
+            className="text-lg font-bold border-none bg-transparent p-0 h-auto focus-visible:ring-0 max-w-[280px]"
+          />
+          {currentStrategyId && (
+            <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">Editando</span>
+          )}
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleNewStrategy}>
-            <FileText className="w-4 h-4" />
+        <div className="flex items-center gap-1.5">
+          <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={handleNewStrategy}>
+            <FileText className="w-3.5 h-3.5" />
             Nova
           </Button>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <FolderOpen className="w-4 h-4" />
+              <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
+                <FolderOpen className="w-3.5 h-3.5" />
                 Carregar
               </Button>
             </DialogTrigger>
@@ -238,7 +213,7 @@ export default function ConstrutorEstrategias() {
               <DialogHeader>
                 <DialogTitle>Estratégias Salvas</DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2 mt-4 max-h-[60vh] overflow-y-auto">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -254,23 +229,23 @@ export default function ConstrutorEstrategias() {
                       className={`cursor-pointer hover:bg-muted/50 transition-colors ${currentStrategyId === strategy.id ? 'ring-2 ring-primary' : ''}`}
                       onClick={() => loadStrategy(strategy)}
                     >
-                      <CardContent className="p-4 flex items-center justify-between">
+                      <CardContent className="p-3 flex items-center justify-between">
                         <div>
-                          <p className="font-medium">{strategy.name}</p>
+                          <p className="font-medium text-sm">{strategy.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {strategy.nodes.length} elementos • Atualizada em {new Date(strategy.updated_at).toLocaleDateString('pt-BR')}
+                            {strategy.nodes.length} elementos • {new Date(strategy.updated_at).toLocaleDateString('pt-BR')}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
                             onClick={(e) => handleDeleteStrategy(strategy.id, e)}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
-                          <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                          <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                       </CardContent>
                     </Card>
@@ -280,19 +255,19 @@ export default function ConstrutorEstrategias() {
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline" className="gap-2" onClick={deleteSelectedNodes}>
-            <Trash2 className="w-4 h-4" />
-            Excluir Selecionado
+          <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive" onClick={deleteSelectedNodes}>
+            <Trash2 className="w-3.5 h-3.5" />
+            Excluir
           </Button>
           
-          <Button className="gap-2" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Salvar Estratégia
+          <Button size="sm" className="gap-1.5 text-xs" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Salvar
           </Button>
         </div>
       </div>
 
-      {/* Canvas Principal */}
+      {/* Canvas */}
       <Card className="flex-1 overflow-hidden">
         <ReactFlow
           nodes={nodes}
@@ -309,56 +284,32 @@ export default function ConstrutorEstrategias() {
             className="bg-background border border-border rounded-lg"
             nodeColor={(node) => {
               const type = node.data?.type as string;
-              switch (type) {
-                case 'low-ticket': return 'hsl(221, 83%, 53%)';
-                case 'evento': return 'hsl(280, 65%, 60%)';
-                case 'pitch': return 'hsl(38, 92%, 50%)';
-                case 'mentoria': return 'hsl(160, 84%, 39%)';
-                case 'produto-fisico': return 'hsl(340, 75%, 55%)';
-                default: return 'hsl(215, 16%, 47%)';
-              }
+              const colorMap: Record<string, string> = {
+                'base-leads': 'hsl(188, 78%, 41%)',
+                'low-ticket': 'hsl(221, 83%, 53%)',
+                'crm': 'hsl(239, 84%, 67%)',
+                'evento': 'hsl(280, 65%, 60%)',
+                'pitch': 'hsl(38, 92%, 50%)',
+                'checkout': 'hsl(160, 84%, 39%)',
+                'mentoria': 'hsl(142, 71%, 45%)',
+                'curso': 'hsl(168, 76%, 42%)',
+                'produto-fisico': 'hsl(340, 75%, 55%)',
+              };
+              return colorMap[type] || 'hsl(215, 16%, 47%)';
             }}
           />
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
           
-          {/* Painel de Elementos */}
+          {/* Retractable Element Panel */}
           <Panel position="top-left" className="m-2">
-            <Card className="p-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">
-                Adicionar Elemento
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {elementTypes.map((el) => (
-                  <Button
-                    key={el.type}
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5 text-xs"
-                    onClick={() => addNode(el)}
-                  >
-                    <el.icon className="w-3.5 h-3.5" />
-                    {el.label}
-                  </Button>
-                ))}
-              </div>
-            </Card>
+            <ElementPanel onAddNode={addNode} />
           </Panel>
 
-          {/* Legenda */}
-          <Panel position="bottom-left" className="m-2">
-            <Card className="p-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">
-                Legenda
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {elementTypes.map((el) => (
-                  <div key={el.type} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded ${el.color}`} />
-                    <span className="text-xs">{el.label}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
+          {/* Dica sutil */}
+          <Panel position="bottom-right" className="m-2">
+            <p className="text-[10px] text-muted-foreground bg-background/80 px-2 py-1 rounded">
+              Duplo-clique para editar • Arraste para conectar
+            </p>
           </Panel>
         </ReactFlow>
       </Card>
