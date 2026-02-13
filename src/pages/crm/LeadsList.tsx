@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Search, Filter, Download, Plus, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import LeadSourceSelector from "@/components/crm/LeadSourceSelector";
 
 const mockLeads = [
   { id: 1, name: "João Silva", origin: "Meta Ads", stage: "Engajado", score: 85, iem: 78, totalPurchased: 5000, cac: 150, ltv: 15000, cacLtv: 100, roas: 10, lastInteraction: "2h atrás" },
@@ -55,6 +56,8 @@ export default function LeadsList() {
           </Button>
         </div>
       </div>
+
+      <LeadSourceSelector />
 
       <Card>
         <CardHeader>
