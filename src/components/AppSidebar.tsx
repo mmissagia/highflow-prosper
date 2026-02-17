@@ -7,9 +7,7 @@ import {
   Eye,
   Kanban,
   List,
-  UserCircle,
   CalendarDays,
-  FileEdit,
   Megaphone,
   Zap,
   PenTool,
@@ -25,10 +23,13 @@ import {
   PhoneCall,
   UsersRound,
   Activity,
-  BarChart3,
+  Gauge,
   DollarSign,
   Calendar,
   FileBarChart,
+  BarChart3,
+  Shield,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -59,10 +60,12 @@ const menuGroups = [
     label: "📊 Performance",
     groups: [
       {
-        title: "Dashboard",
+        title: "Performance",
         icon: LayoutDashboard,
         items: [
           { title: "Visão Geral", url: "/", icon: Eye },
+          { title: "Relatórios", url: "/performance/relatorios", icon: FileBarChart },
+          { title: "Indicadores", url: "/performance/indicadores", icon: BarChart3 },
         ],
       },
     ],
@@ -76,7 +79,6 @@ const menuGroups = [
         items: [
           { title: "Pipeline", url: "/crm/pipeline", icon: Kanban },
           { title: "Lista de Leads", url: "/crm/leads", icon: List },
-          { title: "Ficha do Lead", url: "/crm/lead", icon: UserCircle },
         ],
       },
       {
@@ -95,12 +97,12 @@ const menuGroups = [
     label: "📞 Comercial",
     groups: [
       {
-        title: "Comercial",
+        title: "Operação Comercial",
         icon: PhoneCall,
         items: [
           { title: "Equipe", url: "/comercial/equipe", icon: UsersRound },
           { title: "Atividades", url: "/comercial/atividades", icon: Activity },
-          { title: "Performance", url: "/comercial/performance", icon: BarChart3 },
+          { title: "Produtividade", url: "/comercial/produtividade", icon: Gauge },
           { title: "Comissões", url: "/comercial/comissoes", icon: DollarSign },
           { title: "Agenda", url: "/comercial/agenda", icon: Calendar },
           { title: "Relatórios", url: "/comercial/relatorios", icon: FileBarChart },
@@ -115,7 +117,7 @@ const menuGroups = [
         title: "Monetização",
         icon: TrendingUp,
         items: [
-          { title: "Produtos", url: "/eventos/pitch", icon: FileEdit },
+          { title: "Produtos", url: "/eventos/pitch", icon: DollarSign },
           { title: "Construtor de Estratégias", url: "/eventos/estrategias", icon: Sparkles },
         ],
       },
@@ -146,6 +148,8 @@ const menuGroups = [
         icon: Plug,
         items: [
           { title: "Integrações", url: "/conexoes", icon: Plug },
+          { title: "Segurança", url: "/infra/seguranca", icon: Shield },
+          { title: "Configurações", url: "/infra/configuracoes", icon: Settings },
         ],
       },
     ],
@@ -173,7 +177,7 @@ export function AppSidebar() {
             {state === "expanded" && (
               <div>
                 <h1 className="text-xl font-bold text-sidebar-foreground">HighFlow</h1>
-                <p className="text-xs text-sidebar-foreground/60">High-Ticket Platform</p>
+                <p className="text-xs text-sidebar-foreground/60">Plataforma High-Ticket</p>
               </div>
             )}
           </div>

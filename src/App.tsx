@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
 import { Loader2 } from "lucide-react";
 
 // Pages
@@ -70,63 +71,74 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppLayout() {
   return (
     <ProtectedRoute>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col">
-            <header className="h-16 border-b border-border bg-background flex items-center px-6">
-              <SidebarTrigger className="mr-4" />
-            </header>
-            <main className="flex-1 p-6 bg-muted/30">
-              <Routes>
-                {/* Dashboard */}
-                <Route path="/" element={<Dashboard />} />
+      <GlobalFilterProvider>
+        <SidebarProvider>
+          <div className="min-h-screen flex w-full">
+            <AppSidebar />
+            <div className="flex-1 flex flex-col">
+              <header className="h-16 border-b border-border bg-background flex items-center px-6">
+                <SidebarTrigger className="mr-4" />
+              </header>
+              <main className="flex-1 p-6 bg-muted/30">
+                <Routes>
+                  {/* Dashboard */}
+                  <Route path="/" element={<Dashboard />} />
 
-                {/* CRM */}
-                <Route path="/crm/pipeline" element={<Pipeline />} />
-                <Route path="/crm/leads" element={<LeadsList />} />
-                <Route path="/crm/lead" element={<LeadDetail />} />
-                <Route path="/crm/lead/:id" element={<LeadDetail />} />
+                  {/* Performance */}
+                  <Route path="/performance/relatorios" element={<Relatorios />} />
+                  <Route path="/performance/indicadores" element={<Dashboard />} />
 
-                {/* Comercial */}
-                <Route path="/comercial/equipe" element={<Equipe />} />
-                <Route path="/comercial/atividades" element={<Atividades />} />
-                <Route path="/comercial/performance" element={<PerformanceComercial />} />
-                <Route path="/comercial/comissoes" element={<Comissoes />} />
-                <Route path="/comercial/agenda" element={<Agenda />} />
-                <Route path="/comercial/relatorios" element={<Relatorios />} />
+                  {/* CRM */}
+                  <Route path="/crm/pipeline" element={<Pipeline />} />
+                  <Route path="/crm/leads" element={<LeadsList />} />
+                  <Route path="/crm/lead" element={<LeadDetail />} />
+                  <Route path="/crm/lead/:id" element={<LeadDetail />} />
 
-                {/* Eventos */}
-                <Route path="/eventos" element={<EventosList />} />
-                <Route path="/eventos/detalhe" element={<EventoDetail />} />
-                <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
-                <Route path="/eventos/pitch" element={<PitchEditor />} />
-                <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
-                <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
+                  {/* Comercial */}
+                  <Route path="/comercial/equipe" element={<Equipe />} />
+                  <Route path="/comercial/atividades" element={<Atividades />} />
+                  <Route path="/comercial/produtividade" element={<PerformanceComercial />} />
+                  <Route path="/comercial/performance" element={<PerformanceComercial />} />
+                  <Route path="/comercial/comissoes" element={<Comissoes />} />
+                  <Route path="/comercial/agenda" element={<Agenda />} />
+                  <Route path="/comercial/relatorios" element={<Relatorios />} />
 
-                {/* Comunicação */}
-                <Route path="/comunicacao/campanhas" element={<Campanhas />} />
-                <Route path="/comunicacao/automacoes" element={<Automacoes />} />
-                <Route path="/comunicacao/editor" element={<EditorMensagens />} />
-                <Route path="/comunicacao/conversas" element={<Conversas />} />
+                  {/* Eventos */}
+                  <Route path="/eventos" element={<EventosList />} />
+                  <Route path="/eventos/detalhe" element={<EventoDetail />} />
+                  <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
+                  <Route path="/eventos/pitch" element={<PitchEditor />} />
+                  <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
+                  <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
 
-                {/* Entrega */}
-                <Route path="/entrega/cursos" element={<MeusCursos />} />
-                <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
-                <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
-                <Route path="/entrega/mentorias-ht" element={<MinhasMentorias />} />
-                <Route path="/entrega/mentor" element={<PainelMentor />} />
-                <Route path="/entrega/produtor" element={<PainelProdutor />} />
+                  {/* Comunicação */}
+                  <Route path="/comunicacao/campanhas" element={<Campanhas />} />
+                  <Route path="/comunicacao/automacoes" element={<Automacoes />} />
+                  <Route path="/comunicacao/editor" element={<EditorMensagens />} />
+                  <Route path="/comunicacao/conversas" element={<Conversas />} />
 
-                {/* Conexões */}
-                <Route path="/conexoes" element={<Conexoes />} />
+                  {/* Entrega */}
+                  <Route path="/entrega/cursos" element={<MeusCursos />} />
+                  <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
+                  <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
+                  <Route path="/entrega/mentorias-ht" element={<MinhasMentorias />} />
+                  <Route path="/entrega/mentor" element={<PainelMentor />} />
+                  <Route path="/entrega/produtor" element={<PainelProdutor />} />
 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
+                  {/* Conexões */}
+                  <Route path="/conexoes" element={<Conexoes />} />
+
+                  {/* Infraestrutura placeholders */}
+                  <Route path="/infra/seguranca" element={<NotFound />} />
+                  <Route path="/infra/configuracoes" element={<NotFound />} />
+
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+            </div>
           </div>
-        </div>
-      </SidebarProvider>
+        </SidebarProvider>
+      </GlobalFilterProvider>
     </ProtectedRoute>
   );
 }
