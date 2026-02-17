@@ -40,6 +40,10 @@ import PainelProdutor from "./pages/entrega/PainelProdutor";
 // Conexões
 import Conexoes from "./pages/Conexoes";
 
+// Infraestrutura
+import Seguranca from "./pages/infra/Seguranca";
+import Configuracoes from "./pages/infra/Configuracoes";
+
 // Comercial
 import Equipe from "./pages/comercial/Equipe";
 import Atividades from "./pages/comercial/Atividades";
@@ -128,9 +132,9 @@ function AppLayout() {
                   {/* Conexões */}
                   <Route path="/conexoes" element={<Conexoes />} />
 
-                  {/* Infraestrutura placeholders */}
-                  <Route path="/infra/seguranca" element={<NotFound />} />
-                  <Route path="/infra/configuracoes" element={<NotFound />} />
+                  {/* Infraestrutura */}
+                  <Route path="/infra/seguranca" element={<Seguranca />} />
+                  <Route path="/infra/configuracoes" element={<Configuracoes />} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
