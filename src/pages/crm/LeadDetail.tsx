@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { MetricCard } from "@/components/MetricCard";
+import { GlobalContextSelector } from "@/components/GlobalContextSelector";
 
 const leadData = {
   id: 1,
@@ -84,6 +85,8 @@ export default function LeadDetail() {
           <p className="text-muted-foreground">Visualização completa e ações contextuais</p>
         </div>
       </div>
+
+      <GlobalContextSelector />
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
@@ -297,6 +300,37 @@ export default function LeadDetail() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Melhor Canal</p>
                 <p className="text-sm">{leadData.aiSuggestions.bestChannel}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Responsável + Handoff */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Responsável</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">AR</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">Ana Ribeiro</p>
+                  <Badge variant="outline" className="text-xs">SDR</Badge>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <ArrowLeft className="h-3 w-3 rotate-180" />
+                <span>Handoff para Closer</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="text-xs bg-success/10 text-success">RC</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">Rafael Costa</p>
+                  <Badge variant="outline" className="text-xs">Closer</Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
