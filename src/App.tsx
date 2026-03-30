@@ -8,6 +8,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
+import { AIAgentFab } from "@/components/ai-agent/AIAgentFab";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
