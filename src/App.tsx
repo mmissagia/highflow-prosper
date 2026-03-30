@@ -146,7 +146,7 @@ function AppLayout() {
               </main>
             </div>
           </div>
-          <AIAgentFab onClick={() => setAiPanelOpen(true)} alertCount={5} />
+          <AIAgentFab onClick={() => setAiPanelOpen(true)} alertCount={8} />
           <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} />
         </SidebarProvider>
       </GlobalFilterProvider>
