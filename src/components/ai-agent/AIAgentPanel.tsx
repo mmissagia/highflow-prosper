@@ -19,7 +19,7 @@ interface AIAgentPanelProps {
 export function AIAgentPanel({ open, onOpenChange }: AIAgentPanelProps) {
   const [activeTab, setActiveTab] = useState("briefing");
   const [quickMessage, setQuickMessage] = useState("");
-  const alertCount = 5;
+  const alertCount = 8;
 
   const handleQuickSend = () => {
     if (!quickMessage.trim()) return;
