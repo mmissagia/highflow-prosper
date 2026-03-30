@@ -8,6 +8,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
+import { AIAgentFab } from "@/components/ai-agent/AIAgentFab";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -73,6 +76,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppLayout() {
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+
   return (
     <ProtectedRoute>
       <GlobalFilterProvider>
@@ -141,6 +146,8 @@ function AppLayout() {
               </main>
             </div>
           </div>
+          <AIAgentFab onClick={() => setAiPanelOpen(true)} alertCount={5} />
+          <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} />
         </SidebarProvider>
       </GlobalFilterProvider>
     </ProtectedRoute>
