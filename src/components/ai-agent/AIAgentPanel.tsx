@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Brain, Send, Sparkles, Phone, Users, TrendingUp, DollarSign, AlertTriangle, Zap, MessageSquare, FileText } from "lucide-react";
+import { X, Brain, Send, AlertTriangle, Zap, MessageSquare, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
