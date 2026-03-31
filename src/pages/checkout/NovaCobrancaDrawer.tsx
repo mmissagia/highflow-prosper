@@ -91,6 +91,19 @@ export function NovaCobrancaDrawer({
   const [notes, setNotes] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
 
+  // Prefill lead when prop provided
+  useEffect(() => {
+    if (open && prefilledLead) {
+      const match = mockLeads.find(
+        (l) => l.name === prefilledLead.name || l.email === prefilledLead.email
+      );
+      if (match) {
+        setSelectedLeadId(match.id);
+        setTotalValue(prefilledLead.pipelineValue);
+      }
+    }
+  }, [open, prefilledLead]);
+
   const selectedLead = mockLeads.find((l) => l.id === selectedLeadId);
 
   const discountAmount = useMemo(() => {
