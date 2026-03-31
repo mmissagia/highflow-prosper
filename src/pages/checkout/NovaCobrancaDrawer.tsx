@@ -1,0 +1,451 @@
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
+import { CalendarIcon, Plus, Trash2, Check, Copy, MessageCircle, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+
+const mockLeads = [
+  { id: "1", name: "João Silva", email: "joao@email.com", pipelineValue: 25000 },
+  { id: "2", name: "Maria Santos", email: "maria@email.com", pipelineValue: 50000 },
+  { id: "3", name: "Pedro Costa", email: "pedro@email.com", pipelineValue: 15000 },
+  { id: "4", name: "Ana Oliveira", email: "ana@email.com", pipelineValue: 35000 },
+  { id: "5", name: "Carlos Mendes", email: "carlos@email.com", pipelineValue: 12000 },
+  { id: "6", name: "Fernanda Lima", email: "fernanda@email.com", pipelineValue: 42000 },
+];
+
+const mockProducts = [
+  "Mentoria Elite",
+  "Mastermind Premium",
+  "Consultoria 1:1",
+  "Imersão Presencial",
+];
+
+const mockClosers = [
+  { id: "c1", name: "Ana Ribeiro", initials: "AR" },
+  { id: "c2", name: "Rafael Costa", initials: "RC" },
+  { id: "c3", name: "Lucas Martins", initials: "LM" },
+];
+
+type PaymentLineType = "pix" | "cartao" | "tmb";
+
+interface PaymentLine {
+  id: string;
+  type: PaymentLineType;
+  value: number;
+  installments: number;
+  firstDue: string;
+}
+
+interface InvoiceResult {
+  clientName: string;
+  clientEmail: string;
+  value: number;
+  description: string;
+  paymentMethods: ("pix" | "cartao" | "tmb")[];
+  closerName: string;
+  closerInitials: string;
+  dueDate: string;
+}
+
+const formatCurrency = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+
+export function NovaCobrancaDrawer({
+  open,
+  onOpenChange,
+  onInvoiceCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onInvoiceCreated: (inv: InvoiceResult) => void;
+}) {
+  const [step, setStep] = useState<"form" | "confirmation">("form");
+  const [selectedLeadId, setSelectedLeadId] = useState("");
+  const [product, setProduct] = useState("");
+  const [customProduct, setCustomProduct] = useState("");
+  const [totalValue, setTotalValue] = useState(0);
+  const [discountEnabled, setDiscountEnabled] = useState(false);
+  const [discountType, setDiscountType] = useState<"percent" | "fixed">("percent");
+  const [discountValue, setDiscountValue] = useState(0);
+  const [couponCode, setCouponCode] = useState("");
+  const [paymentLines, setPaymentLines] = useState<PaymentLine[]>([]);
+  const [closerId, setCloserId] = useState("c1");
+  const [dueDate, setDueDate] = useState<Date>();
+  const [notes, setNotes] = useState("");
+  const [generatedLink, setGeneratedLink] = useState("");
+
+  const selectedLead = mockLeads.find((l) => l.id === selectedLeadId);
+
+  const discountAmount = useMemo(() => {
+    if (!discountEnabled || discountValue <= 0) return 0;
+    return discountType === "percent" ? (totalValue * discountValue) / 100 : discountValue;
+  }, [discountEnabled, discountType, discountValue, totalValue]);
+
+  const finalValue = totalValue - discountAmount;
+
+  const paymentSum = paymentLines.reduce((s, l) => s + l.value, 0);
+  const paymentDiff = finalValue - paymentSum;
+
+  const addPaymentLine = () => {
+    setPaymentLines((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), type: "pix", value: 0, installments: 1, firstDue: "" },
+    ]);
+  };
+
+  const updateLine = (id: string, field: keyof PaymentLine, val: string | number) => {
+    setPaymentLines((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, [field]: val } : l))
+    );
+  };
+
+  const removeLine = (id: string) => {
+    setPaymentLines((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  const reset = () => {
+    setStep("form");
+    setSelectedLeadId("");
+    setProduct("");
+    setCustomProduct("");
+    setTotalValue(0);
+    setDiscountEnabled(false);
+    setDiscountValue(0);
+    setCouponCode("");
+    setPaymentLines([]);
+    setCloserId("c1");
+    setDueDate(undefined);
+    setNotes("");
+    setGeneratedLink("");
+  };
+
+  const handleGenerate = () => {
+    const closer = mockClosers.find((c) => c.id === closerId)!;
+    const desc = product === "__custom" ? customProduct : product;
+    const methods = [...new Set(paymentLines.map((l) => l.type))];
+
+    const link = `https://z2pay.co/cht/${crypto.randomUUID().slice(0, 8)}`;
+    setGeneratedLink(link);
+
+    onInvoiceCreated({
+      clientName: selectedLead?.name || "Cliente",
+      clientEmail: selectedLead?.email || "",
+      value: finalValue,
+      description: desc || "Cobrança avulsa",
+      paymentMethods: methods.length > 0 ? methods : ["pix"],
+      closerName: closer.name,
+      closerInitials: closer.initials,
+      dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+    });
+
+    setStep("confirmation");
+  };
+
+  const handleClose = (v: boolean) => {
+    if (!v) reset();
+    onOpenChange(v);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={handleClose}>
+      <SheetContent className="w-full sm:max-w-[500px] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-xl">Nova Cobrança</SheetTitle>
+          <SheetDescription>Crie uma fatura individualizada para um lead específico.</SheetDescription>
+        </SheetHeader>
+
+        {step === "form" ? (
+          <div className="mt-6 space-y-6">
+            {/* Lead */}
+            <div className="space-y-2">
+              <Label>Lead vinculado</Label>
+              <Select value={selectedLeadId} onValueChange={(v) => {
+                setSelectedLeadId(v);
+                const lead = mockLeads.find((l) => l.id === v);
+                if (lead) setTotalValue(lead.pipelineValue);
+              }}>
+                <SelectTrigger><SelectValue placeholder="Selecione um lead..." /></SelectTrigger>
+                <SelectContent>
+                  {mockLeads.map((l) => (
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.name} — {l.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedLead && (
+                <div className="rounded-md bg-muted/50 p-3 text-sm">
+                  <p className="font-medium text-foreground">{selectedLead.name}</p>
+                  <p className="text-muted-foreground">{selectedLead.email}</p>
+                  <p className="text-muted-foreground">Valor potencial: {formatCurrency(selectedLead.pipelineValue)}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Product */}
+            <div className="space-y-2">
+              <Label>Produto / Descrição</Label>
+              <Select value={product} onValueChange={setProduct}>
+                <SelectTrigger><SelectValue placeholder="Selecione o produto..." /></SelectTrigger>
+                <SelectContent>
+                  {mockProducts.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                  <SelectItem value="__custom">Outro (texto livre)</SelectItem>
+                </SelectContent>
+              </Select>
+              {product === "__custom" && (
+                <Input
+                  placeholder="Descreva o produto ou serviço"
+                  value={customProduct}
+                  onChange={(e) => setCustomProduct(e.target.value)}
+                />
+              )}
+            </div>
+
+            {/* Total value */}
+            <div className="space-y-2">
+              <Label>Valor total negociado (R$)</Label>
+              <Input
+                type="number"
+                value={totalValue || ""}
+                onChange={(e) => setTotalValue(Number(e.target.value))}
+                placeholder="0"
+              />
+            </div>
+
+            {/* Discount */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Aplicar desconto</Label>
+                <Switch checked={discountEnabled} onCheckedChange={setDiscountEnabled} />
+              </div>
+              {discountEnabled && (
+                <div className="space-y-3 rounded-md border border-border p-3">
+                  <div className="flex gap-2">
+                    <Select value={discountType} onValueChange={(v) => setDiscountType(v as "percent" | "fixed")}>
+                      <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percent">Percentual (%)</SelectItem>
+                        <SelectItem value="fixed">Valor fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      value={discountValue || ""}
+                      onChange={(e) => setDiscountValue(Number(e.target.value))}
+                      placeholder="0"
+                      className="flex-1"
+                    />
+                  </div>
+                  <Input
+                    placeholder="Código do cupom (opcional)"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                  />
+                  {discountAmount > 0 && totalValue > 0 && (
+                    <div className="rounded-md bg-emerald-500/10 p-2 text-sm">
+                      <span className="text-muted-foreground line-through">{formatCurrency(totalValue)}</span>
+                      {" → "}
+                      <span className="font-semibold text-emerald-600">{formatCurrency(finalValue)}</span>
+                      <span className="ml-1 text-muted-foreground">
+                        ({discountType === "percent" ? `${discountValue}% off` : `${formatCurrency(discountAmount)} off`})
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Payment arrangement */}
+            <div className="space-y-3">
+              <Label>Arranjo de pagamento</Label>
+              {paymentLines.map((line) => (
+                <div key={line.id} className="space-y-2 rounded-md border border-border p-3">
+                  <div className="flex items-center gap-2">
+                    <Select value={line.type} onValueChange={(v) => updateLine(line.id, "type", v)}>
+                      <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pix">🟢 Pix</SelectItem>
+                        <SelectItem value="cartao">💳 Cartão Z2Pay</SelectItem>
+                        <SelectItem value="tmb">📄 Boleto TMB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      placeholder="Valor (R$)"
+                      value={line.value || ""}
+                      onChange={(e) => updateLine(line.id, "value", Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeLine(line.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </div>
+                  {(line.type === "cartao" || line.type === "tmb") && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">Parcelas</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={12}
+                          value={line.installments}
+                          onChange={(e) => updateLine(line.id, "installments", Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">1ª parcela</Label>
+                        <Input
+                          type="date"
+                          value={line.firstDue}
+                          onChange={(e) => updateLine(line.id, "firstDue", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {line.type === "cartao" && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Processado via <span className="font-semibold" style={{ color: "#7C3AED" }}>Z2Pay</span> — taxas diferenciadas para high ticket
+                    </p>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addPaymentLine} className="w-full">
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar meio de pagamento
+              </Button>
+              {paymentLines.length > 0 && Math.abs(paymentDiff) > 0.01 && (
+                <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-2 text-sm text-red-600">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {paymentDiff > 0
+                    ? `Faltam ${formatCurrency(paymentDiff)} para completar o valor total`
+                    : `Excede em ${formatCurrency(Math.abs(paymentDiff))}`}
+                </div>
+              )}
+              {paymentLines.length > 0 && Math.abs(paymentDiff) <= 0.01 && (
+                <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-2 text-sm text-emerald-600">
+                  <Check className="h-4 w-4 shrink-0" /> Arranjo completo — {formatCurrency(paymentSum)}
+                </div>
+              )}
+            </div>
+
+            {/* Closer */}
+            <div className="space-y-2">
+              <Label>Closer responsável</Label>
+              <Select value={closerId} onValueChange={setCloserId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {mockClosers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Due date */}
+            <div className="space-y-2">
+              <Label>Vencimento</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label>Observações</Label>
+              <Textarea
+                placeholder="Notas internas sobre esta cobrança..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 pt-2">
+              <Button className="flex-1" onClick={handleGenerate} disabled={!selectedLeadId || totalValue <= 0}>
+                Gerar Link de Pagamento
+              </Button>
+              <Button variant="outline" onClick={() => handleClose(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* Confirmation step */
+          <div className="mt-6 space-y-6">
+            <div className="flex flex-col items-center gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
+                <Check className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-foreground">Link gerado com sucesso!</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Cobrança de {formatCurrency(finalValue)} para {selectedLead?.name}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Link de pagamento</Label>
+              <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-3">
+                <code className="flex-1 truncate text-sm text-foreground">{generatedLink}</code>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigator.clipboard.writeText(generatedLink)}
+              >
+                <Copy className="mr-2 h-4 w-4" /> Copiar Link
+              </Button>
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(generatedLink)}`, "_blank")}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" /> Enviar via WhatsApp
+              </Button>
+            </div>
+
+            <Button variant="outline" className="w-full" onClick={() => handleClose(false)}>
+              Fechar
+            </Button>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
