@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,13 @@ import {
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { NovaCobrancaDrawer } from "./NovaCobrancaDrawer";
+import { NovoLinkProdutoDrawer } from "./NovoLinkProdutoDrawer";
 
 type InvoiceStatus = "paga" | "pendente" | "enviada" | "vencida" | "cancelada";
 type PaymentMethod = "pix" | "cartao" | "tmb";
 
-interface Invoice {
+export interface Invoice {
   id: string;
   status: InvoiceStatus;
   clientName: string;
@@ -44,7 +46,7 @@ const paymentIcons: Record<PaymentMethod, { icon: string; label: string }> = {
   tmb: { icon: "📄", label: "TMB" },
 };
 
-const mockInvoices: Invoice[] = [
+const initialInvoices: Invoice[] = [
   { id: "INV-001", status: "paga", clientName: "João Silva", clientEmail: "joao@email.com", value: 12000, description: "Mentoria Elite", paymentMethods: ["pix"], closerName: "Ana Ribeiro", closerInitials: "AR", dueDate: "2026-03-15" },
   { id: "INV-002", status: "paga", clientName: "Maria Santos", clientEmail: "maria@email.com", value: 25000, description: "Mastermind Premium", paymentMethods: ["pix", "cartao"], closerName: "Rafael Costa", closerInitials: "RC", dueDate: "2026-03-10" },
   { id: "INV-003", status: "paga", clientName: "Pedro Costa", clientEmail: "pedro@email.com", value: 8500, description: "Consultoria 1:1", paymentMethods: ["cartao"], closerName: "Lucas Martins", closerInitials: "LM", dueDate: "2026-03-12" },
@@ -69,19 +71,30 @@ const formatDate = (d: string) => {
 
 export default function CheckoutHighTicket() {
   const [search, setSearch] = useState("");
+  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const [cobrancaOpen, setCobrancaOpen] = useState(false);
+  const [linkProdutoOpen, setLinkProdutoOpen] = useState(false);
 
-  const filtered = mockInvoices.filter(
+  const addInvoice = useCallback((data: Omit<Invoice, "id" | "status">) => {
+    const newInv: Invoice = {
+      ...data,
+      id: `INV-${String(invoices.length + 1).padStart(3, "0")}`,
+      status: "pendente",
+    };
+    setInvoices((prev) => [newInv, ...prev]);
+  }, [invoices.length]);
+
+  const filtered = invoices.filter(
     (i) =>
       i.clientName.toLowerCase().includes(search.toLowerCase()) ||
       i.clientEmail.toLowerCase().includes(search.toLowerCase())
   );
 
-  const paidTotal = mockInvoices.filter((i) => i.status === "paga").reduce((s, i) => s + i.value, 0);
-  const pendingTotal = mockInvoices.filter((i) => i.status === "pendente" || i.status === "enviada").reduce((s, i) => s + i.value, 0);
-  const totalInvoices = mockInvoices.length;
-  const paidCount = mockInvoices.filter((i) => i.status === "paga").length;
+  const paidTotal = invoices.filter((i) => i.status === "paga").reduce((s, i) => s + i.value, 0);
+  const pendingTotal = invoices.filter((i) => i.status === "pendente" || i.status === "enviada").reduce((s, i) => s + i.value, 0);
+  const totalInvoices = invoices.length;
+  const paidCount = invoices.filter((i) => i.status === "paga").length;
   const conversionRate = totalInvoices > 0 ? ((paidCount / totalInvoices) * 100).toFixed(1) : "0";
-
   const filteredTotal = filtered.reduce((s, i) => s + i.value, 0);
 
   return (
@@ -92,16 +105,12 @@ export default function CheckoutHighTicket() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Checkout High Ticket</h1>
           <div
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-white"
-            style={{
-              background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)",
-            }}
+            style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)" }}
           >
             <span className="text-base">💳</span>
             Z2Pay — É High Ticket
           </div>
         </div>
-
-        {/* Metrics */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricMini label="Faturado no mês" value={formatCurrency(paidTotal)} />
           <MetricMini label="Pendente" value={formatCurrency(pendingTotal)} accent />
@@ -115,18 +124,11 @@ export default function CheckoutHighTicket() {
         <div className="flex flex-1 flex-wrap items-center gap-2">
           <div className="relative max-w-sm flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Procurar por nome ou email do cliente"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+            <Input placeholder="Procurar por nome ou email do cliente" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-1.5 h-3.5 w-3.5" /> Mais filtros <ChevronDown className="ml-1 h-3 w-3" />
-              </Button>
+              <Button variant="outline" size="sm"><Filter className="mr-1.5 h-3.5 w-3.5" /> Mais filtros <ChevronDown className="ml-1 h-3 w-3" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem>Status</DropdownMenuItem>
@@ -137,24 +139,20 @@ export default function CheckoutHighTicket() {
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Ações em lote <ChevronDown className="ml-1 h-3 w-3" />
-              </Button>
+              <Button variant="outline" size="sm">Ações em lote <ChevronDown className="ml-1 h-3 w-3" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem>Reenviar selecionados</DropdownMenuItem>
               <DropdownMenuItem className="text-destructive">Cancelar selecionados</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <Download className="mr-1.5 h-3.5 w-3.5" /> Exportar dados
-          </Button>
+          <Button variant="outline" size="sm"><Download className="mr-1.5 h-3.5 w-3.5" /> Exportar dados</Button>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm">
+          <Button size="sm" onClick={() => setCobrancaOpen(true)}>
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova Cobrança
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setLinkProdutoOpen(true)}>
             <Link2 className="mr-1.5 h-3.5 w-3.5" /> Novo Link de Produto
           </Button>
         </div>
@@ -182,9 +180,7 @@ export default function CheckoutHighTicket() {
                 return (
                   <TableRow key={inv.id}>
                     <TableCell>
-                      <Badge variant="outline" className={sc.className}>
-                        {sc.label}
-                      </Badge>
+                      <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
                     </TableCell>
                     <TableCell>
                       <div>
@@ -192,9 +188,7 @@ export default function CheckoutHighTicket() {
                         <p className="text-xs text-muted-foreground">{inv.clientEmail}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
-                      {formatCurrency(inv.value)}
-                    </TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(inv.value)}</TableCell>
                     <TableCell className="text-muted-foreground">{inv.description}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -210,9 +204,7 @@ export default function CheckoutHighTicket() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                          {inv.closerInitials}
-                        </span>
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{inv.closerInitials}</span>
                         <span className="text-sm">{inv.closerName}</span>
                       </div>
                     </TableCell>
@@ -228,9 +220,7 @@ export default function CheckoutHighTicket() {
                         ].map(({ icon: Icon, tip }) => (
                           <Tooltip key={tip}>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7">
-                                <Icon className="h-3.5 w-3.5" />
-                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7"><Icon className="h-3.5 w-3.5" /></Button>
                             </TooltipTrigger>
                             <TooltipContent>{tip}</TooltipContent>
                           </Tooltip>
@@ -242,16 +232,27 @@ export default function CheckoutHighTicket() {
               })}
             </TableBody>
           </Table>
-          {/* Footer */}
           <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
             <span>
               {filtered.length} cobranças no valor total de{" "}
               <span className="font-semibold text-foreground">{formatCurrency(filteredTotal)}</span> de{" "}
-              {mockInvoices.length} cobranças existentes.
+              {invoices.length} cobranças existentes.
             </span>
           </div>
         </CardContent>
       </Card>
+
+      {/* Drawers */}
+      <NovaCobrancaDrawer
+        open={cobrancaOpen}
+        onOpenChange={setCobrancaOpen}
+        onInvoiceCreated={(data) => addInvoice(data)}
+      />
+      <NovoLinkProdutoDrawer
+        open={linkProdutoOpen}
+        onOpenChange={setLinkProdutoOpen}
+        onLinkCreated={(data) => addInvoice(data)}
+      />
     </div>
   );
 }
@@ -261,9 +262,7 @@ function MetricMini({ label, value, accent }: { label: string; value: string; ac
     <Card className="border-border/60">
       <CardContent className="px-4 py-3">
         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className={`mt-0.5 text-lg font-bold tabular-nums ${accent ? "text-amber-500" : "text-foreground"}`}>
-          {value}
-        </p>
+        <p className={`mt-0.5 text-lg font-bold tabular-nums ${accent ? "text-amber-500" : "text-foreground"}`}>{value}</p>
       </CardContent>
     </Card>
   );
