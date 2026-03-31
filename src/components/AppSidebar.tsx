@@ -17,6 +17,7 @@ import {
   UserCog,
   Crown,
   ChevronRight,
+  CreditCard,
   Sparkles,
   LogOut,
   Plug,
