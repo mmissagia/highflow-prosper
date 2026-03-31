@@ -8,9 +8,11 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
 import { AIAgentFab } from "@/components/ai-agent/AIAgentFab";
+import { AIHeaderBadge } from "@/components/ai-agent/AIHeaderBadge";
+import { useAIToastAlerts } from "@/hooks/useAIToastAlerts";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -75,79 +77,79 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AppLayout() {
+function AppLayoutInner() {
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [aiInitialTab, setAiInitialTab] = useState<string | undefined>();
 
+  const openAlerts = useCallback(() => {
+    setAiInitialTab("alertas");
+    setAiPanelOpen(true);
+  }, []);
+
+  useAIToastAlerts(openAlerts);
+
+  return (
+    <>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col">
+          <header className="h-16 border-b border-border bg-background flex items-center px-6">
+            <SidebarTrigger className="mr-4" />
+            <div className="flex-1" />
+            <AIHeaderBadge alertCount={8} onClick={openAlerts} />
+          </header>
+          <main className="flex-1 p-6 bg-muted/30">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/performance/relatorios" element={<Relatorios />} />
+              <Route path="/performance/indicadores" element={<Dashboard />} />
+              <Route path="/crm/pipeline" element={<Pipeline />} />
+              <Route path="/crm/leads" element={<LeadsList />} />
+              <Route path="/crm/lead" element={<LeadDetail />} />
+              <Route path="/crm/lead/:id" element={<LeadDetail />} />
+              <Route path="/comercial/equipe" element={<Equipe />} />
+              <Route path="/comercial/atividades" element={<Atividades />} />
+              <Route path="/comercial/produtividade" element={<PerformanceComercial />} />
+              <Route path="/comercial/performance" element={<PerformanceComercial />} />
+              <Route path="/comercial/comissoes" element={<Comissoes />} />
+              <Route path="/comercial/agenda" element={<Agenda />} />
+              <Route path="/comercial/relatorios" element={<Relatorios />} />
+              <Route path="/eventos" element={<EventosList />} />
+              <Route path="/eventos/detalhe" element={<EventoDetail />} />
+              <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
+              <Route path="/eventos/pitch" element={<PitchEditor />} />
+              <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
+              <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
+              <Route path="/comunicacao/campanhas" element={<Campanhas />} />
+              <Route path="/comunicacao/automacoes" element={<Automacoes />} />
+              <Route path="/comunicacao/editor" element={<EditorMensagens />} />
+              <Route path="/comunicacao/conversas" element={<Conversas />} />
+              <Route path="/entrega/cursos" element={<MeusCursos />} />
+              <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
+              <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
+              <Route path="/entrega/mentorias-ht" element={<MinhasMentorias />} />
+              <Route path="/entrega/mentor" element={<PainelMentor />} />
+              <Route path="/entrega/produtor" element={<PainelProdutor />} />
+              <Route path="/conexoes" element={<Conexoes />} />
+              <Route path="/infra/seguranca" element={<Seguranca />} />
+              <Route path="/infra/configuracoes" element={<Configuracoes />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
+      <AIAgentFab onClick={() => { setAiInitialTab(undefined); setAiPanelOpen(true); }} alertCount={8} />
+      <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} initialTab={aiInitialTab} />
+    </>
+  );
+}
+
+function AppLayout() {
   return (
     <ProtectedRoute>
       <GlobalFilterProvider>
         <SidebarProvider>
-          <div className="min-h-screen flex w-full">
-            <AppSidebar />
-            <div className="flex-1 flex flex-col">
-              <header className="h-16 border-b border-border bg-background flex items-center px-6">
-                <SidebarTrigger className="mr-4" />
-              </header>
-              <main className="flex-1 p-6 bg-muted/30">
-                <Routes>
-                  {/* Dashboard */}
-                  <Route path="/" element={<Dashboard />} />
-
-                  {/* Performance */}
-                  <Route path="/performance/relatorios" element={<Relatorios />} />
-                  <Route path="/performance/indicadores" element={<Dashboard />} />
-
-                  {/* CRM */}
-                  <Route path="/crm/pipeline" element={<Pipeline />} />
-                  <Route path="/crm/leads" element={<LeadsList />} />
-                  <Route path="/crm/lead" element={<LeadDetail />} />
-                  <Route path="/crm/lead/:id" element={<LeadDetail />} />
-
-                  {/* Comercial */}
-                  <Route path="/comercial/equipe" element={<Equipe />} />
-                  <Route path="/comercial/atividades" element={<Atividades />} />
-                  <Route path="/comercial/produtividade" element={<PerformanceComercial />} />
-                  <Route path="/comercial/performance" element={<PerformanceComercial />} />
-                  <Route path="/comercial/comissoes" element={<Comissoes />} />
-                  <Route path="/comercial/agenda" element={<Agenda />} />
-                  <Route path="/comercial/relatorios" element={<Relatorios />} />
-
-                  {/* Eventos */}
-                  <Route path="/eventos" element={<EventosList />} />
-                  <Route path="/eventos/detalhe" element={<EventoDetail />} />
-                  <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
-                  <Route path="/eventos/pitch" element={<PitchEditor />} />
-                  <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
-                  <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
-
-                  {/* Comunicação */}
-                  <Route path="/comunicacao/campanhas" element={<Campanhas />} />
-                  <Route path="/comunicacao/automacoes" element={<Automacoes />} />
-                  <Route path="/comunicacao/editor" element={<EditorMensagens />} />
-                  <Route path="/comunicacao/conversas" element={<Conversas />} />
-
-                  {/* Entrega */}
-                  <Route path="/entrega/cursos" element={<MeusCursos />} />
-                  <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
-                  <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
-                  <Route path="/entrega/mentorias-ht" element={<MinhasMentorias />} />
-                  <Route path="/entrega/mentor" element={<PainelMentor />} />
-                  <Route path="/entrega/produtor" element={<PainelProdutor />} />
-
-                  {/* Conexões */}
-                  <Route path="/conexoes" element={<Conexoes />} />
-
-                  {/* Infraestrutura */}
-                  <Route path="/infra/seguranca" element={<Seguranca />} />
-                  <Route path="/infra/configuracoes" element={<Configuracoes />} />
-
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-            </div>
-          </div>
-          <AIAgentFab onClick={() => setAiPanelOpen(true)} alertCount={8} />
-          <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} />
+          <AppLayoutInner />
         </SidebarProvider>
       </GlobalFilterProvider>
     </ProtectedRoute>
