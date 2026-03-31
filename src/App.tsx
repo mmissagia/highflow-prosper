@@ -155,8 +155,18 @@ function AppLayoutInner() {
               </main>
             </div>
           </div>
-          <AIAgentFab onClick={() => setAiPanelOpen(true)} alertCount={8} />
-          <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} />
+      <AIAgentFab onClick={() => { setAiInitialTab(undefined); setAiPanelOpen(true); }} alertCount={8} />
+      <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} initialTab={aiInitialTab} />
+    </div>
+  );
+}
+
+function AppLayout() {
+  return (
+    <ProtectedRoute>
+      <GlobalFilterProvider>
+        <SidebarProvider>
+          <AppLayoutInner />
         </SidebarProvider>
       </GlobalFilterProvider>
     </ProtectedRoute>
