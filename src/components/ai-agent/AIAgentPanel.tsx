@@ -14,12 +14,18 @@ import { AIChatTab } from "./tabs/AIChatTab";
 interface AIAgentPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialTab?: string;
 }
 
-export function AIAgentPanel({ open, onOpenChange }: AIAgentPanelProps) {
-  const [activeTab, setActiveTab] = useState("briefing");
+export function AIAgentPanel({ open, onOpenChange, initialTab }: AIAgentPanelProps) {
+  const [activeTab, setActiveTab] = useState(initialTab || "briefing");
   const [quickMessage, setQuickMessage] = useState("");
   const alertCount = 8;
+
+  // Sync initialTab when panel opens
+  const handleOpen = () => {
+    if (initialTab) setActiveTab(initialTab);
+  };
 
   const handleQuickSend = () => {
     if (!quickMessage.trim()) return;
@@ -32,7 +38,7 @@ export function AIAgentPanel({ open, onOpenChange }: AIAgentPanelProps) {
       {/* Overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in"
           onClick={() => onOpenChange(false)}
         />
       )}
@@ -40,23 +46,24 @@ export function AIAgentPanel({ open, onOpenChange }: AIAgentPanelProps) {
       {/* Panel */}
       <div
         className={cn(
-          "fixed top-0 right-0 z-50 h-full w-[400px] max-w-[95vw] bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out",
+          "fixed top-0 right-0 z-50 h-full w-[400px] max-w-[95vw] bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
+        onTransitionEnd={() => { if (open) handleOpen(); }}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-gradient-to-r from-[hsl(221,83%,53%)] to-[hsl(270,65%,55%)]">
-          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-            <Brain className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-gradient-to-r from-primary to-[hsl(270,65%,55%)]">
+          <div className="w-10 h-10 rounded-full bg-primary-foreground/20 backdrop-blur flex items-center justify-center">
+            <Brain className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-white text-base">HighFlow AI</span>
-              <Badge className="bg-white/20 text-white border-white/30 text-[10px] px-1.5 py-0 hover:bg-white/30">Beta</Badge>
+              <span className="font-semibold text-primary-foreground text-base">HighFlow AI</span>
+              <Badge className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 text-[10px] px-1.5 py-0 hover:bg-primary-foreground/30">Beta</Badge>
             </div>
-            <p className="text-white/70 text-xs">Assistente inteligente</p>
+            <p className="text-primary-foreground/70 text-xs">Assistente inteligente</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" size="icon" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" onClick={() => onOpenChange(false)}>
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -82,36 +89,40 @@ export function AIAgentPanel({ open, onOpenChange }: AIAgentPanelProps) {
           </TabsList>
 
           <ScrollArea className="flex-1">
-            <TabsContent value="briefing" className="m-0 p-4">
-              <AIBriefingTab />
-            </TabsContent>
-            <TabsContent value="alertas" className="m-0 p-4">
-              <AIAlertasTab />
-            </TabsContent>
-            <TabsContent value="copiloto" className="m-0 p-4">
-              <AICopilotoTab />
-            </TabsContent>
-            <TabsContent value="chat" className="m-0 p-4">
-              <AIChatTab />
-            </TabsContent>
+            <div className="animate-fade-in">
+              <TabsContent value="briefing" className="m-0 p-4">
+                <AIBriefingTab />
+              </TabsContent>
+              <TabsContent value="alertas" className="m-0 p-4">
+                <AIAlertasTab />
+              </TabsContent>
+              <TabsContent value="copiloto" className="m-0 p-4">
+                <AICopilotoTab />
+              </TabsContent>
+              <TabsContent value="chat" className="m-0 p-4">
+                <AIChatTab />
+              </TabsContent>
+            </div>
           </ScrollArea>
         </Tabs>
 
-        {/* Footer input */}
-        <div className="p-4 border-t border-border bg-muted/30">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Pergunte algo..."
-              value={quickMessage}
-              onChange={(e) => setQuickMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleQuickSend()}
-              className="flex-1 text-sm"
-            />
-            <Button size="icon" onClick={handleQuickSend} disabled={!quickMessage.trim()}>
-              <Send className="w-4 h-4" />
-            </Button>
+        {/* Footer input — hidden when chat tab active (chat has its own input) */}
+        {activeTab !== "chat" && (
+          <div className="p-4 border-t border-border bg-muted/30">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Pergunte algo..."
+                value={quickMessage}
+                onChange={(e) => setQuickMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleQuickSend()}
+                className="flex-1 text-sm"
+              />
+              <Button size="icon" onClick={handleQuickSend} disabled={!quickMessage.trim()}>
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
