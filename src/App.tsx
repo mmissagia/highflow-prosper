@@ -56,6 +56,7 @@ import PerformanceComercial from "./pages/comercial/PerformanceComercial";
 import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
 import Relatorios from "./pages/comercial/Relatorios";
+import CheckoutHighTicket from "./pages/checkout/CheckoutHighTicket";
 
 const queryClient = new QueryClient();
 
@@ -120,6 +121,7 @@ function AppLayoutInner() {
               <Route path="/eventos/pitch" element={<PitchEditor />} />
               <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
               <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
+              <Route path="/checkout-ht" element={<CheckoutHighTicket />} />
               <Route path="/comunicacao/campanhas" element={<Campanhas />} />
               <Route path="/comunicacao/automacoes" element={<Automacoes />} />
               <Route path="/comunicacao/editor" element={<EditorMensagens />} />
