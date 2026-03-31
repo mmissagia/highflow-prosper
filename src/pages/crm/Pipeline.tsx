@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import { Phone, Mail, MessageCircle, MoreHorizontal, DollarSign, TrendingUp, Users, Inbox } from "lucide-react";
+import { Phone, Mail, MessageCircle, MoreHorizontal, DollarSign, TrendingUp, Users, Inbox, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { mockInvoicesData, getLeadFinancialStatus } from "@/data/checkoutData";
 
 const pipelineStages = [
   { id: "lead-frio", title: "Lead Frio", color: "bg-slate-500" },
@@ -19,7 +21,7 @@ const pipelineStages = [
   { id: "onboarding", title: "Onboarding", color: "bg-emerald-500" },
 ];
 
-const mockLeads = [
+const initialLeads = [
   { id: 1, name: "João Silva", stage: "engajado", score: 85, iem: 78, value: 15000, origin: "Meta Ads", lastContact: "2h", pitch: "Mentoria Elite", responsible: "Ana Ribeiro" },
   { id: 2, name: "Maria Santos", stage: "warm", score: 92, iem: 85, value: 25000, origin: "Evento", lastContact: "1d", pitch: "Mastermind", responsible: "Rafael Costa" },
   { id: 3, name: "Pedro Costa", stage: "call-agendada", score: 78, iem: 72, value: 12000, origin: "Indicação", lastContact: "30m", pitch: "Curso Premium", responsible: "Lucas Martins" },
@@ -28,11 +30,48 @@ const mockLeads = [
   { id: 6, name: "Lucia Ferreira", stage: "follow-up", score: 88, iem: 80, value: 20000, origin: "Meta Ads", lastContact: "4h", pitch: "Mentoria Elite", responsible: "Rafael Costa" },
 ];
 
-export default function Pipeline() {
-  const getLeadsByStage = (stageId: string) => mockLeads.filter((lead) => lead.stage === stageId);
+const financialStatusIcon: Record<string, { emoji: string; color: string }> = {
+  paga: { emoji: "💳", color: "text-emerald-500" },
+  pendente: { emoji: "💳", color: "text-amber-500" },
+  vencida: { emoji: "💳", color: "text-red-500" },
+};
 
-  const totalValue = mockLeads.reduce((acc, lead) => acc + lead.value, 0);
-  const avgScore = Math.round(mockLeads.reduce((acc, lead) => acc + lead.score, 0) / mockLeads.length);
+export default function Pipeline() {
+  const [leads, setLeads] = useState(initialLeads);
+  const { toast } = useToast();
+
+  const getLeadsByStage = (stageId: string) => leads.filter((lead) => lead.stage === stageId);
+  const totalValue = leads.reduce((acc, lead) => acc + lead.value, 0);
+  const avgScore = Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length);
+
+  const handleDragStart = (e: React.DragEvent, leadId: number) => {
+    e.dataTransfer.setData("leadId", String(leadId));
+  };
+
+  const handleDrop = (e: React.DragEvent, stageId: string) => {
+    e.preventDefault();
+    const leadId = Number(e.dataTransfer.getData("leadId"));
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead || lead.stage === stageId) return;
+
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, stage: stageId } : l)));
+
+    if (stageId === "fechou") {
+      toast({
+        title: "🎉 Lead fechado!",
+        description: `${lead.name} foi movido para Fechou. Deseja gerar a cobrança agora?`,
+        action: (
+          <Link to="/checkout-ht">
+            <Button size="sm" className="mt-2">Gerar Cobrança</Button>
+          </Link>
+        ),
+      });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="space-y-6">
@@ -51,41 +90,26 @@ export default function Pipeline() {
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Users className="h-4 w-4" />
-        <span><strong className="text-foreground">{mockLeads.length}</strong> leads no contexto atual</span>
+        <span><strong className="text-foreground">{leads.length}</strong> leads no contexto atual</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-primary/10">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Leads</p>
-              <p className="text-2xl font-bold">{mockLeads.length}</p>
-            </div>
+            <div className="p-3 rounded-lg bg-primary/10"><Users className="h-6 w-6 text-primary" /></div>
+            <div><p className="text-sm text-muted-foreground">Total Leads</p><p className="text-2xl font-bold">{leads.length}</p></div>
           </CardContent>
         </Card>
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-success/10">
-              <DollarSign className="h-6 w-6 text-success" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Valor Total Pipeline</p>
-              <p className="text-2xl font-bold">R$ {(totalValue / 1000).toFixed(0)}K</p>
-            </div>
+            <div className="p-3 rounded-lg bg-success/10"><DollarSign className="h-6 w-6 text-success" /></div>
+            <div><p className="text-sm text-muted-foreground">Valor Total Pipeline</p><p className="text-2xl font-bold">R$ {(totalValue / 1000).toFixed(0)}K</p></div>
           </CardContent>
         </Card>
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-accent/10">
-              <TrendingUp className="h-6 w-6 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Score Médio</p>
-              <p className="text-2xl font-bold">{avgScore}%</p>
-            </div>
+            <div className="p-3 rounded-lg bg-accent/10"><TrendingUp className="h-6 w-6 text-accent" /></div>
+            <div><p className="text-sm text-muted-foreground">Score Médio</p><p className="text-2xl font-bold">{avgScore}%</p></div>
           </CardContent>
         </Card>
       </div>
@@ -97,7 +121,12 @@ export default function Pipeline() {
             const stageValue = stageLeads.reduce((acc, lead) => acc + lead.value, 0);
 
             return (
-              <div key={stage.id} className="w-72 flex-shrink-0">
+              <div
+                key={stage.id}
+                className="w-72 flex-shrink-0"
+                onDrop={(e) => handleDrop(e, stage.id)}
+                onDragOver={handleDragOver}
+              >
                 <Card className="bg-card/50">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
@@ -116,56 +145,75 @@ export default function Pipeline() {
                         <p className="text-xs text-muted-foreground">Nenhum lead nesta etapa</p>
                       </div>
                     )}
-                    {stageLeads.map((lead) => (
-                      <Link key={lead.id} to={`/crm/lead/${lead.id}`}>
-                        <Card className="bg-background hover:bg-muted/50 transition-colors cursor-pointer border-l-4" style={{ borderLeftColor: stage.color.replace("bg-", "var(--") }}>
-                          <CardContent className="p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                    {lead.name.split(" ").map((n) => n[0]).join("")}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="text-sm font-medium">{lead.name}</p>
-                                  <p className="text-xs text-muted-foreground">{lead.origin}</p>
+                    {stageLeads.map((lead) => {
+                      const finStatus = getLeadFinancialStatus(lead.name, mockInvoicesData);
+                      const finIcon = finStatus ? financialStatusIcon[finStatus] : null;
+
+                      return (
+                        <div
+                          key={lead.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, lead.id)}
+                          className="cursor-grab active:cursor-grabbing"
+                        >
+                          <Link to={`/crm/lead/${lead.id}`}>
+                            <Card className="bg-background hover:bg-muted/50 transition-colors cursor-pointer border-l-4" style={{ borderLeftColor: stage.color.replace("bg-", "var(--") }}>
+                              <CardContent className="p-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                        {lead.name.split(" ").map((n) => n[0]).join("")}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="text-sm font-medium">{lead.name}</p>
+                                      <p className="text-xs text-muted-foreground">{lead.origin}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    {finIcon && (
+                                      <span className={`text-sm ${finIcon.color}`} title={`Financeiro: ${finStatus}`}>
+                                        {finIcon.emoji}
+                                      </span>
+                                    )}
+                                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
-                              <Button variant="ghost" size="icon" className="h-6 w-6">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </div>
 
-                            <div className="flex items-center gap-2 text-xs">
-                              <Badge variant="outline" className="text-xs">Score: {lead.score}</Badge>
-                              {lead.iem > 0 && (
-                                <Badge variant="outline" className="text-xs text-purple-500 border-purple-500/50">IEM: {lead.iem}</Badge>
-                              )}
-                            </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <Badge variant="outline" className="text-xs">Score: {lead.score}</Badge>
+                                  {lead.iem > 0 && (
+                                    <Badge variant="outline" className="text-xs text-purple-500 border-purple-500/50">IEM: {lead.iem}</Badge>
+                                  )}
+                                </div>
 
-                            <div className="text-xs text-muted-foreground">
-                              Responsável: <span className="text-foreground">{lead.responsible}</span>
-                            </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Responsável: <span className="text-foreground">{lead.responsible}</span>
+                                </div>
 
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="font-semibold text-success">R$ {(lead.value / 1000).toFixed(0)}K</span>
-                              <span className="text-muted-foreground">há {lead.lastContact}</span>
-                            </div>
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="font-semibold text-success">R$ {(lead.value / 1000).toFixed(0)}K</span>
+                                  <span className="text-muted-foreground">há {lead.lastContact}</span>
+                                </div>
 
-                            {lead.pitch && (
-                              <Badge className="text-xs bg-primary/10 text-primary hover:bg-primary/20">{lead.pitch}</Badge>
-                            )}
+                                {lead.pitch && (
+                                  <Badge className="text-xs bg-primary/10 text-primary hover:bg-primary/20">{lead.pitch}</Badge>
+                                )}
 
-                            <div className="flex gap-1 pt-1">
-                              <Button variant="ghost" size="icon" className="h-7 w-7"><Phone className="h-3.5 w-3.5" /></Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7"><Mail className="h-3.5 w-3.5" /></Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7"><MessageCircle className="h-3.5 w-3.5" /></Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
+                                <div className="flex gap-1 pt-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7"><Phone className="h-3.5 w-3.5" /></Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7"><Mail className="h-3.5 w-3.5" /></Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7"><MessageCircle className="h-3.5 w-3.5" /></Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        </div>
+                      );
+                    })}
                   </CardContent>
                 </Card>
               </div>

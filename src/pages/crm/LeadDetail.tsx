@@ -1,28 +1,29 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import LeadComercialTab from "@/components/crm/LeadComercialTab";
 import {
-  Phone,
-  Mail,
-  MessageCircle,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  BookOpen,
-  Heart,
-  QrCode,
-  Send,
-  Sparkles,
-  ArrowLeft,
-  ExternalLink,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip, TooltipContent, TooltipTrigger,
+} from "@/components/ui/tooltip";
+import LeadComercialTab from "@/components/crm/LeadComercialTab";
+import { NovaCobrancaDrawer } from "@/pages/checkout/NovaCobrancaDrawer";
+import {
+  Phone, Mail, MessageCircle, Calendar, DollarSign, TrendingUp,
+  BookOpen, Heart, QrCode, Send, Sparkles, ArrowLeft, ExternalLink,
+  Eye, Copy, CreditCard, Plus,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { MetricCard } from "@/components/MetricCard";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
+import {
+  type Invoice, statusConfig, paymentIcons, mockInvoicesData, formatCurrency, formatDate,
+} from "@/data/checkoutData";
 
 const leadData = {
   id: 1,
@@ -40,6 +41,7 @@ const leadData = {
   createdAt: "15/01/2024",
   lastInteraction: "2h atrás",
   pitch: "Mentoria Elite",
+  pipelineValue: 25000,
   events: [
     { id: 1, name: "Imersão High-Ticket", date: "20/01/2024", status: "Confirmado" },
     { id: 2, name: "Workshop Vendas", date: "25/01/2024", status: "Pendente" },
@@ -71,14 +73,20 @@ const leadData = {
 
 export default function LeadDetail() {
   const { id } = useParams();
+  const [cobrancaOpen, setCobrancaOpen] = useState(false);
+
+  // Filter invoices for this lead
+  const leadInvoices = mockInvoicesData.filter(
+    (inv) => inv.clientName === leadData.name
+  );
+  const paidTotal = leadInvoices.filter((i) => i.status === "paga").reduce((s, i) => s + i.value, 0);
+  const pendingTotal = leadInvoices.filter((i) => i.status === "pendente" || i.status === "enviada").reduce((s, i) => s + i.value, 0);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link to="/crm/pipeline">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">Ficha do Lead</h1>
@@ -106,22 +114,14 @@ export default function LeadDetail() {
                     <div className="flex items-center gap-2 mt-2">
                       <Badge>{leadData.stage}</Badge>
                       <Badge variant="outline">Score: {leadData.score}</Badge>
-                      <Badge variant="outline" className="text-purple-500 border-purple-500/50">
-                        IEM: {leadData.iem}
-                      </Badge>
+                      <Badge variant="outline" className="text-purple-500 border-purple-500/50">IEM: {leadData.iem}</Badge>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="icon">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Mail className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon">
-                    <MessageCircle className="h-4 w-4" />
-                  </Button>
+                  <Button variant="outline" size="icon"><Phone className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon"><Mail className="h-4 w-4" /></Button>
+                  <Button size="icon"><MessageCircle className="h-4 w-4" /></Button>
                 </div>
               </div>
             </CardContent>
@@ -142,6 +142,10 @@ export default function LeadDetail() {
                 <TabsList>
                   <TabsTrigger value="timeline">Timeline</TabsTrigger>
                   <TabsTrigger value="comercial">Comercial</TabsTrigger>
+                  <TabsTrigger value="financeiro">
+                    <CreditCard className="h-3.5 w-3.5 mr-1" />
+                    Financeiro
+                  </TabsTrigger>
                   <TabsTrigger value="purchases">Histórico SUN</TabsTrigger>
                   <TabsTrigger value="events">Eventos</TabsTrigger>
                   <TabsTrigger value="courses">Cursos</TabsTrigger>
@@ -165,6 +169,111 @@ export default function LeadDetail() {
                   <LeadComercialTab leadId={id || "1"} />
                 </TabsContent>
 
+                {/* === FINANCEIRO TAB === */}
+                <TabsContent value="financeiro" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Resumo Financeiro</h3>
+                    <Button size="sm" onClick={() => setCobrancaOpen(true)}>
+                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Gerar Cobrança
+                    </Button>
+                  </div>
+
+                  {/* Mini metrics */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <Card className="border-border/60">
+                      <CardContent className="px-4 py-3">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Total Faturado</p>
+                        <p className="mt-0.5 text-lg font-bold tabular-nums text-emerald-600">{formatCurrency(paidTotal)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-border/60">
+                      <CardContent className="px-4 py-3">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Pendente</p>
+                        <p className="mt-0.5 text-lg font-bold tabular-nums text-amber-500">{formatCurrency(pendingTotal)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-border/60">
+                      <CardContent className="px-4 py-3">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Faturas Geradas</p>
+                        <p className="mt-0.5 text-lg font-bold tabular-nums text-foreground">{leadInvoices.length}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Invoices table */}
+                  {leadInvoices.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                          <TableHead>Pagamento</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {leadInvoices.map((inv) => {
+                          const sc = statusConfig[inv.status];
+                          return (
+                            <TableRow key={inv.id}>
+                              <TableCell className="font-medium">{inv.description}</TableCell>
+                              <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(inv.value)}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  {inv.paymentMethods.map((pm) => (
+                                    <Tooltip key={pm}>
+                                      <TooltipTrigger asChild>
+                                        <span className="cursor-default text-base">{paymentIcons[pm].icon}</span>
+                                      </TooltipTrigger>
+                                      <TooltipContent>{paymentIcons[pm].label}</TooltipContent>
+                                    </Tooltip>
+                                  ))}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
+                              </TableCell>
+                              <TableCell className="tabular-nums text-muted-foreground">{formatDate(inv.dueDate)}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7"><Eye className="h-3.5 w-3.5" /></Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Ver detalhes</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7"><Copy className="h-3.5 w-3.5" /></Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Copiar link</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7"><MessageCircle className="h-3.5 w-3.5" /></Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Reenviar</TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <CreditCard className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                      <p className="text-sm text-muted-foreground">Nenhuma fatura gerada para este lead.</p>
+                      <Button size="sm" variant="outline" className="mt-3" onClick={() => setCobrancaOpen(true)}>
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Gerar primeira cobrança
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
+
                 <TabsContent value="purchases" className="space-y-4">
                   {leadData.purchases.map((purchase) => (
                     <div key={purchase.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -174,9 +283,7 @@ export default function LeadDetail() {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-500">R$ {purchase.value}</p>
-                        <Badge variant="outline" className="text-green-500">
-                          {purchase.status}
-                        </Badge>
+                        <Badge variant="outline" className="text-green-500">{purchase.status}</Badge>
                       </div>
                     </div>
                   ))}
@@ -194,9 +301,7 @@ export default function LeadDetail() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={event.status === "Confirmado" ? "default" : "secondary"}>
-                            {event.status}
-                          </Badge>
+                          <Badge variant={event.status === "Confirmado" ? "default" : "secondary"}>{event.status}</Badge>
                           <ExternalLink className="h-4 w-4 text-muted-foreground" />
                         </div>
                       </div>
@@ -215,10 +320,7 @@ export default function LeadDetail() {
                         <span className="text-sm font-medium">{course.progress}%</span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{ width: `${course.progress}%` }}
-                        />
+                        <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${course.progress}%` }} />
                       </div>
                     </div>
                   ))}
@@ -232,15 +334,11 @@ export default function LeadDetail() {
                           <Heart className="h-5 w-5 text-purple-500" />
                           <div>
                             <p className="font-medium">{mentorship.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Próxima sessão: {mentorship.nextSession}
-                            </p>
+                            <p className="text-sm text-muted-foreground">Próxima sessão: {mentorship.nextSession}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-purple-500 border-purple-500/50">
-                            IEM: {mentorship.iem}
-                          </Badge>
+                          <Badge variant="outline" className="text-purple-500 border-purple-500/50">IEM: {mentorship.iem}</Badge>
                           <ExternalLink className="h-4 w-4 text-muted-foreground" />
                         </div>
                       </div>
@@ -254,117 +352,70 @@ export default function LeadDetail() {
 
         {/* Sidebar Direita */}
         <div className="space-y-6">
-          {/* Ações Rápidas */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Ações Rápidas</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">Ações Rápidas</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start gap-2">
-                <Send className="h-4 w-4" />
-                Enviar Link SUN (WhatsApp)
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Mail className="h-4 w-4" />
-                Enviar Link SUN (E-mail)
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <QrCode className="h-4 w-4" />
-                Gerar QR Code SUN
-              </Button>
+              <Button className="w-full justify-start gap-2"><Send className="h-4 w-4" />Enviar Link SUN (WhatsApp)</Button>
+              <Button variant="outline" className="w-full justify-start gap-2"><Mail className="h-4 w-4" />Enviar Link SUN (E-mail)</Button>
+              <Button variant="outline" className="w-full justify-start gap-2"><QrCode className="h-4 w-4" />Gerar QR Code SUN</Button>
               <Separator />
-              <Button variant="secondary" className="w-full justify-start gap-2">
-                <Calendar className="h-4 w-4" />
-                Inscrever em Evento
+              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setCobrancaOpen(true)}>
+                <CreditCard className="h-4 w-4" />Gerar Cobrança
               </Button>
+              <Button variant="secondary" className="w-full justify-start gap-2"><Calendar className="h-4 w-4" />Inscrever em Evento</Button>
             </CardContent>
           </Card>
 
-          {/* Sugestões IA */}
           <Card className="border-primary/20 bg-primary/5">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Sugestões da IA
+                <Sparkles className="h-5 w-5 text-primary" />Sugestões da IA
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Próxima Ação</p>
-                <p className="text-sm">{leadData.aiSuggestions.nextAction}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Melhor Pitch</p>
-                <p className="text-sm">{leadData.aiSuggestions.bestPitch}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Melhor Canal</p>
-                <p className="text-sm">{leadData.aiSuggestions.bestChannel}</p>
-              </div>
+              <div><p className="text-sm font-medium text-muted-foreground">Próxima Ação</p><p className="text-sm">{leadData.aiSuggestions.nextAction}</p></div>
+              <div><p className="text-sm font-medium text-muted-foreground">Melhor Pitch</p><p className="text-sm">{leadData.aiSuggestions.bestPitch}</p></div>
+              <div><p className="text-sm font-medium text-muted-foreground">Melhor Canal</p><p className="text-sm">{leadData.aiSuggestions.bestChannel}</p></div>
             </CardContent>
           </Card>
 
-          {/* Responsável + Handoff */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Responsável</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">Responsável</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary">AR</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">Ana Ribeiro</p>
-                  <Badge variant="outline" className="text-xs">SDR</Badge>
-                </div>
+                <Avatar className="h-9 w-9"><AvatarFallback className="text-xs bg-primary/10 text-primary">AR</AvatarFallback></Avatar>
+                <div><p className="font-medium">Ana Ribeiro</p><Badge variant="outline" className="text-xs">SDR</Badge></div>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <ArrowLeft className="h-3 w-3 rotate-180" />
-                <span>Handoff para Closer</span>
+                <ArrowLeft className="h-3 w-3 rotate-180" /><span>Handoff para Closer</span>
               </div>
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="text-xs bg-success/10 text-success">RC</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">Rafael Costa</p>
-                  <Badge variant="outline" className="text-xs">Closer</Badge>
-                </div>
+                <Avatar className="h-9 w-9"><AvatarFallback className="text-xs bg-success/10 text-success">RC</AvatarFallback></Avatar>
+                <div><p className="font-medium">Rafael Costa</p><Badge variant="outline" className="text-xs">Closer</Badge></div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Info Básica */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">Informações</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Telefone</span>
-                <span>{leadData.phone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Origem</span>
-                <Badge variant="outline">{leadData.origin}</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Criado em</span>
-                <span>{leadData.createdAt}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Última interação</span>
-                <span>{leadData.lastInteraction}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Pitch associado</span>
-                <Badge>{leadData.pitch}</Badge>
-              </div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Telefone</span><span>{leadData.phone}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Origem</span><Badge variant="outline">{leadData.origin}</Badge></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span>{leadData.createdAt}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Última interação</span><span>{leadData.lastInteraction}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Pitch associado</span><Badge>{leadData.pitch}</Badge></div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Nova Cobrança Drawer — pre-filled with lead data */}
+      <NovaCobrancaDrawer
+        open={cobrancaOpen}
+        onOpenChange={setCobrancaOpen}
+        onInvoiceCreated={() => {}}
+        prefilledLead={{ name: leadData.name, email: leadData.email, pipelineValue: leadData.pipelineValue }}
+      />
     </div>
   );
 }
