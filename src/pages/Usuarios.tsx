@@ -71,6 +71,7 @@ export default function Usuarios() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const { data: dbUsers = [], isLoading } = useQuery({
     queryKey: ["users_access"],
