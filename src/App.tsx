@@ -48,6 +48,7 @@ import Conexoes from "./pages/Conexoes";
 // Infraestrutura
 import Seguranca from "./pages/infra/Seguranca";
 import Configuracoes from "./pages/infra/Configuracoes";
+import Usuarios from "./pages/Usuarios";
 
 // Comercial
 import Equipe from "./pages/comercial/Equipe";
@@ -135,6 +136,7 @@ function AppLayoutInner() {
               <Route path="/conexoes" element={<Conexoes />} />
               <Route path="/infra/seguranca" element={<Seguranca />} />
               <Route path="/infra/configuracoes" element={<Configuracoes />} />
+              <Route path="/usuarios" element={<Usuarios />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

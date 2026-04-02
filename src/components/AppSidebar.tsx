@@ -149,6 +149,7 @@ const menuGroups = [
         title: "Infraestrutura",
         icon: Plug,
         items: [
+          { title: "Usuários", url: "/usuarios", icon: UsersRound },
           { title: "Integrações", url: "/conexoes", icon: Plug },
           { title: "Segurança", url: "/infra/seguranca", icon: Shield },
           { title: "Configurações", url: "/infra/configuracoes", icon: Settings },
