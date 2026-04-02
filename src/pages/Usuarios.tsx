@@ -160,7 +160,7 @@ export default function Usuarios() {
             {STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button disabled className="gap-2">
+        <Button className="gap-2" onClick={() => setInviteOpen(true)}>
           <UserPlus className="h-4 w-4" />
           Convidar Usuário
         </Button>
