@@ -108,7 +108,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       return;
     }
     setErrors({});
-    mutation.mutate(result.data);
+    mutation.mutate({ name: result.data.name, email: result.data.email, role: result.data.role });
   };
 
   return (
