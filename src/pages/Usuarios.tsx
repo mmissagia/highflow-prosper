@@ -85,7 +85,7 @@ export default function Usuarios() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const [confirmDialog, setConfirmDialog] = useState<{ type: "deactivate" | "remove"; user: typeof mockUsers[0] } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ type: "deactivate" | "remove"; user: any } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: dbUsers = [], isLoading } = useQuery({
@@ -130,7 +130,7 @@ export default function Usuarios() {
     });
   };
 
-  const handleReactivate = (user: typeof mockUsers[0]) => {
+  const handleReactivate = (user: any) => {
     statusMutation.mutate({ id: user.id, status: "Ativo" }, {
       onSuccess: () => toast.success(`${user.name} foi reativado`),
       onError: () => toast.error("Erro ao reativar usuário"),
@@ -142,18 +142,7 @@ export default function Usuarios() {
     removeMutation.mutate(confirmDialog.user.id, { onSettled: () => setConfirmDialog(null) });
   };
 
-  // Fallback mock data when RLS filters out seed records
-  const mockUsers = useMemo(() => [
-    { id: "1", name: "Marcelo Panadés", email: "marcelo@eduzz.com", role: "Produtor", status: "Ativo", last_access: new Date(Date.now() - 2 * 3600000).toISOString(), invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-    { id: "2", name: "Luciana Ogusco", email: "luciana@eduzz.com", role: "Gestor Comercial", status: "Ativo", last_access: new Date(Date.now() - 86400000).toISOString(), invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-    { id: "3", name: "Ana Ribeiro", email: "ana@eduzz.com", role: "Closer", status: "Ativo", last_access: new Date(Date.now() - 3 * 3600000).toISOString(), invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-    { id: "4", name: "Rafael Costa", email: "rafael@eduzz.com", role: "Closer", status: "Ativo", last_access: new Date(Date.now() - 5 * 3600000).toISOString(), invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-    { id: "5", name: "Lucas Martins", email: "lucas@eduzz.com", role: "SDR", status: "Ativo", last_access: new Date(Date.now() - 3600000).toISOString(), invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-    { id: "6", name: "Juliana Lima", email: "juliana@eduzz.com", role: "SDR", status: "Convidado", last_access: null, invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-    { id: "7", name: "Fernando Silva", email: "fernando@eduzz.com", role: "Mentor", status: "Ativo", last_access: new Date(Date.now() - 12 * 3600000).toISOString(), invited_at: new Date().toISOString(), created_at: new Date().toISOString(), user_id: "" },
-  ], []);
-
-  const users = dbUsers.length > 0 ? dbUsers : mockUsers;
+  const users = dbUsers;
 
   const filtered = useMemo(() => {
     return users.filter((u) => {
