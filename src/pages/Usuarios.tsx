@@ -85,7 +85,7 @@ export default function Usuarios() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const [confirmDialog, setConfirmDialog] = useState<{ type: "deactivate" | "remove"; user: typeof mockUsers[0] } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ type: "deactivate" | "remove"; user: any } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: dbUsers = [], isLoading } = useQuery({
