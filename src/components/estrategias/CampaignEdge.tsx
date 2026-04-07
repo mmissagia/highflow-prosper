@@ -1,6 +1,5 @@
 import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge } from '@xyflow/react';
 import { useCampaignCountByEdge } from '@/hooks/useCampaigns';
-import { useStrategy } from '@/contexts/StrategyContext';
 import { Zap } from 'lucide-react';
 
 export function CampaignEdge({
@@ -17,8 +16,8 @@ export function CampaignEdge({
   style = {},
   markerEnd,
 }: EdgeProps) {
-  const { selectedStrategyId } = useStrategy();
-  const { active } = useCampaignCountByEdge(selectedStrategyId, source, target);
+  const strategyId = (data as any)?.strategyId ?? null;
+  const { active } = useCampaignCountByEdge(strategyId, source, target);
   const hasCampaign = active > 0;
 
   const [edgePath, labelX, labelY] = getBezierPath({

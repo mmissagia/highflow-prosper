@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Zap, Mail, MessageSquare, Phone, Calendar, Radio, Plus } from 'lucide-react';
 import { useCampaignsByEdge, type Campaign } from '@/hooks/useCampaigns';
-import { useStrategy } from '@/contexts/StrategyContext';
 import React from 'react';
 
 const CHANNEL_LABELS: Record<Campaign['channel'], string> = {
@@ -34,6 +33,7 @@ const STATUS_VARIANT: Record<Campaign['status'], 'default' | 'secondary' | 'outl
 interface EdgeDrawerProps {
   open: boolean;
   onClose: () => void;
+  strategyId: string;
   sourceLabel: string;
   targetLabel: string;
   edgeSource: string;
@@ -44,15 +44,15 @@ interface EdgeDrawerProps {
 export function EdgeDrawer({
   open,
   onClose,
+  strategyId,
   sourceLabel,
   targetLabel,
   edgeSource,
   edgeTarget,
   conversionRate,
 }: EdgeDrawerProps) {
-  const { selectedStrategyId } = useStrategy();
   const { data: campaigns, isLoading } = useCampaignsByEdge(
-    selectedStrategyId,
+    strategyId,
     edgeSource,
     edgeTarget
   );
