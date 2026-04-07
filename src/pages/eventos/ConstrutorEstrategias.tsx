@@ -94,7 +94,7 @@ const getDefaultEdges = (): Edge[] => [
     animated: true,
     style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
     markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
-    data: { conversionRate: null },
+    data: { strategyId: null, conversionRate: null },
   },
 ];
 
