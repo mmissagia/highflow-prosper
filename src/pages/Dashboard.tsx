@@ -1,4 +1,5 @@
 import { MetricCard } from "@/components/MetricCard";
+import { SalesFunnel } from "@/components/dashboard/SalesFunnel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -178,86 +179,7 @@ export default function Dashboard() {
 
       {/* 4. Grid 2 colunas — Funil Visual + BarChart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Funil de Vendas Visual */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              Funil de Vendas — Visão Multi-funil
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-full">
-                  <div 
-                    className="h-14 bg-gradient-to-r from-primary/80 to-primary flex items-center justify-between px-6 rounded-t-lg"
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }}
-                  >
-                    <span className="font-semibold text-primary-foreground text-sm">Leads Captados</span>
-                    <div className="text-right">
-                      <span className="text-xl font-bold text-primary-foreground">1.247</span>
-                      <span className="text-xs text-primary-foreground/80 ml-1">100%</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="w-[85%]">
-                  <div 
-                    className="h-14 bg-gradient-to-r from-chart-2/80 to-chart-2 flex items-center justify-between px-6"
-                    style={{ clipPath: 'polygon(5% 0, 95% 0, 90% 100%, 10% 100%)' }}
-                  >
-                    <span className="font-semibold text-white text-sm">Vendas Low Ticket</span>
-                    <div className="text-right">
-                      <span className="text-xl font-bold text-white">487</span>
-                      <span className="text-xs text-white/80 ml-1">39%</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="w-[65%]">
-                  <div 
-                    className="h-14 bg-gradient-to-r from-accent/80 to-accent flex items-center justify-between px-6"
-                    style={{ clipPath: 'polygon(10% 0, 90% 0, 85% 100%, 15% 100%)' }}
-                  >
-                    <span className="font-semibold text-accent-foreground text-sm">Eventos HT</span>
-                    <div className="text-right">
-                      <span className="text-xl font-bold text-accent-foreground">156</span>
-                      <span className="text-xs text-accent-foreground/80 ml-1">12.5%</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="w-[45%]">
-                  <div 
-                    className="h-14 bg-gradient-to-r from-success/80 to-success flex items-center justify-between px-6 rounded-b-lg"
-                    style={{ clipPath: 'polygon(15% 0, 85% 0, 80% 100%, 20% 100%)' }}
-                  >
-                    <span className="font-semibold text-white text-sm">Mentorias</span>
-                    <div className="text-right">
-                      <span className="text-xl font-bold text-white">76</span>
-                      <span className="text-xs text-white/80 ml-1">6.1%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3 pt-4 border-t">
-                <div className="text-center p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Lead → Low Ticket</p>
-                  <p className="text-lg font-bold text-foreground">39%</p>
-                  <p className="text-[10px] text-success">+5.2% vs mês anterior</p>
-                </div>
-                <div className="text-center p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Low Ticket → Evento</p>
-                  <p className="text-lg font-bold text-foreground">32%</p>
-                  <p className="text-[10px] text-success">+3.8% vs mês anterior</p>
-                </div>
-                <div className="text-center p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Evento → Mentoria</p>
-                  <p className="text-lg font-bold text-foreground">48.7%</p>
-                  <p className="text-[10px] text-destructive">-2.1% vs mês anterior</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SalesFunnel />
 
         {/* BarChart Funil de Conversão */}
         <Card>
