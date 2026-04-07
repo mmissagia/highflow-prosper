@@ -1,8 +1,11 @@
 import { useGlobalFilters } from "@/contexts/GlobalFilterContext";
+import { useStrategy } from "@/contexts/StrategyContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, SlidersHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const periodOptions = [
   { value: "today", label: "Hoje" },

@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
+import { StrategyProvider } from "@/contexts/StrategyContext";
 import { Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
 import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
@@ -167,11 +168,13 @@ function AppLayoutInner() {
 function AppLayout() {
   return (
     <ProtectedRoute>
-      <GlobalFilterProvider>
-        <SidebarProvider>
-          <AppLayoutInner />
-        </SidebarProvider>
-      </GlobalFilterProvider>
+      <StrategyProvider>
+        <GlobalFilterProvider>
+          <SidebarProvider>
+            <AppLayoutInner />
+          </SidebarProvider>
+        </GlobalFilterProvider>
+      </StrategyProvider>
     </ProtectedRoute>
   );
 }
