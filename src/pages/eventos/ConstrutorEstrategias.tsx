@@ -110,7 +110,7 @@ export default function ConstrutorEstrategias() {
       setCurrentStrategyId(lastStrategy.id);
       setStrategyName(lastStrategy.name);
       setNodes(lastStrategy.nodes.length > 0 ? lastStrategy.nodes : getDefaultNodes());
-      setEdges(lastStrategy.edges);
+      setEdges(normalizeEdges(lastStrategy.edges));
       setHasLoadedInitial(true);
     } else if (!isLoading && strategies.length === 0 && !hasLoadedInitial) {
       setHasLoadedInitial(true);
@@ -127,9 +127,11 @@ export default function ConstrutorEstrategias() {
       setEdges((eds) => {
         const newEdges = addEdge({
           ...params,
+          type: 'campaign',
           animated: true,
           style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
           markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+          data: { conversionRate: null },
         }, eds);
         return computeEdgesWithConversion(nodes, newEdges);
       });
