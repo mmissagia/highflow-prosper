@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -43,7 +42,7 @@ const aiSuggestions = [
   },
 ];
 
-export default function EditorMensagens() {
+export function EditorContent() {
   const [message, setMessage] = useState("");
   const [channel, setChannel] = useState("whatsapp");
 
@@ -218,4 +217,8 @@ export default function EditorMensagens() {
       </div>
     </div>
   );
+}
+
+export default function EditorMensagens() {
+  return <EditorContent />;
 }
