@@ -125,7 +125,7 @@ function AppLayoutInner() {
               <Route path="/checkout-ht" element={<CheckoutHighTicket />} />
               <Route path="/comunicacao/campanhas" element={<Campanhas />} />
               <Route path="/comunicacao/automacoes" element={<Automacoes />} />
-              <Route path="/comunicacao/editor" element={<EditorMensagens />} />
+              <Route path="/comunicacao/editor" element={<Navigate to="/comunicacao/campanhas" replace />} />
               <Route path="/comunicacao/conversas" element={<Conversas />} />
               <Route path="/entrega/cursos" element={<MeusCursos />} />
               <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
