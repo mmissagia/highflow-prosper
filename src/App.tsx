@@ -53,7 +53,7 @@ import Usuarios from "./pages/Usuarios";
 // Comercial
 import Equipe from "./pages/comercial/Equipe";
 import Atividades from "./pages/comercial/Atividades";
-import PerformanceComercial from "./pages/comercial/PerformanceComercial";
+import Performance from "./pages/comercial/Performance";
 import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
 import Relatorios from "./pages/comercial/Relatorios";
@@ -104,18 +104,18 @@ function AppLayoutInner() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/performance/relatorios" element={<Relatorios />} />
-              <Route path="/performance/indicadores" element={<Dashboard />} />
+              <Route path="/performance/indicadores" element={<Navigate to="/" replace />} />
               <Route path="/crm/pipeline" element={<Pipeline />} />
               <Route path="/crm/leads" element={<LeadsList />} />
               <Route path="/crm/lead" element={<LeadDetail />} />
               <Route path="/crm/lead/:id" element={<LeadDetail />} />
               <Route path="/comercial/equipe" element={<Equipe />} />
               <Route path="/comercial/atividades" element={<Atividades />} />
-              <Route path="/comercial/produtividade" element={<PerformanceComercial />} />
-              <Route path="/comercial/performance" element={<PerformanceComercial />} />
+              <Route path="/comercial/produtividade" element={<Navigate to="/comercial/performance" replace />} />
+              <Route path="/comercial/performance" element={<Performance />} />
               <Route path="/comercial/comissoes" element={<Comissoes />} />
               <Route path="/comercial/agenda" element={<Agenda />} />
-              <Route path="/comercial/relatorios" element={<Relatorios />} />
+              <Route path="/comercial/relatorios" element={<Navigate to="/" replace />} />
               <Route path="/eventos" element={<EventosList />} />
               <Route path="/eventos/detalhe" element={<EventoDetail />} />
               <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
