@@ -119,9 +119,9 @@ const menuGroups: MenuSection[] = [
         title: "Monetização",
         icon: TrendingUp,
         items: [
-          { title: "Estratégias", url: "/estrategias", icon: Sparkles, comingSoon: true },
-          { title: "Eventos", url: "/monetizacao/eventos", icon: CalendarDays, comingSoon: true },
-          { title: "Produtos & Pitches", url: "/monetizacao/pitches", icon: Package, comingSoon: true },
+          { title: "Estratégias", url: "/estrategias", icon: Sparkles },
+          { title: "Eventos", url: "/monetizacao/eventos", icon: CalendarDays },
+          { title: "Produtos & Pitches", url: "/monetizacao/pitches", icon: Package },
           { title: "Checkout HT", url: "/checkout-ht", icon: CreditCard },
         ],
       },
@@ -160,7 +160,7 @@ const menuGroups: MenuSection[] = [
         title: "Configurações",
         icon: Settings,
         items: [
-          { title: "Integrações", url: "/infra/integracoes", icon: Plug, comingSoon: true },
+          { title: "Integrações", url: "/infra/integracoes", icon: Plug },
           { title: "Segurança", url: "/infra/seguranca", icon: Shield },
           { title: "Configurações", url: "/infra/configuracoes", icon: Settings },
         ],
