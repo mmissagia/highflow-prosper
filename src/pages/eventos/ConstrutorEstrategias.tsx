@@ -41,6 +41,7 @@ import ElementPanel, { type ElementType } from '@/components/estrategias/Element
 import { computeEdgesWithConversion } from '@/components/estrategias/useEdgeConversion';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { CampaignEdge } from '@/components/estrategias/CampaignEdge';
+import { EdgeDrawer } from '@/components/estrategias/EdgeDrawer';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
@@ -100,6 +101,14 @@ export default function ConstrutorEstrategias() {
   const [currentStrategyId, setCurrentStrategyId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedEdgeData, setSelectedEdgeData] = useState<{
+    sourceLabel: string;
+    targetLabel: string;
+    edgeSource: string;
+    edgeTarget: string;
+    conversionRate?: number | null;
+  } | null>(null);
 
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
 
@@ -137,6 +146,22 @@ export default function ConstrutorEstrategias() {
       });
     },
     [setEdges, nodes],
+  );
+
+  const handleEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      setSelectedEdgeData({
+        sourceLabel: (sourceNode?.data as any)?.label ?? edge.source,
+        targetLabel: (targetNode?.data as any)?.label ?? edge.target,
+        edgeSource: edge.source,
+        edgeTarget: edge.target,
+        conversionRate: (edge.data as any)?.conversionRate ?? null,
+      });
+      setDrawerOpen(true);
+    },
+    [nodes]
   );
 
   const addNode = (element: ElementType) => {
@@ -291,6 +316,7 @@ export default function ConstrutorEstrategias() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onEdgeClick={handleEdgeClick}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
@@ -330,6 +356,14 @@ export default function ConstrutorEstrategias() {
           </Panel>
         </ReactFlow>
       </Card>
+
+      {selectedEdgeData && (
+        <EdgeDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          {...selectedEdgeData}
+        />
+      )}
     </div>
   );
 }
