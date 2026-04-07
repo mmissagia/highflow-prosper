@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaigns: {
+        Row: {
+          channel: string
+          created_at: string
+          edge_source: string
+          edge_target: string
+          id: string
+          name: string
+          status: string
+          strategy_id: string
+          type: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          edge_source: string
+          edge_target: string
+          id?: string
+          name: string
+          status?: string
+          strategy_id: string
+          type: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          edge_source?: string
+          edge_target?: string
+          id?: string
+          name?: string
+          status?: string
+          strategy_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commission_records: {
         Row: {
           commission_value: number
