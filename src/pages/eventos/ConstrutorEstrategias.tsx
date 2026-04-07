@@ -292,6 +292,7 @@ export default function ConstrutorEstrategias() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           className="bg-muted/30"
         >
