@@ -145,15 +145,15 @@ export function GlobalContextSelector() {
         </Select>
 
         <Select
-          value={selectedStrategyId ?? ""}
-          onValueChange={(v) => setSelectedStrategyId(v || null)}
+          value={selectedStrategyId ?? "__all__"}
+          onValueChange={(v) => setSelectedStrategyId(v === "__all__" ? null : v)}
           disabled={!hasStrategies}
         >
           <SelectTrigger className="w-[170px] h-8 text-xs">
             <SelectValue placeholder={hasStrategies ? "Todas as estratégias" : "Nenhuma estratégia"} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as estratégias</SelectItem>
+            <SelectItem value="__all__">Todas as estratégias</SelectItem>
             {strategies.map((s) => (
               <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
             ))}
