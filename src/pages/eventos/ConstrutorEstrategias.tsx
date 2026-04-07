@@ -55,11 +55,11 @@ const edgeTypes = {
   campaign: CampaignEdge,
 };
 
-const normalizeEdges = (edges: Edge[]): Edge[] =>
+const normalizeEdges = (edges: Edge[], strategyId?: string | null): Edge[] =>
   edges.map((e) => ({
     ...e,
     type: e.type ?? 'campaign',
-    data: e.data ?? { conversionRate: null },
+    data: { ...((e.data as any) ?? {}), strategyId: strategyId ?? null, conversionRate: (e.data as any)?.conversionRate ?? null },
   }));
 
 const getDefaultNodes = (): Node[] => [
@@ -127,6 +127,7 @@ export default function ConstrutorEstrategias() {
     try {
       const count = await seedDemoCampaigns(currentStrategyId, edges);
       await queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      await queryClient.refetchQueries({ queryKey: ['campaigns'] });
       toast.success(`${count} campanhas demo criadas com sucesso.`);
     } catch (err) {
       toast.error('Erro ao gerar dados demo. Tente novamente.');
@@ -142,7 +143,7 @@ export default function ConstrutorEstrategias() {
       setCurrentStrategyId(lastStrategy.id);
       setStrategyName(lastStrategy.name);
       setNodes(lastStrategy.nodes.length > 0 ? lastStrategy.nodes : getDefaultNodes());
-      setEdges(normalizeEdges(lastStrategy.edges));
+      setEdges(normalizeEdges(lastStrategy.edges, lastStrategy.id));
       setHasLoadedInitial(true);
     } else if (!isLoading && strategies.length === 0 && !hasLoadedInitial) {
       setHasLoadedInitial(true);
@@ -163,12 +164,12 @@ export default function ConstrutorEstrategias() {
           animated: true,
           style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
           markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
-          data: { conversionRate: null },
+          data: { strategyId: currentStrategyId, conversionRate: null },
         }, eds);
         return computeEdgesWithConversion(nodes, newEdges);
       });
     },
-    [setEdges, nodes],
+    [setEdges, nodes, currentStrategyId],
   );
 
   const handleEdgeClick = useCallback(
@@ -215,7 +216,7 @@ export default function ConstrutorEstrategias() {
     setCurrentStrategyId(strategy.id);
     setStrategyName(strategy.name);
     setNodes(strategy.nodes.length > 0 ? strategy.nodes : getDefaultNodes());
-    setEdges(normalizeEdges(strategy.edges));
+    setEdges(normalizeEdges(strategy.edges, strategy.id));
     setIsDialogOpen(false);
   };
 
@@ -395,6 +396,7 @@ export default function ConstrutorEstrategias() {
         <EdgeDrawer
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
+          strategyId={currentStrategyId ?? ''}
           {...selectedEdgeData}
         />
       )}
