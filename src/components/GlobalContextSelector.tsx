@@ -69,6 +69,21 @@ function getLabelForValue(key: string, value: string): string {
 
 export function GlobalContextSelector() {
   const { filters, setFilter, clearFilters, activeFilterCount } = useGlobalFilters();
+  const { selectedStrategyId, setSelectedStrategyId } = useStrategy();
+
+  const { data: strategies = [] } = useQuery({
+    queryKey: ['strategies-selector'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('strategies')
+        .select('id, name')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const hasStrategies = strategies.length > 0;
 
   const activeChips = Object.entries(filters).filter(
     ([key, value]) => {
