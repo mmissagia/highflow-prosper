@@ -324,6 +324,17 @@ export default function ConstrutorEstrategias() {
             Excluir
           </Button>
           
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSeedDemo}
+            disabled={isSeeding || !currentStrategyId || edges.length === 0}
+            className="gap-2 text-xs"
+          >
+            <Wand2 className="h-3.5 w-3.5" />
+            {isSeeding ? 'Gerando...' : 'Gerar dados demo'}
+          </Button>
+          
           <Button size="sm" className="gap-1.5 text-xs" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Salvar
