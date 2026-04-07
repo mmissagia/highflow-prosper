@@ -40,10 +40,22 @@ import StrategyNode from '@/components/estrategias/StrategyNode';
 import ElementPanel, { type ElementType } from '@/components/estrategias/ElementPanel';
 import { computeEdgesWithConversion } from '@/components/estrategias/useEdgeConversion';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
+import { CampaignEdge } from '@/components/estrategias/CampaignEdge';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
 };
+
+const edgeTypes = {
+  campaign: CampaignEdge,
+};
+
+const normalizeEdges = (edges: Edge[]): Edge[] =>
+  edges.map((e) => ({
+    ...e,
+    type: e.type ?? 'campaign',
+    data: e.data ?? { conversionRate: null },
+  }));
 
 const getDefaultNodes = (): Node[] => [
   {
@@ -73,9 +85,11 @@ const getDefaultEdges = (): Edge[] => [
     id: 'e1-2',
     source: '1',
     target: '2',
+    type: 'campaign',
     animated: true,
     style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
     markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+    data: { conversionRate: null },
   },
 ];
 
@@ -96,7 +110,7 @@ export default function ConstrutorEstrategias() {
       setCurrentStrategyId(lastStrategy.id);
       setStrategyName(lastStrategy.name);
       setNodes(lastStrategy.nodes.length > 0 ? lastStrategy.nodes : getDefaultNodes());
-      setEdges(lastStrategy.edges);
+      setEdges(normalizeEdges(lastStrategy.edges));
       setHasLoadedInitial(true);
     } else if (!isLoading && strategies.length === 0 && !hasLoadedInitial) {
       setHasLoadedInitial(true);
@@ -113,9 +127,11 @@ export default function ConstrutorEstrategias() {
       setEdges((eds) => {
         const newEdges = addEdge({
           ...params,
+          type: 'campaign',
           animated: true,
           style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
           markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+          data: { conversionRate: null },
         }, eds);
         return computeEdgesWithConversion(nodes, newEdges);
       });
@@ -151,7 +167,7 @@ export default function ConstrutorEstrategias() {
     setCurrentStrategyId(strategy.id);
     setStrategyName(strategy.name);
     setNodes(strategy.nodes.length > 0 ? strategy.nodes : getDefaultNodes());
-    setEdges(strategy.edges);
+    setEdges(normalizeEdges(strategy.edges));
     setIsDialogOpen(false);
   };
 
@@ -276,6 +292,7 @@ export default function ConstrutorEstrategias() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           className="bg-muted/30"
         >
