@@ -167,7 +167,7 @@ export default function ConstrutorEstrategias() {
     setCurrentStrategyId(strategy.id);
     setStrategyName(strategy.name);
     setNodes(strategy.nodes.length > 0 ? strategy.nodes : getDefaultNodes());
-    setEdges(strategy.edges);
+    setEdges(normalizeEdges(strategy.edges));
     setIsDialogOpen(false);
   };
 
