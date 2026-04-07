@@ -144,19 +144,24 @@ export function GlobalContextSelector() {
           </SelectContent>
         </Select>
 
-        <Select value={filters.origin} onValueChange={(v) => setFilter("origin", v)}>
-          <SelectTrigger className="w-[150px] h-8 text-xs">
-            <SelectValue />
+        <Select
+          value={selectedStrategyId ?? ""}
+          onValueChange={(v) => setSelectedStrategyId(v || null)}
+          disabled={!hasStrategies}
+        >
+          <SelectTrigger className="w-[170px] h-8 text-xs">
+            <SelectValue placeholder={hasStrategies ? "Todas as estratégias" : "Nenhuma estratégia"} />
           </SelectTrigger>
           <SelectContent>
-            {originOptions.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            <SelectItem value="">Todas as estratégias</SelectItem>
+            {strategies.map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs text-muted-foreground">
+        {(activeFilterCount > 0 || selectedStrategyId) && (
+          <Button variant="ghost" size="sm" onClick={() => { clearFilters(); setSelectedStrategyId(null); }} className="h-8 text-xs text-muted-foreground">
             <X className="h-3 w-3 mr-1" />
             Limpar
           </Button>
