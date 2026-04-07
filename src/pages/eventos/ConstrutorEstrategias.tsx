@@ -40,10 +40,22 @@ import StrategyNode from '@/components/estrategias/StrategyNode';
 import ElementPanel, { type ElementType } from '@/components/estrategias/ElementPanel';
 import { computeEdgesWithConversion } from '@/components/estrategias/useEdgeConversion';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
+import { CampaignEdge } from '@/components/estrategias/CampaignEdge';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
 };
+
+const edgeTypes = {
+  campaign: CampaignEdge,
+};
+
+const normalizeEdges = (edges: Edge[]): Edge[] =>
+  edges.map((e) => ({
+    ...e,
+    type: e.type ?? 'campaign',
+    data: e.data ?? { conversionRate: null },
+  }));
 
 const getDefaultNodes = (): Node[] => [
   {
@@ -73,9 +85,11 @@ const getDefaultEdges = (): Edge[] => [
     id: 'e1-2',
     source: '1',
     target: '2',
+    type: 'campaign',
     animated: true,
     style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
     markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+    data: { conversionRate: null },
   },
 ];
 
