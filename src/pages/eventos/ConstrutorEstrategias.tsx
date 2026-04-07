@@ -43,6 +43,9 @@ import { computeEdgesWithConversion } from '@/components/estrategias/useEdgeConv
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { CampaignEdge } from '@/components/estrategias/CampaignEdge';
 import { EdgeDrawer } from '@/components/estrategias/EdgeDrawer';
+import { seedDemoCampaigns } from '@/lib/demoSeed';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
@@ -112,6 +115,25 @@ export default function ConstrutorEstrategias() {
   } | null>(null);
 
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
+  const [isSeeding, setIsSeeding] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleSeedDemo = async () => {
+    if (!currentStrategyId || edges.length === 0) {
+      toast.error('Abra uma estratégia com arestas para gerar dados demo.');
+      return;
+    }
+    setIsSeeding(true);
+    try {
+      const count = await seedDemoCampaigns(currentStrategyId, edges);
+      await queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success(`${count} campanhas demo criadas com sucesso.`);
+    } catch (err) {
+      toast.error('Erro ao gerar dados demo. Tente novamente.');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   // Auto-load last saved strategy
   useEffect(() => {
