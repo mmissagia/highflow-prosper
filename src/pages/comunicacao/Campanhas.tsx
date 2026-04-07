@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Megaphone, Search, Plus, Mail, MessageCircle, Send, Eye, TrendingUp } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Megaphone, Search, Plus, Mail, MessageCircle, Send, Eye, TrendingUp, PenTool } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
+import { EditorContent } from "@/pages/comunicacao/EditorMensagens";
 
 const mockCampaigns = [
   {
@@ -67,6 +70,8 @@ const statusColors: Record<string, string> = {
 };
 
 export default function Campanhas() {
+  const [editorOpen, setEditorOpen] = useState(false);
+
   const totalSent = mockCampaigns.reduce((acc, c) => acc + c.sent, 0);
   const totalConverted = mockCampaigns.reduce((acc, c) => acc + c.converted, 0);
   const totalRevenue = mockCampaigns.reduce((acc, c) => acc + c.revenue, 0);
@@ -79,10 +84,16 @@ export default function Campanhas() {
           <h1 className="text-3xl font-bold text-foreground">Campanhas</h1>
           <p className="text-muted-foreground">Gerencie suas campanhas de comunicação multicanal</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Campanha
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => setEditorOpen(true)}>
+            <PenTool className="h-4 w-4 mr-2" />
+            Novo Editor
+          </Button>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Campanha
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
@@ -108,7 +119,6 @@ export default function Campanhas() {
               const ChannelIcon = channelIcons[campaign.channel] || Send;
               const openRate = campaign.sent > 0 ? ((campaign.opened / campaign.sent) * 100).toFixed(0) : 0;
               const clickRate = campaign.opened > 0 ? ((campaign.clicked / campaign.opened) * 100).toFixed(0) : 0;
-              const conversionRate = campaign.sent > 0 ? ((campaign.converted / campaign.sent) * 100).toFixed(1) : 0;
 
               return (
                 <Card key={campaign.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -170,6 +180,18 @@ export default function Campanhas() {
           </div>
         </CardContent>
       </Card>
+
+      <Sheet open={editorOpen} onOpenChange={setEditorOpen}>
+        <SheetContent side="right" className="sm:max-w-[900px] w-full overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Editor de Mensagens</SheetTitle>
+            <SheetDescription>Crie e edite mensagens para suas campanhas</SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <EditorContent />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
