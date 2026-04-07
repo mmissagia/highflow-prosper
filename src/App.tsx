@@ -56,6 +56,7 @@ import Atividades from "./pages/comercial/Atividades";
 import Performance from "./pages/comercial/Performance";
 import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
+import Relatorios from "./pages/comercial/Relatorios";
 import CheckoutHighTicket from "./pages/checkout/CheckoutHighTicket";
 
 const queryClient = new QueryClient();
@@ -102,6 +103,7 @@ function AppLayoutInner() {
           <main className="flex-1 p-6 bg-muted/30">
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/performance/relatorios" element={<Relatorios />} />
               <Route path="/performance/indicadores" element={<Navigate to="/" replace />} />
               <Route path="/crm/pipeline" element={<Pipeline />} />
               <Route path="/crm/leads" element={<LeadsList />} />
