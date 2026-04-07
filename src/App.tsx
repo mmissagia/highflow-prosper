@@ -116,24 +116,40 @@ function AppLayoutInner() {
               <Route path="/comercial/comissoes" element={<Comissoes />} />
               <Route path="/comercial/agenda" element={<Agenda />} />
               <Route path="/comercial/relatorios" element={<Navigate to="/" replace />} />
-              <Route path="/eventos" element={<EventosList />} />
-              <Route path="/eventos/detalhe" element={<EventoDetail />} />
-              <Route path="/eventos/detalhe/:id" element={<EventoDetail />} />
-              <Route path="/eventos/pitch" element={<PitchEditor />} />
-              <Route path="/eventos/pitch/:id" element={<PitchEditor />} />
-              <Route path="/eventos/estrategias" element={<ConstrutorEstrategias />} />
+              {/* Monetização */}
+              <Route path="/estrategias" element={<ConstrutorEstrategias />} />
+              <Route path="/monetizacao/eventos" element={<EventosList />} />
+              <Route path="/monetizacao/eventos/detalhe" element={<EventoDetail />} />
+              <Route path="/monetizacao/eventos/detalhe/:id" element={<EventoDetail />} />
+              <Route path="/monetizacao/pitches" element={<PitchEditor />} />
+              <Route path="/monetizacao/pitches/:id" element={<PitchEditor />} />
               <Route path="/checkout-ht" element={<CheckoutHighTicket />} />
+
+              {/* Redirects de rotas antigas → novas */}
+              <Route path="/eventos" element={<Navigate to="/monetizacao/eventos" replace />} />
+              <Route path="/eventos/detalhe" element={<Navigate to="/monetizacao/eventos" replace />} />
+              <Route path="/eventos/detalhe/:id" element={<Navigate to="/monetizacao/eventos" replace />} />
+              <Route path="/eventos/pitch" element={<Navigate to="/monetizacao/pitches" replace />} />
+              <Route path="/eventos/pitch/:id" element={<Navigate to="/monetizacao/pitches" replace />} />
+              <Route path="/eventos/estrategias" element={<Navigate to="/estrategias" replace />} />
+              <Route path="/conexoes" element={<Navigate to="/infra/integracoes" replace />} />
+
+              {/* Comunicação */}
               <Route path="/comunicacao/campanhas" element={<Campanhas />} />
               <Route path="/comunicacao/automacoes" element={<Automacoes />} />
               <Route path="/comunicacao/editor" element={<Navigate to="/comunicacao/campanhas" replace />} />
               <Route path="/comunicacao/conversas" element={<Conversas />} />
+
+              {/* Entrega */}
               <Route path="/entrega/cursos" element={<MeusCursos />} />
               <Route path="/entrega/mentorias" element={<MinhasMentorias />} />
               <Route path="/entrega/mentorias/:id" element={<MinhasMentorias />} />
               <Route path="/entrega/mentorias-ht" element={<MinhasMentorias />} />
               <Route path="/entrega/mentor" element={<PainelMentor />} />
               <Route path="/entrega/produtor" element={<PainelProdutor />} />
-              <Route path="/conexoes" element={<Conexoes />} />
+
+              {/* Infraestrutura */}
+              <Route path="/infra/integracoes" element={<Conexoes />} />
               <Route path="/infra/seguranca" element={<Seguranca />} />
               <Route path="/infra/configuracoes" element={<Configuracoes />} />
               <Route path="/usuarios" element={<Usuarios />} />
