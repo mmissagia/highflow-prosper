@@ -4,37 +4,33 @@ import {
   MessageSquare, 
   GraduationCap,
   TrendingUp,
-  Eye,
   Kanban,
   List,
   CalendarDays,
   Megaphone,
-  Zap,
-  PenTool,
   MessageCircle,
   BookOpen,
   Heart,
-  UserCog,
-  Crown,
   ChevronRight,
   CreditCard,
   Sparkles,
   LogOut,
   Plug,
-  PhoneCall,
   UsersRound,
   Activity,
   Gauge,
   DollarSign,
   Calendar,
-  FileBarChart,
-  BarChart3,
   Shield,
   Settings,
+  ShoppingBag,
+  Presentation,
+  Package,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Sidebar,
@@ -56,101 +52,115 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-const menuGroups = [
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  comingSoon?: boolean;
+};
+
+type MenuGroup = {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: MenuItem[];
+};
+
+type MenuSection = {
+  label: string;
+  groups: MenuGroup[];
+};
+
+const menuGroups: MenuSection[] = [
   {
-    label: "📊 Performance",
+    label: "Home",
     groups: [
       {
-        title: "Performance",
+        title: "Home",
         icon: LayoutDashboard,
         items: [
-          { title: "Visão Geral", url: "/", icon: Eye },
-          { title: "Relatórios", url: "/performance/relatorios", icon: FileBarChart },
-          { title: "Indicadores", url: "/performance/indicadores", icon: BarChart3 },
+          { title: "Dashboard", url: "/", icon: LayoutDashboard },
         ],
       },
     ],
   },
   {
-    label: "👥 Relacionamento",
+    label: "CRM",
     groups: [
       {
         title: "CRM",
         icon: Users,
         items: [
           { title: "Pipeline", url: "/crm/pipeline", icon: Kanban },
-          { title: "Lista de Leads", url: "/crm/leads", icon: List },
-        ],
-      },
-      {
-        title: "Comunicação",
-        icon: MessageSquare,
-        items: [
-          { title: "Campanhas", url: "/comunicacao/campanhas", icon: Megaphone },
-          { title: "Automações", url: "/comunicacao/automacoes", icon: Zap },
-          { title: "Editor de Mensagens", url: "/comunicacao/editor", icon: PenTool },
-          { title: "Conversas (WhatsApp)", url: "/comunicacao/conversas", icon: MessageCircle },
+          { title: "Leads", url: "/crm/leads", icon: List },
         ],
       },
     ],
   },
   {
-    label: "📞 Comercial",
+    label: "Comercial",
     groups: [
       {
-        title: "Operação Comercial",
-        icon: PhoneCall,
+        title: "Comercial",
+        icon: DollarSign,
         items: [
           { title: "Equipe", url: "/comercial/equipe", icon: UsersRound },
           { title: "Atividades", url: "/comercial/atividades", icon: Activity },
-          { title: "Produtividade", url: "/comercial/produtividade", icon: Gauge },
           { title: "Comissões", url: "/comercial/comissoes", icon: DollarSign },
           { title: "Agenda", url: "/comercial/agenda", icon: Calendar },
-          { title: "Relatórios", url: "/comercial/relatorios", icon: FileBarChart },
+          { title: "Performance", url: "/comercial/performance", icon: Gauge },
         ],
       },
     ],
   },
   {
-    label: "💰 Monetização",
+    label: "Monetização",
     groups: [
       {
         title: "Monetização",
         icon: TrendingUp,
         items: [
-          { title: "Produtos", url: "/eventos/pitch", icon: DollarSign },
-          { title: "Construtor de Estratégias", url: "/eventos/estrategias", icon: Sparkles },
-          { title: "Checkout High Ticket", url: "/checkout-ht", icon: CreditCard },
+          { title: "Estratégias", url: "/estrategias", icon: Sparkles, comingSoon: true },
+          { title: "Eventos", url: "/monetizacao/eventos", icon: CalendarDays, comingSoon: true },
+          { title: "Produtos & Pitches", url: "/monetizacao/pitches", icon: Package, comingSoon: true },
+          { title: "Checkout HT", url: "/checkout-ht", icon: CreditCard },
         ],
       },
     ],
   },
   {
-    label: "🏛 Experiência",
+    label: "Comunicação",
     groups: [
       {
-        title: "Experiência",
+        title: "Comunicação",
+        icon: MessageSquare,
+        items: [
+          { title: "Conversas", url: "/comunicacao/conversas", icon: MessageCircle },
+          { title: "Campanhas", url: "/comunicacao/campanhas", icon: Megaphone },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Entrega",
+    groups: [
+      {
+        title: "Entrega",
         icon: GraduationCap,
         items: [
-          { title: "Meus Cursos", url: "/entrega/cursos", icon: BookOpen },
-          { title: "Minhas Mentorias", url: "/entrega/mentorias", icon: Heart },
-          { title: "Mentorias High Ticket", url: "/entrega/mentorias-ht", icon: Crown },
-          { title: "Eventos", url: "/eventos", icon: CalendarDays },
-          { title: "Painel do Mentor", url: "/entrega/mentor", icon: UserCog },
-          { title: "Painel do Produtor", url: "/entrega/produtor", icon: Crown },
+          { title: "Cursos", url: "/entrega/cursos", icon: BookOpen },
+          { title: "Mentorias", url: "/entrega/mentorias", icon: Heart },
         ],
       },
     ],
   },
   {
-    label: "⚙️ Infraestrutura",
+    label: "Configurações",
     groups: [
       {
-        title: "Infraestrutura",
-        icon: Plug,
+        title: "Configurações",
+        icon: Settings,
         items: [
-          { title: "Usuários", url: "/usuarios", icon: UsersRound },
-          { title: "Integrações", url: "/conexoes", icon: Plug },
+          { title: "Integrações", url: "/infra/integracoes", icon: Plug, comingSoon: true },
           { title: "Segurança", url: "/infra/seguranca", icon: Shield },
           { title: "Configurações", url: "/infra/configuracoes", icon: Settings },
         ],
@@ -213,16 +223,30 @@ export function AppSidebar() {
                         <SidebarMenuSub>
                           {group.items.map((item) => (
                             <SidebarMenuSubItem key={item.title}>
-                              <SidebarMenuSubButton asChild>
-                                <NavLink
-                                  to={item.url}
-                                  end
-                                  className="hover:bg-sidebar-accent"
-                                  activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                                >
-                                  <item.icon className="h-3.5 w-3.5" />
-                                  {state === "expanded" && <span>{item.title}</span>}
-                                </NavLink>
+                              <SidebarMenuSubButton asChild={!item.comingSoon}>
+                                {item.comingSoon ? (
+                                  <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                                    <item.icon className="h-3.5 w-3.5" />
+                                    {state === "expanded" && (
+                                      <>
+                                        <span>{item.title}</span>
+                                        <Badge variant="outline" className="ml-auto text-[10px] px-1.5 py-0">
+                                          Em breve
+                                        </Badge>
+                                      </>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <NavLink
+                                    to={item.url}
+                                    end
+                                    className="hover:bg-sidebar-accent"
+                                    activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                                  >
+                                    <item.icon className="h-3.5 w-3.5" />
+                                    {state === "expanded" && <span>{item.title}</span>}
+                                  </NavLink>
+                                )}
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           ))}
