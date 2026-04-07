@@ -41,6 +41,7 @@ import ElementPanel, { type ElementType } from '@/components/estrategias/Element
 import { computeEdgesWithConversion } from '@/components/estrategias/useEdgeConversion';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { CampaignEdge } from '@/components/estrategias/CampaignEdge';
+import { EdgeDrawer } from '@/components/estrategias/EdgeDrawer';
 
 const nodeTypes = {
   strategyNode: StrategyNode,
@@ -100,6 +101,14 @@ export default function ConstrutorEstrategias() {
   const [currentStrategyId, setCurrentStrategyId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedEdgeData, setSelectedEdgeData] = useState<{
+    sourceLabel: string;
+    targetLabel: string;
+    edgeSource: string;
+    edgeTarget: string;
+    conversionRate?: number | null;
+  } | null>(null);
 
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
 
