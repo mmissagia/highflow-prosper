@@ -1,8 +1,11 @@
 import { useGlobalFilters } from "@/contexts/GlobalFilterContext";
+import { useStrategy } from "@/contexts/StrategyContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, SlidersHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const periodOptions = [
   { value: "today", label: "Hoje" },
@@ -66,6 +69,21 @@ function getLabelForValue(key: string, value: string): string {
 
 export function GlobalContextSelector() {
   const { filters, setFilter, clearFilters, activeFilterCount } = useGlobalFilters();
+  const { selectedStrategyId, setSelectedStrategyId } = useStrategy();
+
+  const { data: strategies = [] } = useQuery({
+    queryKey: ['strategies-selector'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('strategies')
+        .select('id, name')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const hasStrategies = strategies.length > 0;
 
   const activeChips = Object.entries(filters).filter(
     ([key, value]) => {
@@ -126,19 +144,24 @@ export function GlobalContextSelector() {
           </SelectContent>
         </Select>
 
-        <Select value={filters.origin} onValueChange={(v) => setFilter("origin", v)}>
-          <SelectTrigger className="w-[150px] h-8 text-xs">
-            <SelectValue />
+        <Select
+          value={selectedStrategyId ?? ""}
+          onValueChange={(v) => setSelectedStrategyId(v || null)}
+          disabled={!hasStrategies}
+        >
+          <SelectTrigger className="w-[170px] h-8 text-xs">
+            <SelectValue placeholder={hasStrategies ? "Todas as estratégias" : "Nenhuma estratégia"} />
           </SelectTrigger>
           <SelectContent>
-            {originOptions.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            <SelectItem value="">Todas as estratégias</SelectItem>
+            {strategies.map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs text-muted-foreground">
+        {(activeFilterCount > 0 || selectedStrategyId) && (
+          <Button variant="ghost" size="sm" onClick={() => { clearFilters(); setSelectedStrategyId(null); }} className="h-8 text-xs text-muted-foreground">
             <X className="h-3 w-3 mr-1" />
             Limpar
           </Button>
