@@ -148,6 +148,22 @@ export default function ConstrutorEstrategias() {
     [setEdges, nodes],
   );
 
+  const handleEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      setSelectedEdgeData({
+        sourceLabel: (sourceNode?.data as any)?.label ?? edge.source,
+        targetLabel: (targetNode?.data as any)?.label ?? edge.target,
+        edgeSource: edge.source,
+        edgeTarget: edge.target,
+        conversionRate: (edge.data as any)?.conversionRate ?? null,
+      });
+      setDrawerOpen(true);
+    },
+    [nodes]
+  );
+
   const addNode = (element: ElementType) => {
     const newNode: Node = {
       id: `node-${Date.now()}`,
@@ -300,6 +316,7 @@ export default function ConstrutorEstrategias() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onEdgeClick={handleEdgeClick}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
@@ -339,6 +356,14 @@ export default function ConstrutorEstrategias() {
           </Panel>
         </ReactFlow>
       </Card>
+
+      {selectedEdgeData && (
+        <EdgeDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          {...selectedEdgeData}
+        />
+      )}
     </div>
   );
 }
