@@ -27,6 +27,7 @@ import {
   Sparkles,
   FileText,
   Loader2,
+  Wand2,
 } from "lucide-react";
 import {
   Dialog,
