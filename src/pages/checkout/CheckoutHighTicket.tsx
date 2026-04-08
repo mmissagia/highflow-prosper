@@ -23,12 +23,12 @@ import {
 } from "@/data/checkoutData";
 
 const mockCharges = [
-  { id: 'CHG-001', lead: 'Rafael Mendonça', product: 'Mentoria Elite 12 meses',  value: 18000, status: 'pendente' as const, createdAt: new Date(Date.now() - 2  * 86400000), dueAt: new Date(Date.now() + 5 * 86400000) },
-  { id: 'CHG-002', lead: 'Fernanda Alves',   product: 'Imersão Presencial',        value: 12000, status: 'pago' as const,     createdAt: new Date(Date.now() - 5  * 86400000), dueAt: new Date(Date.now() - 2 * 86400000) },
-  { id: 'CHG-003', lead: 'Bruno Figueiredo', product: 'Mentoria Elite 12 meses',  value: 15000, status: 'pago' as const,     createdAt: new Date(Date.now() - 8  * 86400000), dueAt: new Date(Date.now() - 5 * 86400000) },
-  { id: 'CHG-004', lead: 'Juliana Martins',  product: 'Mastermind Anual',          value: 24000, status: 'pendente' as const, createdAt: new Date(Date.now() - 1  * 86400000), dueAt: new Date(Date.now() + 7 * 86400000) },
-  { id: 'CHG-005', lead: 'Thiago Correia',   product: 'Imersão Presencial',        value: 8500,  status: 'vencida' as const,  createdAt: new Date(Date.now() - 15 * 86400000), dueAt: new Date(Date.now() - 3 * 86400000) },
-  { id: 'CHG-006', lead: 'Marcos Pinheiro',  product: 'Mastermind Anual',          value: 24000, status: 'pendente' as const, createdAt: new Date(Date.now() - 3  * 86400000), dueAt: new Date(Date.now() + 10 * 86400000) },
+  { id: 'CHG-001', lead: 'Rafael Mendonça', product: 'Mentoria Elite 12 meses', value: 18000, status: 'pendente' as const, createdAt: new Date(Date.now() - 2 * 86400000), dueAt: new Date(Date.now() + 5 * 86400000) },
+  { id: 'CHG-002', lead: 'Fernanda Alves', product: 'Imersão Presencial', value: 12000, status: 'pago' as const, createdAt: new Date(Date.now() - 5 * 86400000), dueAt: new Date(Date.now() - 2 * 86400000) },
+  { id: 'CHG-003', lead: 'Bruno Figueiredo', product: 'Mentoria Elite 12 meses', value: 15000, status: 'pago' as const, createdAt: new Date(Date.now() - 8 * 86400000), dueAt: new Date(Date.now() - 5 * 86400000) },
+  { id: 'CHG-004', lead: 'Juliana Martins', product: 'Mastermind Anual', value: 24000, status: 'pendente' as const, createdAt: new Date(Date.now() - 1 * 86400000), dueAt: new Date(Date.now() + 7 * 86400000) },
+  { id: 'CHG-005', lead: 'Thiago Correia', product: 'Imersão Presencial', value: 8500, status: 'vencida' as const, createdAt: new Date(Date.now() - 15 * 86400000), dueAt: new Date(Date.now() - 3 * 86400000) },
+  { id: 'CHG-006', lead: 'Marcos Pinheiro', product: 'Mastermind Anual', value: 24000, status: 'pendente' as const, createdAt: new Date(Date.now() - 3 * 86400000), dueAt: new Date(Date.now() + 10 * 86400000) },
 ];
 
 const chargeStatusConfig: Record<string, { label: string; className: string }> = {
@@ -37,9 +37,11 @@ const chargeStatusConfig: Record<string, { label: string; className: string }> =
   vencida: { label: "Vencida", className: "bg-red-500/15 text-red-600 border-red-500/30" },
 };
 
+const formatDateShort = (d: Date) =>
+  d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
 export default function CheckoutHighTicket() {
   const [searchParams] = useSearchParams();
-  const leadId = searchParams.get('leadId');
   const leadName = searchParams.get('leadName');
   const action = searchParams.get('action');
 
@@ -79,6 +81,18 @@ export default function CheckoutHighTicket() {
 
   return (
     <div className="space-y-6">
+      {/* Lead banner */}
+      {leadName && bannerVisible && (
+        <Alert className="border-primary/30 bg-primary/5">
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-sm font-medium">Criando cobrança para <strong>{leadName}</strong></span>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setBannerVisible(false)}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
@@ -98,6 +112,55 @@ export default function CheckoutHighTicket() {
           <MetricMini label="Taxa de conversão" value={`${conversionRate}%`} />
         </div>
       </div>
+
+      {/* Dashboard métricas */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <MetricCard title="Criadas" value={38} subtitle="este mês" icon={FileText} variant="default" />
+        <MetricCard title="Pagas" value={24} subtitle="este mês" icon={CheckCircle} variant="success" />
+        <MetricCard title="Pendentes" value={9} subtitle="em aberto" icon={Clock} variant="warning" />
+        <MetricCard title="Receita" value="R$ 312.500" subtitle="este mês" icon={DollarSign} variant="default" />
+      </div>
+
+      {/* Cobranças recentes */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Cobranças Recentes</h2>
+            <Button size="sm" onClick={() => setCobrancaOpen(true)}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova Cobrança
+            </Button>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead>Lead</TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead>Vencimento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockCharges.map((charge) => {
+                const sc = chargeStatusConfig[charge.status];
+                return (
+                  <TableRow key={charge.id}>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{charge.id}</TableCell>
+                    <TableCell className="font-medium text-foreground">{charge.lead}</TableCell>
+                    <TableCell className="text-muted-foreground">{charge.product}</TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(charge.value)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
+                    </TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">{formatDateShort(charge.dueAt)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Actions bar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
