@@ -1,4 +1,4 @@
-import { 
+import {
   LayoutDashboard, 
   Users, 
   MessageSquare, 
@@ -27,6 +27,7 @@ import {
   Presentation,
   Package,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -138,6 +139,8 @@ const menuGroups: MenuSection[] = [
         items: [
           { title: "Conversas", url: "/comunicacao/conversas", icon: MessageCircle },
           { title: "Campanhas", url: "/comunicacao/campanhas", icon: Megaphone },
+          { title: "Automações", url: "/comunicacao/automacoes", icon: Zap },
+          { title: "Mensagens", url: "/comunicacao/editor", icon: BookOpen },
         ],
       },
     ],
