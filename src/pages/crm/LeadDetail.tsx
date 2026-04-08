@@ -78,8 +78,7 @@ function safeTimeAgo(date: Date) {
   }
 }
 
-
-
+export default function LeadDetail() {
   const { id } = useParams();
 
   const initials = leadData.name.split(" ").map((n) => n[0]).join("");
