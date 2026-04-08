@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import { Phone, Mail, MessageCircle, MoreHorizontal, DollarSign, TrendingUp, Users, Inbox } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Inbox } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { mockInvoicesData, getLeadFinancialStatus } from "@/data/checkoutData";
 import { useLeadStageOverrides, useUpdateLeadStage } from "@/hooks/useLeadStage";
+import { LeadCard, type LeadData } from "@/components/crm/LeadCard";
 
 const pipelineStages = [
   { id: "lead-frio", title: "Lead Frio", color: "bg-slate-500" },
@@ -23,20 +22,86 @@ const pipelineStages = [
   { id: "onboarding", title: "Onboarding", color: "bg-emerald-500" },
 ];
 
-const initialLeads = [
-  { id: 1, name: "João Silva", stage: "engajado", score: 85, iem: 78, value: 15000, origin: "Meta Ads", lastContact: "2h", pitch: "Mentoria Elite", responsible: "Ana Ribeiro" },
-  { id: 2, name: "Maria Santos", stage: "warm", score: 92, iem: 85, value: 25000, origin: "Evento", lastContact: "1d", pitch: "Mastermind", responsible: "Rafael Costa" },
-  { id: 3, name: "Pedro Costa", stage: "call-agendada", score: 78, iem: 72, value: 12000, origin: "Indicação", lastContact: "30m", pitch: "Curso Premium", responsible: "Lucas Martins" },
-  { id: 4, name: "Ana Oliveira", stage: "lead-frio", score: 45, iem: 0, value: 10000, origin: "Low Ticket", lastContact: "3d", pitch: null, responsible: "Ana Ribeiro" },
-  { id: 5, name: "Carlos Mendes", stage: "fechou", score: 98, iem: 92, value: 35000, origin: "Evento", lastContact: "1h", pitch: "Mentoria VIP", responsible: "Mariana Lopes" },
-  { id: 6, name: "Lucia Ferreira", stage: "follow-up", score: 88, iem: 80, value: 20000, origin: "Meta Ads", lastContact: "4h", pitch: "Mentoria Elite", responsible: "Rafael Costa" },
+const initialLeads: LeadData[] = [
+  {
+    id: 1,
+    name: "Rafael Mendonça",
+    stage: "engajado",
+    origin: "Instagram",
+    score: 85,
+    dealValue: 18000,
+    responsible: "Carlos Lima",
+    lastContact: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    pitch: "Mentoria Elite 12 meses",
+    phone: "11991234567",
+    email: "rafael@email.com",
+  },
+  {
+    id: 2,
+    name: "Fernanda Alves",
+    stage: "call-agendada",
+    origin: "Indicação",
+    score: 62,
+    dealValue: 12000,
+    responsible: "Ana Souza",
+    lastContact: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    pitch: "Imersão Presencial",
+    phone: "21987654321",
+    email: "fernanda@email.com",
+  },
+  {
+    id: 3,
+    name: "Thiago Correia",
+    stage: "warm",
+    origin: "Facebook",
+    score: 38,
+    dealValue: 8500,
+    responsible: "Carlos Lima",
+    lastContact: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    pitch: null,
+    phone: "31976543210",
+    email: "thiago@email.com",
+  },
+  {
+    id: 4,
+    name: "Juliana Martins",
+    stage: "lead-frio",
+    origin: "LinkedIn",
+    score: 91,
+    dealValue: 24000,
+    responsible: "Ana Souza",
+    lastContact: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    pitch: "Mastermind Anual",
+    phone: "41965432109",
+    email: "juliana@email.com",
+  },
+  {
+    id: 5,
+    name: "Bruno Figueiredo",
+    stage: "fechou",
+    origin: "Instagram",
+    score: 77,
+    dealValue: 15000,
+    responsible: "Carlos Lima",
+    lastContact: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    pitch: "Mentoria Elite 12 meses",
+    phone: "51954321098",
+    email: "bruno@email.com",
+  },
+  {
+    id: 6,
+    name: "Lucia Ferreira",
+    stage: "follow-up",
+    origin: "Meta Ads",
+    score: 88,
+    dealValue: 20000,
+    responsible: "Rafael Costa",
+    lastContact: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    pitch: "Mentoria Elite",
+    phone: "11998887766",
+    email: "lucia@email.com",
+  },
 ];
-
-const financialStatusIcon: Record<string, { emoji: string; color: string }> = {
-  paga: { emoji: "💳", color: "text-emerald-500" },
-  pendente: { emoji: "💳", color: "text-amber-500" },
-  vencida: { emoji: "💳", color: "text-red-500" },
-};
 
 export default function Pipeline() {
   const [leads] = useState(initialLeads);
@@ -46,13 +111,13 @@ export default function Pipeline() {
   const { data: stageOverrides, isLoading: stagesLoading } = useLeadStageOverrides();
   const updateLeadStage = useUpdateLeadStage();
 
-  const getEffectiveStage = (lead: typeof initialLeads[0]): string =>
+  const getEffectiveStage = (lead: LeadData): string =>
     stageOverrides?.get(String(lead.id)) ?? lead.stage;
 
   const getLeadsByStage = (stageId: string) =>
     leads.filter((lead) => getEffectiveStage(lead) === stageId);
 
-  const totalValue = leads.reduce((acc, lead) => acc + lead.value, 0);
+  const totalValue = leads.reduce((acc, lead) => acc + lead.dealValue, 0);
   const avgScore = Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length);
 
   const handleDragStart = (e: React.DragEvent, leadId: number) => {
@@ -138,7 +203,7 @@ export default function Pipeline() {
         <div className="flex gap-4 min-w-max">
           {pipelineStages.map((stage) => {
             const stageLeads = getLeadsByStage(stage.id);
-            const stageValue = stageLeads.reduce((acc, lead) => acc + lead.value, 0);
+            const stageValue = stageLeads.reduce((acc, lead) => acc + lead.dealValue, 0);
 
             return (
               <div
@@ -178,76 +243,15 @@ export default function Pipeline() {
                       </div>
                     )}
 
-                    {!stagesLoading && stageLeads.map((lead) => {
-                      const finStatus = getLeadFinancialStatus(lead.name, mockInvoicesData);
-                      const finIcon = finStatus ? financialStatusIcon[finStatus] : null;
-
-                      return (
-                        <div
-                          key={lead.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, lead.id)}
-                          onDragEnd={handleDragEnd}
-                          className={`cursor-grab active:cursor-grabbing transition-opacity ${draggingId === lead.id ? 'opacity-50' : ''}`}
-                        >
-                          <Link to={`/crm/lead/${lead.id}`}>
-                            <Card className="bg-background hover:bg-muted/50 transition-colors cursor-pointer border-l-4" style={{ borderLeftColor: stage.color.replace("bg-", "var(--") }}>
-                              <CardContent className="p-3 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                        {lead.name.split(" ").map((n) => n[0]).join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <p className="text-sm font-medium">{lead.name}</p>
-                                      <p className="text-xs text-muted-foreground">{lead.origin}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    {finIcon && (
-                                      <span className={`text-sm ${finIcon.color}`} title={`Financeiro: ${finStatus}`}>
-                                        {finIcon.emoji}
-                                      </span>
-                                    )}
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-xs">
-                                  <Badge variant="outline" className="text-xs">Score: {lead.score}</Badge>
-                                  {lead.iem > 0 && (
-                                    <Badge variant="outline" className="text-xs text-purple-500 border-purple-500/50">IEM: {lead.iem}</Badge>
-                                  )}
-                                </div>
-
-                                <div className="text-xs text-muted-foreground">
-                                  Responsável: <span className="text-foreground">{lead.responsible}</span>
-                                </div>
-
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="font-semibold text-success">R$ {(lead.value / 1000).toFixed(0)}K</span>
-                                  <span className="text-muted-foreground">há {lead.lastContact}</span>
-                                </div>
-
-                                {lead.pitch && (
-                                  <Badge className="text-xs bg-primary/10 text-primary hover:bg-primary/20">{lead.pitch}</Badge>
-                                )}
-
-                                <div className="flex gap-1 pt-1">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7"><Phone className="h-3.5 w-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7"><Mail className="h-3.5 w-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7"><MessageCircle className="h-3.5 w-3.5" /></Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </Link>
-                        </div>
-                      );
-                    })}
+                    {!stagesLoading && stageLeads.map((lead) => (
+                      <LeadCard
+                        key={lead.id}
+                        lead={lead}
+                        draggingId={draggingId}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                      />
+                    ))}
                   </CardContent>
                 </Card>
               </div>
