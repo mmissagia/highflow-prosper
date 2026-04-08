@@ -54,7 +54,7 @@ import Usuarios from "./pages/Usuarios";
 // Comercial
 import Equipe from "./pages/comercial/Equipe";
 import Atividades from "./pages/comercial/Atividades";
-import Performance from "./pages/comercial/Performance";
+import PerformanceComercial from "./pages/comercial/PerformanceComercial";
 import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
 import Relatorios from "./pages/comercial/Relatorios";
@@ -114,7 +114,7 @@ function AppLayoutInner() {
               <Route path="/comercial/equipe" element={<Equipe />} />
               <Route path="/comercial/atividades" element={<Atividades />} />
               <Route path="/comercial/produtividade" element={<Navigate to="/comercial/performance" replace />} />
-              <Route path="/comercial/performance" element={<Performance />} />
+              <Route path="/comercial/performance" element={<PerformanceComercial />} />
               <Route path="/comercial/comissoes" element={<Comissoes />} />
               <Route path="/comercial/agenda" element={<Agenda />} />
               <Route path="/comercial/relatorios" element={<Navigate to="/" replace />} />
