@@ -128,7 +128,7 @@ export default function Pipeline() {
 
       <GlobalContextSelector />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
           <span><strong className="text-foreground">{leads.length}</strong> leads no contexto atual</span>
