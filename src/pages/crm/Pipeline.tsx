@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import { Phone, Mail, MessageCircle, MoreHorizontal, DollarSign, TrendingUp, Users, Inbox, CreditCard } from "lucide-react";
+import { Phone, Mail, MessageCircle, MoreHorizontal, DollarSign, TrendingUp, Users, Inbox } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { mockInvoicesData, getLeadFinancialStatus } from "@/data/checkoutData";
+import { useLeadStageOverrides, useUpdateLeadStage } from "@/hooks/useLeadStage";
 
 const pipelineStages = [
   { id: "lead-frio", title: "Lead Frio", color: "bg-slate-500" },
@@ -37,24 +39,41 @@ const financialStatusIcon: Record<string, { emoji: string; color: string }> = {
 };
 
 export default function Pipeline() {
-  const [leads, setLeads] = useState(initialLeads);
+  const [leads] = useState(initialLeads);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const getLeadsByStage = (stageId: string) => leads.filter((lead) => lead.stage === stageId);
+  const { data: stageOverrides, isLoading: stagesLoading } = useLeadStageOverrides();
+  const updateLeadStage = useUpdateLeadStage();
+
+  const getEffectiveStage = (lead: typeof initialLeads[0]): string =>
+    stageOverrides?.get(String(lead.id)) ?? lead.stage;
+
+  const getLeadsByStage = (stageId: string) =>
+    leads.filter((lead) => getEffectiveStage(lead) === stageId);
+
   const totalValue = leads.reduce((acc, lead) => acc + lead.value, 0);
   const avgScore = Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length);
 
   const handleDragStart = (e: React.DragEvent, leadId: number) => {
     e.dataTransfer.setData("leadId", String(leadId));
+    setDraggingId(leadId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingId(null);
   };
 
   const handleDrop = (e: React.DragEvent, stageId: string) => {
     e.preventDefault();
     const leadId = Number(e.dataTransfer.getData("leadId"));
     const lead = leads.find((l) => l.id === leadId);
-    if (!lead || lead.stage === stageId) return;
+    if (!lead) return;
 
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, stage: stageId } : l)));
+    const currentStage = getEffectiveStage(lead);
+    if (currentStage === stageId) return;
+
+    updateLeadStage.mutate({ leadId: String(leadId), stage: stageId });
 
     if (stageId === "fechou") {
       toast({
@@ -67,6 +86,7 @@ export default function Pipeline() {
         ),
       });
     }
+    setDraggingId(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
