@@ -1,17 +1,19 @@
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  Phone, Mail, MessageSquare, Calendar, DollarSign, TrendingUp,
+  Phone, MessageSquare, Calendar, DollarSign, TrendingUp,
   ArrowLeft, ArrowRight, Clock, FileText, UserCheck,
+  Link2, Receipt, QrCode, CalendarPlus, Zap, Target, Radio, MapPin,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getLeadSuggestions } from "@/lib/leadSuggestions";
 
 /* ─── lead mock (same fields as pipeline cards) ─── */
 const leadData = {
@@ -274,10 +276,8 @@ export default function LeadDetail() {
         </Tabs>
       </div>
 
-      {/* ── Sidebar direita (placeholder) ── */}
-      <div className="w-80 shrink-0 border-l p-4 text-sm text-muted-foreground">
-        Sidebar em construção
-      </div>
+      {/* ── Sidebar direita ── */}
+      <LeadSidebar lead={leadData} />
     </div>
   );
 }
