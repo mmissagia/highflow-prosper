@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ArrowLeft,
   QrCode,
   Copy,
@@ -24,6 +32,8 @@ import {
   Clock,
   Users,
   Maximize,
+  Landmark,
+  Download,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
@@ -65,6 +75,12 @@ export default function PitchEditor() {
   const { id } = useParams();
   const [showQRFullscreen, setShowQRFullscreen] = useState(false);
   const [selectedQR, setSelectedQR] = useState<string | null>(null);
+  const [orderBumpEnabled, setOrderBumpEnabled] = useState(false);
+  const [orderBumpValue, setOrderBumpValue] = useState(297);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+
+  const pitchId = id || "1";
+  const qrUrl = `${window.location.origin}/checkout-ht?pitchId=${pitchId}`;
 
   const handleCopyLink = (url: string) => {
     navigator.clipboard.writeText(url);
@@ -73,6 +89,19 @@ export default function PitchEditor() {
   const handleShowQR = (url: string) => {
     setSelectedQR(url);
     setShowQRFullscreen(true);
+  };
+
+  const handleDownloadQR = () => {
+    const svgEl = document.querySelector('#pitch-qrcode svg');
+    if (!svgEl) return;
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([svgData], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'qrcode-pitch.svg';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -87,6 +116,9 @@ export default function PitchEditor() {
           <h1 className="text-3xl font-bold text-foreground">Editor de Pitch</h1>
           <p className="text-muted-foreground">Configure todos os detalhes do pitch</p>
         </div>
+        <Button variant="outline" onClick={() => setQrDialogOpen(true)}>
+          <QrCode className="mr-1.5 h-4 w-4" /> Gerar QR Code
+        </Button>
         <Button variant="outline">Visualizar</Button>
         <Button>Salvar Pitch</Button>
       </div>
@@ -197,29 +229,38 @@ export default function PitchEditor() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* PASSO 1: Cartão Parcelado — primeira opção, selecionada por padrão */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <p className="font-medium">Cartão de Crédito Parcelado</p>
+                    <Badge>Recomendado</Badge>
+                  </div>
+                  <Select defaultValue={pitchData.payments.installments.toString()}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 6, 10, 12, 18].map((n) => (
+                        <SelectItem key={n} value={n.toString()}>{n}x</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">Parcele em até 18x. Processado via Z2Pay — É High Ticket.</p>
+              </div>
+
+              {/* Cartão à vista */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Cartão de Crédito</p>
-                  <p className="text-sm text-muted-foreground">Pagamento à vista ou parcelado</p>
+                  <p className="font-medium">Cartão de Crédito à Vista</p>
+                  <p className="text-sm text-muted-foreground">Pagamento integral no cartão</p>
                 </div>
                 <Switch defaultChecked={pitchData.payments.card} />
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Parcelamento Cartão</p>
-                  <p className="text-sm text-muted-foreground">Até 12x sem juros</p>
-                </div>
-                <Select defaultValue={pitchData.payments.installments.toString()}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 6, 10, 12].map((n) => (
-                      <SelectItem key={n} value={n.toString()}>{n}x</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+              {/* PIX Parcelado */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">PIX Parcelado</p>
@@ -227,15 +268,60 @@ export default function PitchEditor() {
                 </div>
                 <Switch defaultChecked={pitchData.payments.pixInstallments} />
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Boleto Parcelado</p>
-                  <p className="text-sm text-muted-foreground">Parcelamento via boleto</p>
+
+              {/* PASSO 2: Boleto TMB em destaque */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Landmark className="h-4 w-4 text-muted-foreground" />
+                    <p className="font-medium">Boleto TMB</p>
+                    <Badge variant="outline">Alta Conversão para Tickets Altos</Badge>
+                  </div>
+                  <Switch defaultChecked={pitchData.payments.boletoInstallments} />
                 </div>
-                <Switch defaultChecked={pitchData.payments.boletoInstallments} />
+                <p className="text-xs text-muted-foreground ml-6">Parcelamento via boleto em até 12x. Ideal para valores acima de R$ 10.000.</p>
               </div>
             </CardContent>
           </Card>
+
+          {/* PASSO 3: Order Bump de Recorrência */}
+          <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-primary text-primary-foreground text-[10px] font-bold uppercase">
+                  OFERTA EXCLUSIVA
+                </Badge>
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Adicionar Acesso Recorrente à Comunidade</p>
+                <p className="text-sm text-muted-foreground">Mantenha seu cliente engajado e crie uma base de receita previsível.</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">R$ {orderBumpValue}/mês</span>
+                  <Badge variant="secondary" className="text-xs">Cobrado mensalmente via cartão</Badge>
+                </div>
+                <Switch checked={orderBumpEnabled} onCheckedChange={setOrderBumpEnabled} />
+              </div>
+              <div className={orderBumpEnabled ? "opacity-100" : "opacity-60"}>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Valor mensal (R$)</Label>
+                  <Input
+                    type="number"
+                    value={orderBumpValue}
+                    onChange={(e) => setOrderBumpValue(Number(e.target.value))}
+                    className="w-28 h-8 text-sm"
+                    disabled={!orderBumpEnabled}
+                  />
+                </div>
+                {orderBumpEnabled && (
+                  <p className="text-xs text-primary font-medium mt-2">
+                    + R$ {orderBumpValue}/mês adicionado ao total do primeiro ciclo
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar */}
@@ -297,9 +383,7 @@ export default function PitchEditor() {
                   </div>
                   <p className="text-xs text-muted-foreground truncate">{link.url}</p>
                   <div className="flex justify-center p-4 bg-white rounded-lg">
-                    <div className="w-24 h-24 bg-muted rounded flex items-center justify-center">
-                      <QrCode className="h-16 w-16 text-foreground" />
-                    </div>
+                    <QRCodeSVG value={link.url} size={96} />
                   </div>
                 </div>
               ))}
@@ -327,17 +411,42 @@ export default function PitchEditor() {
 
       {/* QR Code Fullscreen Modal */}
       {showQRFullscreen && (
-        <div 
+        <div
           className="fixed inset-0 bg-white z-50 flex items-center justify-center cursor-pointer"
           onClick={() => setShowQRFullscreen(false)}
         >
           <div className="text-center">
-            <QrCode className="h-96 w-96 text-black mx-auto" />
+            {selectedQR ? (
+              <QRCodeSVG value={selectedQR} size={384} />
+            ) : (
+              <QrCode className="h-96 w-96 text-black mx-auto" />
+            )}
             <p className="text-2xl font-bold mt-8 text-black">Escaneie para comprar</p>
             <p className="text-muted-foreground mt-2">Clique em qualquer lugar para fechar</p>
           </div>
         </div>
       )}
+
+      {/* PASSO 4: QR Code Dialog */}
+      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>QR Code do Pitch</DialogTitle>
+            <DialogDescription>
+              Apresente em eventos presenciais para o lead escanear e acessar a oferta.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div id="pitch-qrcode" className="rounded-lg border p-4 bg-white">
+              <QRCodeSVG value={qrUrl} size={200} />
+            </div>
+            <p className="text-xs text-muted-foreground text-center break-all">{qrUrl}</p>
+            <Button variant="outline" onClick={handleDownloadQR}>
+              <Download className="mr-1.5 h-4 w-4" /> Baixar QR Code
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
