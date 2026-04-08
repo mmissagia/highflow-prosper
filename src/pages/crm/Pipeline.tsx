@@ -154,18 +154,31 @@ export default function Pipeline() {
                         <div className={`w-3 h-3 rounded-full ${stage.color}`} />
                         <CardTitle className="text-sm font-medium">{stage.title}</CardTitle>
                       </div>
-                      <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
+                      {!stagesLoading && (
+                        <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">R$ {(stageValue / 1000).toFixed(0)}K</p>
+                    {!stagesLoading && (
+                      <p className="text-xs text-muted-foreground">R$ {(stageValue / 1000).toFixed(0)}K</p>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {stageLeads.length === 0 && (
+                    {stagesLoading && (
+                      <>
+                        {[1, 2, 3].map((i) => (
+                          <Skeleton key={i} className="h-32 w-full rounded-lg" />
+                        ))}
+                      </>
+                    )}
+
+                    {!stagesLoading && stageLeads.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-6 text-center">
                         <Inbox className="h-8 w-8 text-muted-foreground/30 mb-2" />
                         <p className="text-xs text-muted-foreground">Nenhum lead nesta etapa</p>
                       </div>
                     )}
-                    {stageLeads.map((lead) => {
+
+                    {!stagesLoading && stageLeads.map((lead) => {
                       const finStatus = getLeadFinancialStatus(lead.name, mockInvoicesData);
                       const finIcon = finStatus ? financialStatusIcon[finStatus] : null;
 
@@ -174,7 +187,8 @@ export default function Pipeline() {
                           key={lead.id}
                           draggable
                           onDragStart={(e) => handleDragStart(e, lead.id)}
-                          className="cursor-grab active:cursor-grabbing"
+                          onDragEnd={handleDragEnd}
+                          className={`cursor-grab active:cursor-grabbing transition-opacity ${draggingId === lead.id ? 'opacity-50' : ''}`}
                         >
                           <Link to={`/crm/lead/${lead.id}`}>
                             <Card className="bg-background hover:bg-muted/50 transition-colors cursor-pointer border-l-4" style={{ borderLeftColor: stage.color.replace("bg-", "var(--") }}>
