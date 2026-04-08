@@ -75,7 +75,7 @@ export default function LeadsList() {
             <p className="text-sm text-muted-foreground mb-4 max-w-md">
               Você ainda não tem leads nesse contexto. Clique em "Novo Lead" para adicionar manualmente ou configure uma integração para importar automaticamente.
             </p>
-            <Button>
+            <Button onClick={() => setCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Lead
             </Button>
