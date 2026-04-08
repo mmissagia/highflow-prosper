@@ -1,421 +1,283 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  Tooltip, TooltipContent, TooltipTrigger,
-} from "@/components/ui/tooltip";
-import LeadComercialTab from "@/components/crm/LeadComercialTab";
-import { NovaCobrancaDrawer } from "@/pages/checkout/NovaCobrancaDrawer";
-import {
-  Phone, Mail, MessageCircle, Calendar, DollarSign, TrendingUp,
-  BookOpen, Heart, QrCode, Send, Sparkles, ArrowLeft, ExternalLink,
-  Eye, Copy, CreditCard, Plus,
+  Phone, Mail, MessageSquare, Calendar, DollarSign, TrendingUp,
+  ArrowLeft, ArrowRight, Clock, FileText, UserCheck,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { MetricCard } from "@/components/MetricCard";
-import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import {
-  type Invoice, statusConfig, paymentIcons, mockInvoicesData, formatCurrency, formatDate,
-} from "@/data/checkoutData";
+import { formatDistanceToNow, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
+/* ─── lead mock (same fields as pipeline cards) ─── */
 const leadData = {
   id: 1,
-  name: "João Silva",
-  email: "joao.silva@email.com",
-  phone: "+55 11 99999-9999",
+  name: "Rafael Mendonça",
+  email: "rafael@email.com",
+  phone: "11991234567",
   stage: "Engajado",
+  origin: "Instagram",
   score: 85,
-  iem: 78,
-  origin: "Meta Ads",
-  cac: 150,
-  ltv: 15000,
-  cacLtv: 100,
-  roas: 10,
-  createdAt: "15/01/2024",
-  lastInteraction: "2h atrás",
-  pitch: "Mentoria Elite",
-  pipelineValue: 25000,
-  events: [
-    { id: 1, name: "Imersão High-Ticket", date: "20/01/2024", status: "Confirmado" },
-    { id: 2, name: "Workshop Vendas", date: "25/01/2024", status: "Pendente" },
-  ],
-  purchases: [
-    { id: 1, product: "Ebook Vendas", value: 97, date: "10/01/2024", status: "Pago" },
-    { id: 2, product: "Mini-curso", value: 297, date: "12/01/2024", status: "Pago" },
-  ],
-  courses: [
-    { id: 1, name: "Fundamentos de Vendas", progress: 75 },
-    { id: 2, name: "Copywriting Avançado", progress: 30 },
-  ],
-  mentorships: [
-    { id: 1, name: "Mentoria Elite 2024", iem: 78, nextSession: "28/01/2024" },
-  ],
-  timeline: [
-    { id: 1, action: "Comprou Ebook", date: "10/01/2024 14:30", type: "purchase" },
-    { id: 2, action: "Inscrito no evento", date: "15/01/2024 10:00", type: "event" },
-    { id: 3, action: "Abriu email campanha", date: "16/01/2024 09:15", type: "email" },
-    { id: 4, action: "Respondeu pesquisa Blinket", date: "18/01/2024 16:45", type: "engagement" },
-    { id: 5, action: "Call agendada", date: "19/01/2024 11:00", type: "call" },
-  ],
-  aiSuggestions: {
-    nextAction: "Enviar lembrete do evento via WhatsApp",
-    bestPitch: "Mentoria Elite - maior fit com perfil",
-    bestChannel: "WhatsApp (taxa de resposta: 85%)",
-  },
+  dealValue: 18000,
+  responsible: "Carlos Lima",
+  lastContact: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  pitch: "Mentoria Elite 12 meses",
 };
+
+/* ─── mock data ─── */
+const mockTimeline = [
+  { id: 1, type: "message" as const, icon: "MessageSquare" as const, channel: "WhatsApp", description: "Lead respondeu positivamente à sequência de aquecimento. Demonstrou interesse na Mentoria Elite.", createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+  { id: 2, type: "stage" as const, icon: "TrendingUp" as const, channel: null, description: "Stage atualizado: Leads Frios → Qualificado", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+  { id: 3, type: "call" as const, icon: "Phone" as const, channel: "Ligação", description: "SDR realizou call de qualificação. Duração: 18min. Lead confirmou orçamento disponível acima de R$ 15.000.", createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+  { id: 4, type: "meeting" as const, icon: "Calendar" as const, channel: null, description: "Reunião de diagnóstico agendada para próxima semana.", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+  { id: 5, type: "message" as const, icon: "MessageSquare" as const, channel: "Email", description: 'Lead entrou pelo formulário da landing page da campanha "Meta Ads — Mentoria Elite Jan/26".', createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+];
+
+const mockActivities = [
+  { type: "call", description: "Call de qualificação realizada", responsible: "Ana Souza (SDR)", date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), duration: "18min" },
+  { type: "message", description: "Sequência WhatsApp enviada — 3 mensagens", responsible: "Automação", date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), duration: null },
+  { type: "meeting", description: "Reunião de diagnóstico agendada", responsible: "Carlos Lima (Closer)", date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), duration: null },
+];
+
+const mockDeals = [
+  { name: "Mentoria Elite 12 meses", value: 18000, status: "em negociação", pitch: "Pitch Mentoria Elite", createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) },
+];
+
+const mockSunHistory = [
+  { product: "Curso Tráfego Pago Avançado", value: 997, date: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000), status: "pago" },
+  { product: "Masterclass Copywriting", value: 297, date: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000), status: "pago" },
+  { product: "Evento Presencial — Summit Digital", value: 1500, date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), status: "pago" },
+];
+
+const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+const iconMap = {
+  MessageSquare,
+  Phone,
+  Calendar,
+  TrendingUp,
+  DollarSign,
+} as const;
+
+function getScoreClasses(score: number) {
+  if (score >= 70) return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400";
+  if (score >= 40) return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400";
+  return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400";
+}
+
+function safeTimeAgo(date: Date) {
+  try {
+    if (isNaN(date.getTime())) return "—";
+    return formatDistanceToNow(date, { locale: ptBR, addSuffix: true });
+  } catch {
+    return "—";
+  }
+}
 
 export default function LeadDetail() {
   const { id } = useParams();
-  const [cobrancaOpen, setCobrancaOpen] = useState(false);
 
-  // Filter invoices for this lead
-  const leadInvoices = mockInvoicesData.filter(
-    (inv) => inv.clientName === leadData.name
-  );
-  const paidTotal = leadInvoices.filter((i) => i.status === "paga").reduce((s, i) => s + i.value, 0);
-  const pendingTotal = leadInvoices.filter((i) => i.status === "pendente" || i.status === "enviada").reduce((s, i) => s + i.value, 0);
+  const initials = leadData.name.split(" ").map((n) => n[0]).join("");
+  const sunTotal = mockSunHistory.reduce((s, i) => s + i.value, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link to="/crm/pipeline">
-          <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground">Ficha do Lead</h1>
-          <p className="text-muted-foreground">Visualização completa e ações contextuais</p>
+    <div className="flex h-full gap-0 overflow-hidden">
+      {/* ── Coluna principal ── */}
+      <div className="flex-1 min-w-0 overflow-y-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link to="/crm/pipeline">
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar ao Pipeline
+            </Button>
+          </Link>
         </div>
-      </div>
 
-      <GlobalContextSelector />
-
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-6">
-          {/* Header do Lead */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarFallback className="text-xl bg-primary/10 text-primary">
-                      {leadData.name.split(" ").map((n) => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h2 className="text-2xl font-bold">{leadData.name}</h2>
-                    <p className="text-muted-foreground">{leadData.email}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge>{leadData.stage}</Badge>
-                      <Badge variant="outline">Score: {leadData.score}</Badge>
-                      <Badge variant="outline" className="text-purple-500 border-purple-500/50">IEM: {leadData.iem}</Badge>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon"><Phone className="h-4 w-4" /></Button>
-                  <Button variant="outline" size="icon"><Mail className="h-4 w-4" /></Button>
-                  <Button size="icon"><MessageCircle className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Métricas */}
-          <div className="grid grid-cols-4 gap-4">
-            <MetricCard title="CAC" value={`R$ ${leadData.cac}`} icon={DollarSign} trend={{ value: 5, isPositive: true }} />
-            <MetricCard title="LTV Estimado" value={`R$ ${(leadData.ltv / 1000).toFixed(0)}K`} icon={TrendingUp} trend={{ value: 12, isPositive: true }} />
-            <MetricCard title="CAC/LTV" value={`${leadData.cacLtv}%`} icon={TrendingUp} />
-            <MetricCard title="ROAS" value={`${leadData.roas}x`} icon={DollarSign} trend={{ value: 8, isPositive: true }} />
+        <div className="flex items-center gap-4">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-xl font-semibold text-foreground">{leadData.name}</h1>
+            <Badge variant="outline">{leadData.stage}</Badge>
+            <Badge variant="secondary">{leadData.origin}</Badge>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getScoreClasses(leadData.score)}`}>
+              {leadData.score}
+            </div>
           </div>
-
-          {/* Tabs de Conteúdo */}
-          <Card>
-            <Tabs defaultValue="timeline">
-              <CardHeader>
-                <TabsList>
-                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                  <TabsTrigger value="comercial">Comercial</TabsTrigger>
-                  <TabsTrigger value="financeiro">
-                    <CreditCard className="h-3.5 w-3.5 mr-1" />
-                    Financeiro
-                  </TabsTrigger>
-                  <TabsTrigger value="purchases">Histórico SUN</TabsTrigger>
-                  <TabsTrigger value="events">Eventos</TabsTrigger>
-                  <TabsTrigger value="courses">Cursos</TabsTrigger>
-                  <TabsTrigger value="mentorships">Mentorias</TabsTrigger>
-                </TabsList>
-              </CardHeader>
-              <CardContent>
-                <TabsContent value="timeline" className="space-y-4">
-                  {leadData.timeline.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      <div className="flex-1">
-                        <p className="font-medium">{item.action}</p>
-                        <p className="text-sm text-muted-foreground">{item.date}</p>
-                      </div>
-                    </div>
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="comercial">
-                  <LeadComercialTab leadId={id || "1"} />
-                </TabsContent>
-
-                {/* === FINANCEIRO TAB === */}
-                <TabsContent value="financeiro" className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Resumo Financeiro</h3>
-                    <Button size="sm" onClick={() => setCobrancaOpen(true)}>
-                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Gerar Cobrança
-                    </Button>
-                  </div>
-
-                  {/* Mini metrics */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <Card className="border-border/60">
-                      <CardContent className="px-4 py-3">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Total Faturado</p>
-                        <p className="mt-0.5 text-lg font-bold tabular-nums text-emerald-600">{formatCurrency(paidTotal)}</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-border/60">
-                      <CardContent className="px-4 py-3">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Pendente</p>
-                        <p className="mt-0.5 text-lg font-bold tabular-nums text-amber-500">{formatCurrency(pendingTotal)}</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-border/60">
-                      <CardContent className="px-4 py-3">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Faturas Geradas</p>
-                        <p className="mt-0.5 text-lg font-bold tabular-nums text-foreground">{leadInvoices.length}</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Invoices table */}
-                  {leadInvoices.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead className="text-right">Valor</TableHead>
-                          <TableHead>Pagamento</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Data</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {leadInvoices.map((inv) => {
-                          const sc = statusConfig[inv.status];
-                          return (
-                            <TableRow key={inv.id}>
-                              <TableCell className="font-medium">{inv.description}</TableCell>
-                              <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(inv.value)}</TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-1">
-                                  {inv.paymentMethods.map((pm) => (
-                                    <Tooltip key={pm}>
-                                      <TooltipTrigger asChild>
-                                        <span className="cursor-default text-base">{paymentIcons[pm].icon}</span>
-                                      </TooltipTrigger>
-                                      <TooltipContent>{paymentIcons[pm].label}</TooltipContent>
-                                    </Tooltip>
-                                  ))}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
-                              </TableCell>
-                              <TableCell className="tabular-nums text-muted-foreground">{formatDate(inv.dueDate)}</TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-7 w-7"><Eye className="h-3.5 w-3.5" /></Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Ver detalhes</TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-7 w-7"><Copy className="h-3.5 w-3.5" /></Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Copiar link</TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-7 w-7"><MessageCircle className="h-3.5 w-3.5" /></Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Reenviar</TooltipContent>
-                                  </Tooltip>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <CreditCard className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                      <p className="text-sm text-muted-foreground">Nenhuma fatura gerada para este lead.</p>
-                      <Button size="sm" variant="outline" className="mt-3" onClick={() => setCobrancaOpen(true)}>
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Gerar primeira cobrança
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="purchases" className="space-y-4">
-                  {leadData.purchases.map((purchase) => (
-                    <div key={purchase.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div>
-                        <p className="font-medium">{purchase.product}</p>
-                        <p className="text-sm text-muted-foreground">{purchase.date}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-500">R$ {purchase.value}</p>
-                        <Badge variant="outline" className="text-green-500">{purchase.status}</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="events" className="space-y-4">
-                  {leadData.events.map((event) => (
-                    <Link key={event.id} to={`/eventos/detalhe/${event.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                        <div className="flex items-center gap-3">
-                          <Calendar className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="font-medium">{event.name}</p>
-                            <p className="text-sm text-muted-foreground">{event.date}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={event.status === "Confirmado" ? "default" : "secondary"}>{event.status}</Badge>
-                          <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="courses" className="space-y-4">
-                  {leadData.courses.map((course) => (
-                    <div key={course.id} className="p-3 rounded-lg bg-muted/50">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                          <p className="font-medium">{course.name}</p>
-                        </div>
-                        <span className="text-sm font-medium">{course.progress}%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${course.progress}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="mentorships" className="space-y-4">
-                  {leadData.mentorships.map((mentorship) => (
-                    <Link key={mentorship.id} to={`/entrega/mentorias/${mentorship.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                        <div className="flex items-center gap-3">
-                          <Heart className="h-5 w-5 text-purple-500" />
-                          <div>
-                            <p className="font-medium">{mentorship.name}</p>
-                            <p className="text-sm text-muted-foreground">Próxima sessão: {mentorship.nextSession}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-purple-500 border-purple-500/50">IEM: {mentorship.iem}</Badge>
-                          <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </TabsContent>
-              </CardContent>
-            </Tabs>
-          </Card>
         </div>
 
-        {/* Sidebar Direita */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Ações Rápidas</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Button className="w-full justify-start gap-2"><Send className="h-4 w-4" />Enviar Link SUN (WhatsApp)</Button>
-              <Button variant="outline" className="w-full justify-start gap-2"><Mail className="h-4 w-4" />Enviar Link SUN (E-mail)</Button>
-              <Button variant="outline" className="w-full justify-start gap-2"><QrCode className="h-4 w-4" />Gerar QR Code SUN</Button>
-              <Separator />
-              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setCobrancaOpen(true)}>
-                <CreditCard className="h-4 w-4" />Gerar Cobrança
-              </Button>
-              <Button variant="secondary" className="w-full justify-start gap-2"><Calendar className="h-4 w-4" />Inscrever em Evento</Button>
-            </CardContent>
-          </Card>
+        {/* Tabs */}
+        <Tabs defaultValue="timeline">
+          <TabsList>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="comercial">Comercial</TabsTrigger>
+            <TabsTrigger value="sun">Histórico SUN</TabsTrigger>
+            <TabsTrigger value="eventos" disabled>
+              Eventos <Badge variant="secondary" className="ml-1.5 text-[10px] py-0">Em breve</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="cursos" disabled>
+              Cursos <Badge variant="secondary" className="ml-1.5 text-[10px] py-0">Em breve</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="mentorias" disabled>
+              Mentorias <Badge variant="secondary" className="ml-1.5 text-[10px] py-0">Em breve</Badge>
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />Sugestões da IA
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div><p className="text-sm font-medium text-muted-foreground">Próxima Ação</p><p className="text-sm">{leadData.aiSuggestions.nextAction}</p></div>
-              <div><p className="text-sm font-medium text-muted-foreground">Melhor Pitch</p><p className="text-sm">{leadData.aiSuggestions.bestPitch}</p></div>
-              <div><p className="text-sm font-medium text-muted-foreground">Melhor Canal</p><p className="text-sm">{leadData.aiSuggestions.bestChannel}</p></div>
-            </CardContent>
-          </Card>
+          {/* ── Timeline ── */}
+          <TabsContent value="timeline" className="space-y-3 mt-4">
+            {mockTimeline.map((ev) => {
+              const Icon = iconMap[ev.icon];
+              return (
+                <div key={ev.id} className="flex gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 p-2 rounded-full bg-primary/10 h-fit">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <p className="text-sm text-foreground">{ev.description}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{safeTimeAgo(ev.createdAt)}</span>
+                      {ev.channel && <Badge variant="outline" className="text-[10px] py-0">{ev.channel}</Badge>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </TabsContent>
 
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Responsável</CardTitle></CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Avatar className="h-9 w-9"><AvatarFallback className="text-xs bg-primary/10 text-primary">AR</AvatarFallback></Avatar>
-                <div><p className="font-medium">Ana Ribeiro</p><Badge variant="outline" className="text-xs">SDR</Badge></div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <ArrowLeft className="h-3 w-3 rotate-180" /><span>Handoff para Closer</span>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Avatar className="h-9 w-9"><AvatarFallback className="text-xs bg-success/10 text-success">RC</AvatarFallback></Avatar>
-                <div><p className="font-medium">Rafael Costa</p><Badge variant="outline" className="text-xs">Closer</Badge></div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* ── Comercial ── */}
+          <TabsContent value="comercial" className="space-y-6 mt-4">
+            {/* Responsáveis */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Responsáveis</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 flex-1">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">AS</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">Ana Souza</p>
+                    <Badge variant="outline" className="text-[10px] py-0">SDR</Badge>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" disabled>
+                    <UserCheck className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
 
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Informações</CardTitle></CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Telefone</span><span>{leadData.phone}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Origem</span><Badge variant="outline">{leadData.origin}</Badge></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span>{leadData.createdAt}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Última interação</span><span>{leadData.lastInteraction}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Pitch associado</span><Badge>{leadData.pitch}</Badge></div>
-            </CardContent>
-          </Card>
-        </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 flex-1">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">CL</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">Carlos Lima</p>
+                    <Badge variant="outline" className="text-[10px] py-0">Closer</Badge>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" disabled>
+                    <UserCheck className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Atividades */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Atividades</h3>
+              {mockActivities.map((act, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 p-1.5 rounded-full bg-primary/10">
+                    {act.type === "call" && <Phone className="h-3.5 w-3.5 text-primary" />}
+                    {act.type === "message" && <MessageSquare className="h-3.5 w-3.5 text-primary" />}
+                    {act.type === "meeting" && <Calendar className="h-3.5 w-3.5 text-primary" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{act.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {act.responsible} · {safeTimeAgo(act.date)}
+                      {act.duration && ` · ${act.duration}`}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Separator />
+
+            {/* Deals */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Deals</h3>
+              {mockDeals.map((deal, i) => (
+                <Card key={i} className="border">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">{deal.name}</p>
+                      <Badge variant="outline" className="text-amber-600 border-amber-500/50">{deal.status}</Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" />
+                        {currencyFormatter.format(deal.value)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                        {deal.pitch}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {safeTimeAgo(deal.createdAt)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ── Histórico SUN ── */}
+          <TabsContent value="sun" className="space-y-4 mt-4">
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-sm text-muted-foreground">Total investido na Eduzz</p>
+              <p className="text-xl font-bold text-foreground">{currencyFormatter.format(sunTotal)}</p>
+            </div>
+
+            <div className="space-y-3">
+              {mockSunHistory.map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{item.product}</p>
+                    <p className="text-xs text-muted-foreground">{format(item.date, "dd/MM/yyyy")}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm font-semibold">{currencyFormatter.format(item.value)}</span>
+                    <Badge variant="outline" className="text-green-600 border-green-500/50">{item.status}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* Disabled tabs don't need content */}
+          <TabsContent value="eventos" />
+          <TabsContent value="cursos" />
+          <TabsContent value="mentorias" />
+        </Tabs>
       </div>
 
-      {/* Nova Cobrança Drawer — pre-filled with lead data */}
-      <NovaCobrancaDrawer
-        open={cobrancaOpen}
-        onOpenChange={setCobrancaOpen}
-        onInvoiceCreated={() => {}}
-        prefilledLead={{ name: leadData.name, email: leadData.email, pipelineValue: leadData.pipelineValue }}
-      />
+      {/* ── Sidebar direita (placeholder) ── */}
+      <div className="w-80 shrink-0 border-l p-4 text-sm text-muted-foreground">
+        Sidebar em construção
+      </div>
     </div>
   );
 }
