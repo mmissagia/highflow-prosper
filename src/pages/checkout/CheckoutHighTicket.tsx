@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
-import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle, FileText, CheckCircle, Clock, DollarSign, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,17 +14,46 @@ import {
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MetricCard } from "@/components/MetricCard";
 import { NovaCobrancaDrawer } from "./NovaCobrancaDrawer";
 import { NovoLinkProdutoDrawer } from "./NovoLinkProdutoDrawer";
 import {
   type Invoice, statusConfig, paymentIcons, mockInvoicesData, formatCurrency, formatDate,
 } from "@/data/checkoutData";
 
+const mockCharges = [
+  { id: 'CHG-001', lead: 'Rafael Mendonça', product: 'Mentoria Elite 12 meses',  value: 18000, status: 'pendente' as const, createdAt: new Date(Date.now() - 2  * 86400000), dueAt: new Date(Date.now() + 5 * 86400000) },
+  { id: 'CHG-002', lead: 'Fernanda Alves',   product: 'Imersão Presencial',        value: 12000, status: 'pago' as const,     createdAt: new Date(Date.now() - 5  * 86400000), dueAt: new Date(Date.now() - 2 * 86400000) },
+  { id: 'CHG-003', lead: 'Bruno Figueiredo', product: 'Mentoria Elite 12 meses',  value: 15000, status: 'pago' as const,     createdAt: new Date(Date.now() - 8  * 86400000), dueAt: new Date(Date.now() - 5 * 86400000) },
+  { id: 'CHG-004', lead: 'Juliana Martins',  product: 'Mastermind Anual',          value: 24000, status: 'pendente' as const, createdAt: new Date(Date.now() - 1  * 86400000), dueAt: new Date(Date.now() + 7 * 86400000) },
+  { id: 'CHG-005', lead: 'Thiago Correia',   product: 'Imersão Presencial',        value: 8500,  status: 'vencida' as const,  createdAt: new Date(Date.now() - 15 * 86400000), dueAt: new Date(Date.now() - 3 * 86400000) },
+  { id: 'CHG-006', lead: 'Marcos Pinheiro',  product: 'Mastermind Anual',          value: 24000, status: 'pendente' as const, createdAt: new Date(Date.now() - 3  * 86400000), dueAt: new Date(Date.now() + 10 * 86400000) },
+];
+
+const chargeStatusConfig: Record<string, { label: string; className: string }> = {
+  pago: { label: "Pago", className: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
+  pendente: { label: "Pendente", className: "bg-amber-500/15 text-amber-600 border-amber-500/30" },
+  vencida: { label: "Vencida", className: "bg-red-500/15 text-red-600 border-red-500/30" },
+};
+
 export default function CheckoutHighTicket() {
+  const [searchParams] = useSearchParams();
+  const leadId = searchParams.get('leadId');
+  const leadName = searchParams.get('leadName');
+  const action = searchParams.get('action');
+
   const [search, setSearch] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoicesData);
   const [cobrancaOpen, setCobrancaOpen] = useState(false);
   const [linkProdutoOpen, setLinkProdutoOpen] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(!!leadName);
+
+  useEffect(() => {
+    if (action === 'cobranca') {
+      setCobrancaOpen(true);
+    }
+  }, [action]);
 
   const addInvoice = useCallback((data: Omit<Invoice, "id" | "status">) => {
     const newInv: Invoice = {
