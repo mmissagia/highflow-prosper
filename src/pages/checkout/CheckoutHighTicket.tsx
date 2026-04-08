@@ -97,7 +97,7 @@ export default function CheckoutHighTicket() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Checkout High Ticket</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Checkout High Ticket</h1>
           <div
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-white"
             style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)" }}
@@ -117,9 +117,9 @@ export default function CheckoutHighTicket() {
       {/* Dashboard métricas */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <MetricCard title="Criadas" value={38} subtitle="este mês" icon={FileText} variant="default" />
-        <MetricCard title="Pagas" value={24} subtitle="este mês" icon={CheckCircle} variant="success" />
-        <MetricCard title="Pendentes" value={9} subtitle="em aberto" icon={Clock} variant="warning" />
-        <MetricCard title="Receita" value="R$ 312.500" subtitle="este mês" icon={DollarSign} variant="default" />
+        <MetricCard title="Pagas" value={24} subtitle="este mês" icon={CheckCircle} variant="green" />
+        <MetricCard title="Pendentes" value={9} subtitle="em aberto" icon={Clock} variant="yellow" />
+        <MetricCard title="Receita" value="R$ 312.500" subtitle="este mês" icon={DollarSign} variant="primary" />
       </div>
 
       {/* Cobranças recentes */}

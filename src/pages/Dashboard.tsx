@@ -59,8 +59,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-1">Visão Geral</h1>
-        <p className="text-muted-foreground">Painel centralizado da sua operação high-ticket</p>
+        <h1 className="text-2xl font-semibold text-foreground">Visão Geral</h1>
+        <p className="text-sm text-muted-foreground mt-1">Painel centralizado da sua operação high-ticket</p>
       </div>
 
       {/* 1. GlobalContextSelector — largura total */}
@@ -69,7 +69,7 @@ export default function Dashboard() {
       {/* 2. Grid 2×2 — 4 cards de ações/riscos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Ações de Hoje */}
-        <Card className="border-l-4 border-l-primary">
+        <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -95,7 +95,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Leads Quentes Parados */}
-        <Card className="border-l-4 border-l-accent">
+        <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-accent" />
@@ -118,7 +118,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Gargalo do Funil */}
-        <Card className="border-l-4 border-l-destructive">
+        <Card className="border-l-4 border-l-red-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -143,7 +143,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Pagamentos em Risco */}
-        <Card className="border-l-4 border-l-chart-4">
+        <Card className="border-l-4 border-l-orange-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-chart-4" />
@@ -171,10 +171,10 @@ export default function Dashboard() {
 
       {/* 3. Grid 4 colunas — 4 MetricCards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Receita Total" value="R$ 1.54M" icon={DollarSign} trend={{ value: 24.5, isPositive: true }} variant="success" />
-        <MetricCard title="Leads Ativos" value="487" icon={Users} trend={{ value: 12.3, isPositive: true }} variant="default" />
-        <MetricCard title="Taxa de Conversão" value="6.3%" icon={Target} trend={{ value: -2.1, isPositive: false }} variant="accent" />
-        <MetricCard title="Ticket Médio" value="R$ 18.7k" icon={TrendingUp} trend={{ value: 8.7, isPositive: true }} variant="default" />
+        <MetricCard title="Receita Total" value="R$ 1.54M" icon={DollarSign} trend={{ value: 24.5, label: "vs. mês anterior" }} variant="green" />
+        <MetricCard title="Leads Ativos" value="487" icon={Users} trend={{ value: 12.3, label: "vs. mês anterior" }} variant="primary" />
+        <MetricCard title="Taxa de Conversão" value="6.3%" icon={Target} trend={{ value: -2.1, label: "vs. mês anterior" }} variant="yellow" />
+        <MetricCard title="Ticket Médio" value="R$ 18.7k" icon={TrendingUp} trend={{ value: 8.7, label: "vs. mês anterior" }} variant="default" />
       </div>
 
       {/* 4. Grid 2 colunas — Funil Visual + BarChart */}
