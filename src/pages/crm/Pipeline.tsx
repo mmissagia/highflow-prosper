@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useLeadStageOverrides, useUpdateLeadStage } from "@/hooks/useLeadStage";
 import { LeadCard, type LeadData } from "@/components/crm/LeadCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const pipelineStages = [
   { id: "lead-frio", title: "Lead Frio", color: "bg-slate-500" },
@@ -237,10 +238,12 @@ export default function Pipeline() {
                     )}
 
                     {!stagesLoading && stageLeads.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-6 text-center">
-                        <Inbox className="h-8 w-8 text-muted-foreground/30 mb-2" />
-                        <p className="text-xs text-muted-foreground">Nenhum lead nesta etapa</p>
-                      </div>
+                      <EmptyState
+                        icon={Inbox}
+                        title="Nenhum lead aqui"
+                        description="Arraste um lead para esta etapa ou crie um novo."
+                        size="sm"
+                      />
                     )}
 
                     {!stagesLoading && stageLeads.map((lead) => (

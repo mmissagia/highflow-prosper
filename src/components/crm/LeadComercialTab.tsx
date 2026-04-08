@@ -14,8 +14,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   Phone, MessageCircle, Calendar, UserPlus, DollarSign, XCircle,
-  CheckCircle, Clock, AlertTriangle,
+  CheckCircle, Clock, AlertTriangle, Briefcase,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -368,7 +369,7 @@ export default function LeadComercialTab({ leadId }: Props) {
       <div>
         <h3 className="font-semibold mb-3">Timeline de Atividades</h3>
         {activities.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Nenhuma atividade comercial registrada</p>
+          <EmptyState icon={Briefcase} title="Sem atividades comerciais" description="Registre calls, reuniões e follow-ups para acompanhar a negociação." size="sm" />
         ) : (
           <div className="space-y-3">
             {activities.map((a: any) => {

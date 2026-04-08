@@ -28,7 +28,10 @@ import {
   FileText,
   Loader2,
   Wand2,
+  Route,
+  MousePointerClick,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   Dialog,
   DialogContent,
@@ -283,11 +286,9 @@ export default function ConstrutorEstrategias() {
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                   </div>
-                ) : strategies.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhuma estratégia salva ainda
-                  </p>
-                ) : (
+                 ) : strategies.length === 0 ? (
+                   <EmptyState icon={Route} title="Nenhuma estratégia salva" description="Crie sua primeira jornada de vendas e salve para reutilizar." size="sm" action={{ label: "Criar Estratégia", onClick: () => { handleNewStrategy(); setIsDialogOpen(false); } }} />
+                 ) : (
                   strategies.map((strategy) => (
                     <Card 
                       key={strategy.id} 

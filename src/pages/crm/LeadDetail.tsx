@@ -6,8 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Phone, MessageSquare, Calendar, DollarSign, TrendingUp,
-  ArrowLeft, ArrowRight, Clock, FileText, UserCheck,
+  ArrowLeft, ArrowRight, Clock, FileText, UserCheck, Inbox, Briefcase, ShoppingBag,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Link, useParams } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -133,24 +134,28 @@ export default function LeadDetail() {
 
           {/* ── Timeline ── */}
           <TabsContent value="timeline" className="space-y-3 mt-4">
-            {mockTimeline.map((ev) => {
-              const Icon = iconMap[ev.icon];
-              return (
-                <div key={ev.id} className="flex gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="mt-0.5 p-2 rounded-full bg-primary/10 h-fit">
-                    <Icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <p className="text-sm text-foreground">{ev.description}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>{safeTimeAgo(ev.createdAt)}</span>
-                      {ev.channel && <Badge variant="outline" className="text-[10px] py-0">{ev.channel}</Badge>}
+            {mockTimeline.length === 0 ? (
+              <EmptyState icon={Inbox} title="Nenhum evento na timeline" description="Interações, mudanças de estágio e mensagens aparecerão aqui." size="sm" />
+            ) : (
+              mockTimeline.map((ev) => {
+                const Icon = iconMap[ev.icon];
+                return (
+                  <div key={ev.id} className="flex gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="mt-0.5 p-2 rounded-full bg-primary/10 h-fit">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-sm text-foreground">{ev.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{safeTimeAgo(ev.createdAt)}</span>
+                        {ev.channel && <Badge variant="outline" className="text-[10px] py-0">{ev.channel}</Badge>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </TabsContent>
 
           {/* ── Comercial ── */}
@@ -246,25 +251,30 @@ export default function LeadDetail() {
 
           {/* ── Histórico SUN ── */}
           <TabsContent value="sun" className="space-y-4 mt-4">
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-              <p className="text-sm text-muted-foreground">Total investido na Eduzz</p>
-              <p className="text-xl font-bold text-foreground">{currencyFormatter.format(sunTotal)}</p>
-            </div>
-
-            <div className="space-y-3">
-              {mockSunHistory.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{item.product}</p>
-                    <p className="text-xs text-muted-foreground">{format(item.date, "dd/MM/yyyy")}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-sm font-semibold">{currencyFormatter.format(item.value)}</span>
-                    <Badge variant="outline" className="text-green-600 border-green-500/50">{item.status}</Badge>
-                  </div>
+            {mockSunHistory.length === 0 ? (
+              <EmptyState icon={ShoppingBag} title="Sem compras registradas" description="Quando o lead comprar produtos low-ticket ou ingressos, o histórico aparecerá aqui." size="sm" />
+            ) : (
+              <>
+                <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                  <p className="text-sm text-muted-foreground">Total investido na Eduzz</p>
+                  <p className="text-xl font-bold text-foreground">{currencyFormatter.format(sunTotal)}</p>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-3">
+                  {mockSunHistory.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{item.product}</p>
+                        <p className="text-xs text-muted-foreground">{format(item.date, "dd/MM/yyyy")}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm font-semibold">{currencyFormatter.format(item.value)}</span>
+                        <Badge variant="outline" className="text-green-600 border-green-500/50">{item.status}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </TabsContent>
 
           {/* Disabled tabs don't need content */}
