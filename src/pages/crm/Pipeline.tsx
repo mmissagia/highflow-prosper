@@ -163,8 +163,8 @@ export default function Pipeline() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Pipeline CRM</h1>
-          <p className="text-muted-foreground">Gerencie seus leads high-ticket</p>
+          <h1 className="text-2xl font-semibold text-foreground">Pipeline CRM</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerencie seus leads high-ticket</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline">Filtrar</Button>
