@@ -311,6 +311,24 @@ export type Database = {
           },
         ]
       }
+      lead_stage_overrides: {
+        Row: {
+          lead_id: string
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          lead_id: string
+          stage: string
+          updated_at?: string
+        }
+        Update: {
+          lead_id?: string
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales_activities: {
         Row: {
           activity_type: string
