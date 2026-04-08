@@ -26,6 +26,7 @@ import {
   ShoppingBag,
   Presentation,
   Package,
+  RefreshCw,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -123,6 +124,7 @@ const menuGroups: MenuSection[] = [
           { title: "Eventos", url: "/monetizacao/eventos", icon: CalendarDays },
           { title: "Produtos & Pitches", url: "/monetizacao/pitches", icon: Package },
           { title: "Checkout HT", url: "/checkout-ht", icon: CreditCard },
+          { title: "Assinaturas", url: "/monetizacao/assinaturas", icon: RefreshCw },
         ],
       },
     ],
