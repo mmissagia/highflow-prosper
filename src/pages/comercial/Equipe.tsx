@@ -116,10 +116,31 @@ export default function Equipe() {
           <h1 className="text-3xl font-bold text-foreground">Equipe Comercial</h1>
           <p className="text-muted-foreground">Gerencie SDRs, Closers e Líderes</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Novo Profissional</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          {import.meta.env.DEV && (
+            <Button variant="outline" size="sm" onClick={async () => {
+              const { data: { user: authUser } } = await supabase.auth.getUser();
+              if (!authUser) return;
+              const equipe = [
+                { name: 'Ana Souza',        role: 'SDR',    email: 'ana.souza@highflow.com',      phone: '11991110001', status: 'Ativo',   monthly_goal_value: 50000,  commission_type: 'percent', commission_percent: 3.5,  commission_fixed_value: null, cost_fixed_monthly: 0 },
+                { name: 'Carlos Lima',      role: 'CLOSER', email: 'carlos.lima@highflow.com',    phone: '11991110002', status: 'Ativo',   monthly_goal_value: 150000, commission_type: 'percent', commission_percent: 8.0,  commission_fixed_value: null, cost_fixed_monthly: 0 },
+                { name: 'Fernanda Costa',   role: 'CLOSER', email: 'fernanda.costa@highflow.com', phone: '11991110003', status: 'Ativo',   monthly_goal_value: 120000, commission_type: 'percent', commission_percent: 7.5,  commission_fixed_value: null, cost_fixed_monthly: 0 },
+                { name: 'Ricardo Mendes',   role: 'SDR',    email: 'ricardo.mendes@highflow.com', phone: '11991110004', status: 'Ativo',   monthly_goal_value: 40000,  commission_type: 'percent', commission_percent: 3.0,  commission_fixed_value: null, cost_fixed_monthly: 0 },
+                { name: 'Juliana Teixeira', role: 'CLOSER', email: 'juliana.t@highflow.com',      phone: '11991110005', status: 'Ativo',   monthly_goal_value: 100000, commission_type: 'percent', commission_percent: 5.0,  commission_fixed_value: null, cost_fixed_monthly: 0 },
+                { name: 'Bruno Alves',      role: 'SDR',    email: 'bruno.alves@highflow.com',    phone: '11991110006', status: 'Inativo', monthly_goal_value: 30000,  commission_type: 'fixed',   commission_percent: null, commission_fixed_value: 2500, cost_fixed_monthly: 0 },
+              ];
+              const { data: inserted, error } = await supabase.from('sales_users').insert(equipe.map(p => ({ ...p, user_id: authUser.id }))).select();
+              if (error) { toast.error('Erro ao inserir equipe: ' + error.message); return; }
+              toast.success(`${inserted.length} profissionais cadastrados com sucesso.`);
+              queryClient.invalidateQueries({ queryKey: ['sales_users'] });
+            }}>
+              <Database className="h-4 w-4 mr-2" />Seed Demo
+            </Button>
+          )}
+          <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Novo Profissional</Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>{editId ? "Editar" : "Novo"} Profissional</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4">
