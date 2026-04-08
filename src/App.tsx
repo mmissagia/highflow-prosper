@@ -34,6 +34,7 @@ import ConstrutorEstrategias from "./pages/eventos/ConstrutorEstrategias";
 // Comunicação
 import Campanhas from "./pages/comunicacao/Campanhas";
 import Automacoes from "./pages/comunicacao/Automacoes";
+import EditorMensagens from "./pages/comunicacao/EditorMensagens";
 
 import Conversas from "./pages/comunicacao/Conversas";
 
