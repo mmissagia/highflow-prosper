@@ -15,6 +15,8 @@ import {
 import { Search, Filter, Download, Plus, Eye, Inbox } from "lucide-react";
 import { Link } from "react-router-dom";
 import LeadSourceSelector from "@/components/crm/LeadSourceSelector";
+import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
+import { useState } from "react";
 
 const mockLeads = [
   { id: 1, name: "João Silva", origin: "Meta Ads", responsible: "Ana Ribeiro", stage: "Engajado", score: 85, iem: 78, valuePotential: 15000, lastInteraction: "2h atrás", nextAction: "Follow-up WhatsApp" },
@@ -39,21 +41,22 @@ const stageColors: Record<string, string> = {
 };
 
 export default function LeadsList() {
+  const [createOpen, setCreateOpen] = useState(false);
   const hasLeads = mockLeads.length > 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Lista de Leads</h1>
-          <p className="text-muted-foreground">Visão operacional dos seus leads</p>
+          <h1 className="text-2xl font-semibold text-foreground">Lista de Leads</h1>
+          <p className="text-sm text-muted-foreground mt-1">Visão operacional dos seus leads</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
-          <Button>
+          <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Lead
           </Button>
@@ -72,7 +75,7 @@ export default function LeadsList() {
             <p className="text-sm text-muted-foreground mb-4 max-w-md">
               Você ainda não tem leads nesse contexto. Clique em "Novo Lead" para adicionar manualmente ou configure uma integração para importar automaticamente.
             </p>
-            <Button>
+            <Button onClick={() => setCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Lead
             </Button>
@@ -168,6 +171,11 @@ export default function LeadsList() {
           </CardContent>
         </Card>
       )}
+      <CreateLeadDrawer
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => setCreateOpen(false)}
+      />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import { DollarSign, TrendingUp, Users, Inbox, Plus } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Inbox, Plus, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useLeadStageOverrides, useUpdateLeadStage } from "@/hooks/useLeadStage";
@@ -121,20 +121,22 @@ export default function Pipeline() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Pipeline CRM</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie seus leads high-ticket</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="transition-colors duration-150">Filtrar</Button>
-          <Button className="transition-colors duration-150" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Novo Lead
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">Pipeline CRM</h1>
+        <p className="text-sm text-muted-foreground mt-1">Gerencie seus leads high-ticket</p>
       </div>
 
-      <GlobalContextSelector />
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <GlobalContextSelector />
+        </div>
+        <Button variant="outline" size="sm" className="transition-colors duration-150">
+          <Filter className="h-4 w-4 mr-1" /> Filtrar
+        </Button>
+        <Button size="sm" className="transition-colors duration-150" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" /> Novo Lead
+        </Button>
+      </div>
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Users className="h-4 w-4" />
