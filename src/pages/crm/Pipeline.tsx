@@ -126,21 +126,21 @@ export default function Pipeline() {
         <p className="text-sm text-muted-foreground mt-1">Gerencie seus leads high-ticket</p>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex-1 min-w-0">
-          <GlobalContextSelector />
-        </div>
-        <Button variant="outline" size="sm" className="transition-colors duration-150">
-          <Filter className="h-4 w-4 mr-1" /> Filtrar
-        </Button>
-        <Button size="sm" className="transition-colors duration-150" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" /> Novo Lead
-        </Button>
-      </div>
+      <GlobalContextSelector />
 
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Users className="h-4 w-4" />
-        <span><strong className="text-foreground">{leads.length}</strong> leads no contexto atual</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span><strong className="text-foreground">{leads.length}</strong> leads no contexto atual</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="transition-colors duration-150">
+            <Filter className="h-4 w-4 mr-1" /> Filtrar
+          </Button>
+          <Button size="sm" className="transition-colors duration-150" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Novo Lead
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
