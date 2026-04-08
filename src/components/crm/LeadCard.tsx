@@ -87,10 +87,15 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3 flex-shrink-0" />
                 <span className="truncate">
-                  {formatDistanceToNow(new Date(lead.lastContact), {
-                    locale: ptBR,
-                    addSuffix: true,
-                  })}
+                  {(() => {
+                    try {
+                      const d = new Date(lead.lastContact);
+                      if (isNaN(d.getTime())) return "—";
+                      return formatDistanceToNow(d, { locale: ptBR, addSuffix: true });
+                    } catch {
+                      return "—";
+                    }
+                  })()}
                 </span>
               </div>
               <div className="flex items-center gap-1">
