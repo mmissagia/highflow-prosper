@@ -141,7 +141,7 @@ function AppLayoutInner() {
               {/* Comunicação */}
               <Route path="/comunicacao/campanhas" element={<Campanhas />} />
               <Route path="/comunicacao/automacoes" element={<Automacoes />} />
-              <Route path="/comunicacao/editor" element={<Navigate to="/comunicacao/campanhas" replace />} />
+              <Route path="/comunicacao/editor" element={<EditorMensagens />} />
               <Route path="/comunicacao/conversas" element={<Conversas />} />
 
               {/* Entrega */}
