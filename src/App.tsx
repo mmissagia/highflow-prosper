@@ -9,7 +9,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
 import { StrategyProvider } from "@/contexts/StrategyContext";
 import { Loader2 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, lazy, Suspense } from "react";
 import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
 import { AIAgentFab } from "@/components/ai-agent/AIAgentFab";
 import { AIHeaderBadge } from "@/components/ai-agent/AIHeaderBadge";
