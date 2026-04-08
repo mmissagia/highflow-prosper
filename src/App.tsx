@@ -59,6 +59,7 @@ import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
 import Relatorios from "./pages/comercial/Relatorios";
 import CheckoutHighTicket from "./pages/checkout/CheckoutHighTicket";
+const Assinaturas = lazy(() => import('./pages/monetizacao/Assinaturas'));
 
 const queryClient = new QueryClient();
 
@@ -125,6 +126,7 @@ function AppLayoutInner() {
               <Route path="/monetizacao/pitches" element={<PitchEditor />} />
               <Route path="/monetizacao/pitches/:id" element={<PitchEditor />} />
               <Route path="/checkout-ht" element={<CheckoutHighTicket />} />
+              <Route path="/monetizacao/assinaturas" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><Assinaturas /></Suspense>} />
 
               {/* Redirects de rotas antigas → novas */}
               <Route path="/eventos" element={<Navigate to="/monetizacao/eventos" replace />} />
