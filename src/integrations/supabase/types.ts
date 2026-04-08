@@ -316,16 +316,19 @@ export type Database = {
           lead_id: string
           stage: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           lead_id: string
           stage: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           lead_id?: string
           stage?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
