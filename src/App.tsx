@@ -54,7 +54,7 @@ import Usuarios from "./pages/Usuarios";
 // Comercial
 import Equipe from "./pages/comercial/Equipe";
 import Atividades from "./pages/comercial/Atividades";
-import Performance from "./pages/comercial/Performance";
+import PerformanceComercial from "./pages/comercial/PerformanceComercial";
 import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
 import Relatorios from "./pages/comercial/Relatorios";
