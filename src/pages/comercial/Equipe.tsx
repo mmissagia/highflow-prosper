@@ -137,6 +137,76 @@ export default function Equipe() {
               <Database className="h-4 w-4 mr-2" />Seed Demo
             </Button>
           )}
+          {import.meta.env.DEV && (
+            <Button variant="outline" size="sm" onClick={async () => {
+              const { data: { user: authUser } } = await supabase.auth.getUser();
+              if (!authUser) return;
+
+              const { data: equipe } = await supabase
+                .from('sales_users')
+                .select('id, name, role')
+                .eq('user_id', authUser.id);
+
+              const sdr1 = equipe?.find(e => e.name === 'Ana Souza')?.id;
+              const sdr2 = equipe?.find(e => e.name === 'Ricardo Mendes')?.id;
+              const closer1 = equipe?.find(e => e.name === 'Carlos Lima')?.id;
+              const closer2 = equipe?.find(e => e.name === 'Fernanda Costa')?.id;
+              const closer3 = equipe?.find(e => e.name === 'Juliana Teixeira')?.id;
+
+              if (!sdr1 || !closer1) {
+                toast.error('Insira a equipe primeiro antes de gerar os dados comerciais.');
+                return;
+              }
+
+              const { error: dealsErr } = await supabase.from('deals').insert([
+                { user_id: authUser.id, lead_id: 'lead-5', product_id: 'mentoria-elite',     amount_value: 15000, closer_id: closer1, sdr_id: sdr1,  notes: 'Lead indicado por ex-aluno. Fechou na primeira reunião.',    won_at: new Date(Date.now() - 5  * 86400000).toISOString(), stage: 'won' },
+                { user_id: authUser.id, lead_id: 'lead-4', product_id: 'mastermind-anual',   amount_value: 24000, closer_id: closer2, sdr_id: sdr2,  notes: 'Maior deal do mês. Lead qualificado via Instagram.',         won_at: new Date(Date.now() - 10 * 86400000).toISOString(), stage: 'won' },
+                { user_id: authUser.id, lead_id: 'lead-2', product_id: 'imersao-presencial', amount_value: 12000, closer_id: closer1, sdr_id: sdr1,  notes: 'Objeção de agenda. Follow-up agendado para sexta.',          won_at: null, stage: 'negotiation' },
+                { user_id: authUser.id, lead_id: 'lead-1', product_id: 'mentoria-elite',     amount_value: 18000, closer_id: closer1, sdr_id: sdr1,  notes: 'Lead muito quente. Score 85. Proposta enviada.',             won_at: null, stage: 'negotiation' },
+                { user_id: authUser.id, lead_id: 'lead-3', product_id: 'imersao-presencial', amount_value: 8500,  closer_id: closer2!, sdr_id: sdr2!, notes: 'Objeção de preço. Considerar boleto TMB.',                  won_at: null, stage: 'proposal' },
+                { user_id: authUser.id, lead_id: 'lead-1', product_id: 'mastermind-anual',   amount_value: 24000, closer_id: closer3!, sdr_id: sdr2!, notes: 'Indicação do Rafael Mendonça. Alta receptividade.',          won_at: null, stage: 'qualified' },
+              ]);
+              if (dealsErr) { toast.error('Erro deals: ' + dealsErr.message); return; }
+
+              const { error: actErr } = await supabase.from('sales_activities').insert([
+                { user_id: authUser.id, lead_id: 'lead-1', sales_user_id: sdr1,    activity_type: 'call',    occurred_at: new Date(Date.now() - 2 * 86400000).toISOString(), status: 'completed', outcome: 'Confirmou orçamento acima de R$ 15k. Alta receptividade.',   next_step: 'Agendar reunião com Closer' },
+                { user_id: authUser.id, lead_id: 'lead-2', sales_user_id: closer1, activity_type: 'meeting', occurred_at: new Date(Date.now() - 3 * 86400000).toISOString(), status: 'completed', outcome: 'Reunião de diagnóstico. Objeção de agenda identificada.',     next_step: 'Enviar proposta personalizada' },
+                { user_id: authUser.id, lead_id: 'lead-4', sales_user_id: sdr1,    activity_type: 'message', occurred_at: new Date(Date.now() - 1 * 86400000).toISOString(), status: 'completed', outcome: 'Sequência WhatsApp — 3 mensagens. Taxa de resposta: 100%.', next_step: 'Aguardar retorno' },
+                { user_id: authUser.id, lead_id: 'lead-3', sales_user_id: closer1, activity_type: 'call',    occurred_at: new Date(Date.now() - 4 * 86400000).toISOString(), status: 'completed', outcome: 'Follow-up pós-proposta. Objeção de prazo. Lead pediu 1 semana.', next_step: 'Ligar em 7 dias' },
+                { user_id: authUser.id, lead_id: 'lead-5', sales_user_id: closer2!, activity_type: 'meeting', occurred_at: new Date(Date.now() - 5 * 86400000).toISOString(), status: 'completed', outcome: 'Pitch presencial. Proposta de R$ 15k. Lead muito engajado.', next_step: 'Aguardar assinatura' },
+                { user_id: authUser.id, lead_id: 'lead-2', sales_user_id: sdr2!,   activity_type: 'call',    occurred_at: new Date(Date.now() - 6 * 3600000).toISOString(),  status: 'completed', outcome: 'Primeiro contato — indicação do Rafael. Alta receptividade.', next_step: 'Preparar diagnóstico' },
+                { user_id: authUser.id, lead_id: 'lead-1', sales_user_id: sdr1,    activity_type: 'message', occurred_at: new Date(Date.now() - 7 * 86400000).toISOString(), status: 'completed', outcome: 'E-mail de nurturing sobre ROI de mentorias. Abertura: 68%.', next_step: 'Monitorar engajamento' },
+              ]);
+              if (actErr) { toast.error('Erro atividades: ' + actErr.message); return; }
+
+              const { data: deals } = await supabase
+                .from('deals')
+                .select('id, amount_value, closer_id')
+                .eq('user_id', authUser.id)
+                .eq('stage', 'won');
+
+              if (deals && deals.length > 0) {
+                const { error: comErr } = await supabase.from('commission_records').insert(
+                  deals.map(deal => ({
+                    user_id: authUser.id,
+                    deal_id: deal.id,
+                    sales_user_id: deal.closer_id!,
+                    commission_value: deal.amount_value * 0.08,
+                    status: 'pago',
+                    period_month: '2026-03',
+                  }))
+                );
+                if (comErr) { toast.error('Erro comissões: ' + comErr.message); return; }
+              }
+
+              await queryClient.invalidateQueries({ queryKey: ['sales_activities'] });
+              await queryClient.invalidateQueries({ queryKey: ['deals'] });
+              await queryClient.invalidateQueries({ queryKey: ['commission_records'] });
+              toast.success('Dados comerciais inseridos com sucesso.');
+            }}>
+              <Database className="h-4 w-4 mr-2" />Seed Dados Comerciais
+            </Button>
+          )}
           <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" />Novo Profissional</Button>
