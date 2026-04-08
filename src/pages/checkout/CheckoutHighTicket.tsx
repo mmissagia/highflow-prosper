@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MetricCard } from "@/components/MetricCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { NovaCobrancaDrawer } from "./NovaCobrancaDrawer";
 import { NovoLinkProdutoDrawer } from "./NovoLinkProdutoDrawer";
 import {
