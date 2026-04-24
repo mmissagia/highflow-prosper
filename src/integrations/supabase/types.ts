@@ -109,6 +109,74 @@ export type Database = {
           },
         ]
       }
+      connected_products: {
+        Row: {
+          avg_engagement: number | null
+          completion_rate: number | null
+          connection_id: string | null
+          created_at: string
+          external_id: string
+          id: string
+          last_sync_at: string | null
+          metadata: Json | null
+          name: string
+          platform: string
+          revenue_total: number | null
+          status: string
+          sync_enabled: boolean
+          total_enrolled: number | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_engagement?: number | null
+          completion_rate?: number | null
+          connection_id?: string | null
+          created_at?: string
+          external_id: string
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          name: string
+          platform: string
+          revenue_total?: number | null
+          status?: string
+          sync_enabled?: boolean
+          total_enrolled?: number | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_engagement?: number | null
+          completion_rate?: number | null
+          connection_id?: string | null
+          created_at?: string
+          external_id?: string
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          name?: string
+          platform?: string
+          revenue_total?: number | null
+          status?: string
+          sync_enabled?: boolean
+          total_enrolled?: number | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connected_products_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connections: {
         Row: {
           api_key_encrypted: string | null
@@ -331,6 +399,65 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      product_enrollments: {
+        Row: {
+          completed_at: string | null
+          connected_product_id: string
+          created_at: string
+          engagement_score: number | null
+          enrolled_at: string
+          external_enrollment_id: string | null
+          id: string
+          last_activity_at: string | null
+          lead_id: string
+          metadata: Json | null
+          progress: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          connected_product_id: string
+          created_at?: string
+          engagement_score?: number | null
+          enrolled_at?: string
+          external_enrollment_id?: string | null
+          id?: string
+          last_activity_at?: string | null
+          lead_id: string
+          metadata?: Json | null
+          progress?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          connected_product_id?: string
+          created_at?: string
+          engagement_score?: number | null
+          enrolled_at?: string
+          external_enrollment_id?: string | null
+          id?: string
+          last_activity_at?: string | null
+          lead_id?: string
+          metadata?: Json | null
+          progress?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_enrollments_connected_product_id_fkey"
+            columns: ["connected_product_id"]
+            isOneToOne: false
+            referencedRelation: "connected_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales_activities: {
         Row: {
