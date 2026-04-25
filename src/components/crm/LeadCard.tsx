@@ -2,7 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { DollarSign, Clock, FileText, Phone, Mail, MessageCircle } from "lucide-react";
+import { DollarSign, Clock, FileText, Phone, Mail, MessageCircle, Flame, Sparkles } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { getLeadScoreTooltip } from "@/lib/aiMocks";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -63,11 +65,26 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
                   {lead.origin}
                 </Badge>
               </div>
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getScoreClasses(lead.score)}`}
-              >
-                {lead.score}
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 gap-0.5 cursor-help ${getScoreClasses(lead.score)}`}
+                  >
+                    {lead.score >= 85 && <Flame className="h-3 w-3 text-orange-500" />}
+                    <span>{lead.score}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <div className="flex items-start gap-1.5">
+                    <Sparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                    <p className="text-xs leading-relaxed">{getLeadScoreTooltip(lead.score, lead.stage)}</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             {/* ZONA 2 — Dados */}
