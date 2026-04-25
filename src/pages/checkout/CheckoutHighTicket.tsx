@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Fragment } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle, X, Sparkles, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -166,8 +166,8 @@ export default function CheckoutHighTicket() {
                     ? "expiração do prazo de pagamento"
                     : "cancelamento da operadora";
                 return (
-                  <>
-                  <TableRow key={inv.id}>
+                  <Fragment key={inv.id}>
+                  <TableRow>
                     <TableCell>
                       <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
                     </TableCell>
@@ -231,7 +231,7 @@ export default function CheckoutHighTicket() {
                     </TableCell>
                   </TableRow>
                   {atRisk && expanded && (
-                    <TableRow key={`${inv.id}-ai`} className="hover:bg-transparent">
+                    <TableRow className="hover:bg-transparent">
                       <TableCell colSpan={8} className="bg-muted/20 py-3">
                         <AIInsightCard
                           insight={getPaymentRecoveryInsight({
@@ -243,7 +243,7 @@ export default function CheckoutHighTicket() {
                       </TableCell>
                     </TableRow>
                   )}
-                  </>
+                  </Fragment>
                 );
               })}
             </TableBody>
