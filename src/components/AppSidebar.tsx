@@ -33,10 +33,13 @@ import {
   Bell,
   FileText,
   Smartphone,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "next-themes";
 import { Badge } from "@/components/ui/badge";
 import { Fragment } from "react";
 
@@ -186,6 +189,7 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { signOut, user } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const isActiveGroup = (items: { url: string }[]) => {
     return items.some((item) => currentPath === item.url || currentPath.startsWith(item.url + "/"));
@@ -337,6 +341,23 @@ export function AppSidebar() {
 
         {/* User & Logout */}
         <div className="mt-auto border-t border-sidebar-border p-4">
+          <button
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="flex items-center gap-2 w-full px-3 py-1.5 mb-2 rounded-md text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            aria-label="Alternar tema"
+          >
+            {resolvedTheme === "dark" ? (
+              <>
+                <Sun className="h-4 w-4" />
+                {state === "expanded" && <span>Modo claro</span>}
+              </>
+            ) : (
+              <>
+                <Moon className="h-4 w-4" />
+                {state === "expanded" && <span>Modo escuro</span>}
+              </>
+            )}
+          </button>
           {state === "expanded" && user && (
             <p className="text-xs text-sidebar-foreground/60 mb-2 truncate">
               {user.email}
