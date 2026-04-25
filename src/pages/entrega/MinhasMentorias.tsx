@@ -1,294 +1,215 @@
+import { useNavigate } from "react-router-dom";
+import {
+  Heart,
+  Users,
+  TrendingUp,
+  DollarSign,
+  Calendar,
+  ExternalLink,
+  BarChart,
+} from "lucide-react";
+import { addDays, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Heart,
-  Calendar,
-  FileText,
-  Video,
-  CheckSquare,
-  MessageCircle,
-  TrendingUp,
-  Download,
-  Play,
-} from "lucide-react";
+import { MetricCard } from "@/components/MetricCard";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-const mentorship = {
-  id: 1,
-  name: "Mentoria Elite 2024",
-  mentor: {
-    name: "Carlos Ferreira",
-    avatar: "",
-    role: "Mentor Principal",
-  },
-  iem: 78,
-  nextSession: {
-    date: "28/01/2024",
-    time: "14:00",
-    topic: "Estratégias de Fechamento",
-  },
-  schedule: [
-    { id: 1, date: "14/01/2024", topic: "Introdução e Alinhamento", status: "Concluído" },
-    { id: 2, date: "21/01/2024", topic: "Posicionamento de Mercado", status: "Concluído" },
-    { id: 3, date: "28/01/2024", topic: "Estratégias de Fechamento", status: "Próximo" },
-    { id: 4, date: "04/02/2024", topic: "Construção de Ofertas", status: "Agendado" },
-  ],
-  tasks: [
-    { id: 1, title: "Definir persona ideal", deadline: "20/01/2024", status: "Entregue", score: 95 },
-    { id: 2, title: "Criar script de vendas", deadline: "27/01/2024", status: "Pendente", score: null },
-    { id: 3, title: "Gravar vídeo de apresentação", deadline: "03/02/2024", status: "Pendente", score: null },
-  ],
-  materials: [
-    { id: 1, name: "Planilha de Metas", type: "Excel", size: "245 KB" },
-    { id: 2, name: "E-book Vendas High-Ticket", type: "PDF", size: "3.2 MB" },
-    { id: 3, name: "Template de Proposta", type: "Word", size: "156 KB" },
-  ],
-  recordings: [
-    { id: 1, title: "Sessão 1 - Introdução", date: "14/01/2024", duration: "1h 32min" },
-    { id: 2, title: "Sessão 2 - Posicionamento", date: "21/01/2024", duration: "1h 45min" },
-  ],
-  iemHistory: [
-    { week: "Sem 1", value: 65 },
-    { week: "Sem 2", value: 72 },
-    { week: "Sem 3", value: 78 },
-  ],
-};
+type Platform = "Nutror" | "Alpaclass" | "Weve";
+
+interface Mentorship {
+  id: number;
+  name: string;
+  platform: Platform;
+  mentor: string;
+  mentees: number;
+  avgIem: number;
+  revenue: number;
+  nextSession: Date | null;
+}
+
+const mentorships: Mentorship[] = [
+  { id: 1, name: "Mentoria Elite 12 Meses", platform: "Alpaclass", mentor: "Carlos Ferreira", mentees: 25, avgIem: 78, revenue: 300000, nextSession: addDays(new Date(), 3) },
+  { id: 2, name: "Aceleração 6 Meses", platform: "Weve", mentor: "Ana Paula", mentees: 12, avgIem: 91, revenue: 180000, nextSession: addDays(new Date(), 1) },
+  { id: 3, name: "Grupo Iniciantes", platform: "Nutror", mentor: "Roberto Lima", mentees: 25, avgIem: 65, revenue: 144000, nextSession: null },
+];
+
+const totalMentees = 62;
+
+const iemDistribution = [
+  { range: "90-100%", count: 8, color: "bg-green-700" },
+  { range: "70-89%", count: 28, color: "bg-green-500" },
+  { range: "50-69%", count: 18, color: "bg-yellow-500" },
+  { range: "< 50%", count: 8, color: "bg-red-500" },
+];
+
+function formatCurrencyShort(value: number) {
+  if (value >= 1000) return `R$ ${Math.round(value / 1000)}K`;
+  return `R$ ${value}`;
+}
+
+function getIemColor(value: number) {
+  if (value > 70) return "text-green-600";
+  if (value >= 50) return "text-yellow-600";
+  return "text-red-600";
+}
+
+function getIemBadgeClass(value: number) {
+  if (value > 70) return "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30 hover:bg-green-500/20";
+  if (value >= 50) return "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/20";
+  return "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30 hover:bg-red-500/20";
+}
 
 export default function MinhasMentorias() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Minhas Mentorias</h1>
-          <p className="text-muted-foreground">Acompanhe seu progresso e engajamento</p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Mentorias Conectadas</h1>
+        <p className="text-muted-foreground">
+          Performance das suas mentorias em Nutror, Alpaclass e Weve
+        </p>
       </div>
 
-      {/* Header da Mentoria */}
+      {/* MetricCards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard title="Mentorias Ativas" value={3} icon={Heart} variant="primary" />
+        <MetricCard title="Total Mentorados" value={62} icon={Users} />
+        <Card className="border border-purple-500/20 bg-purple-50 dark:bg-purple-950/20 transition-all hover:shadow-md">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  IEM Médio
+                </p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">78%</p>
+                <p className="text-xs text-green-600 mt-1.5">↑ 5% vs. mês anterior</p>
+              </div>
+              <div className="p-2.5 rounded-lg shrink-0 bg-purple-100 dark:bg-purple-900/30">
+                <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <MetricCard title="Receita de Mentorias" value="R$ 744K" icon={DollarSign} variant="accent" />
+      </div>
+
+      {/* Distribuição de IEM */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-4 rounded-xl bg-gradient-primary">
-                <Heart className="h-8 w-8 text-white" />
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart className="h-5 w-5" />
+            Distribuição de Engajamento (IEM)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {iemDistribution.map((item) => (
+            <div key={item.range} className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{item.range}</span>
+                <span className="text-muted-foreground">{item.count} mentorados</span>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold">{mentorship.name}</h2>
-                <div className="flex items-center gap-3 mt-1">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-xs">CF</AvatarFallback>
-                  </Avatar>
-                  <span className="text-muted-foreground">
-                    {mentorship.mentor.name} • {mentorship.mentor.role}
-                  </span>
+              <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                <div
+                  className={cn("h-3 rounded-full transition-all", item.color)}
+                  style={{ width: `${(item.count / totalMentees) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 border-t text-sm">
+            <span className="text-green-600 font-medium">58% acima de 70%</span>
+            <span className="text-red-600 font-medium">13% em risco (&lt; 50%)</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Grid de mentorias */}
+      <div className="grid grid-cols-1 gap-4">
+        {mentorships.map((m) => (
+          <Card key={m.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6 space-y-4">
+              {/* Linha 1: nome + plataforma */}
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-lg leading-snug">{m.name}</h3>
+                    <Badge variant="outline">{m.platform}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">Mentor: {m.mentor}</p>
                 </div>
               </div>
-            </div>
 
-            <div className="text-right">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-purple-500" />
-                <span className="text-sm text-muted-foreground">Seu IEM</span>
-              </div>
-              <p className="text-4xl font-bold text-purple-500">{mentorship.iem}%</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Próxima Sessão */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Calendar className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Próxima Sessão</p>
-                <p className="text-xl font-bold">{mentorship.nextSession.topic}</p>
-                <p className="text-sm text-muted-foreground">
-                  {mentorship.nextSession.date} às {mentorship.nextSession.time}
-                </p>
-              </div>
-            </div>
-            <Button>Entrar na Sessão</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="schedule" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="schedule">Cronograma</TabsTrigger>
-          <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-          <TabsTrigger value="materials">Materiais</TabsTrigger>
-          <TabsTrigger value="recordings">Gravações</TabsTrigger>
-          <TabsTrigger value="iem">Meu IEM</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="schedule">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {mentorship.schedule.map((session, idx) => (
-                  <div
-                    key={session.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg ${
-                      session.status === "Próximo" ? "bg-primary/10 border border-primary/20" : "bg-muted/50"
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      session.status === "Concluído" ? "bg-green-500" :
-                      session.status === "Próximo" ? "bg-primary" : "bg-muted"
-                    }`}>
-                      <span className="text-white font-bold">{idx + 1}</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{session.topic}</p>
-                      <p className="text-sm text-muted-foreground">{session.date}</p>
-                    </div>
-                    <Badge variant={
-                      session.status === "Concluído" ? "default" :
-                      session.status === "Próximo" ? "secondary" : "outline"
-                    }>
-                      {session.status}
+              {/* Linha 3: mini-métricas 2x2 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">{m.mentees}</p>
+                    <p className="text-xs text-muted-foreground">Mentorados ativos</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <TrendingUp className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <Badge variant="outline" className={cn(getIemBadgeClass(m.avgIem))}>
+                      {m.avgIem}%
                     </Badge>
+                    <p className="text-xs text-muted-foreground mt-1">IEM Médio</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tasks">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {mentorship.tasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-4">
-                      <CheckSquare className={`h-5 w-5 ${task.status === "Entregue" ? "text-green-500" : "text-muted-foreground"}`} />
-                      <div>
-                        <p className="font-medium">{task.title}</p>
-                        <p className="text-sm text-muted-foreground">Prazo: {task.deadline}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {task.score && (
-                        <Badge className="bg-green-500">Nota: {task.score}</Badge>
-                      )}
-                      <Badge variant={task.status === "Entregue" ? "default" : "secondary"}>
-                        {task.status}
-                      </Badge>
-                      {task.status === "Pendente" && (
-                        <Button size="sm">Entregar</Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="materials">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {mentorship.materials.map((material) => (
-                  <div key={material.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-4">
-                      <FileText className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">{material.name}</p>
-                        <p className="text-sm text-muted-foreground">{material.type} • {material.size}</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="recordings">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {mentorship.recordings.map((recording) => (
-                  <div key={recording.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-4">
-                      <Video className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">{recording.title}</p>
-                        <p className="text-sm text-muted-foreground">{recording.date} • {recording.duration}</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Play className="h-4 w-4 mr-2" />
-                      Assistir
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="iem">
-          <div className="grid grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Evolução do IEM</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mentorship.iemHistory.map((week) => (
-                    <div key={week.week} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">{week.week}</span>
-                        <span className="font-medium text-purple-500">{week.value}%</span>
-                      </div>
-                      <Progress value={week.value} className="h-2" />
-                    </div>
-                  ))}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex items-center gap-2 text-sm">
+                  <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">{formatCurrencyShort(m.revenue)}</p>
+                    <p className="text-xs text-muted-foreground">Receita</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {m.nextSession
+                        ? format(m.nextSession, "dd 'de' MMM", { locale: ptBR })
+                        : "—"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Próxima sessão</p>
+                  </div>
+                </div>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Como melhorar seu IEM</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <p className="flex items-center gap-2">
-                  <CheckSquare className="h-4 w-4 text-green-500" />
-                  Entregue tarefas no prazo
-                </p>
-                <p className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-blue-500" />
-                  Participe de todas as sessões
-                </p>
-                <p className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-purple-500" />
-                  Interaja na comunidade
-                </p>
-                <p className="flex items-center gap-2">
-                  <Video className="h-4 w-4 text-orange-500" />
-                  Assista às gravações
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+              {/* Linha 4: ações */}
+              <div className="flex items-center gap-2 pt-2 border-t">
+                <Button variant="outline" size="sm" asChild>
+                  <a href="#" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                    Ver no {m.platform}
+                  </a>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    toast({
+                      title: "Filtro por produto em breve",
+                      description: `Em breve você poderá ver os leads de "${m.name}".`,
+                    });
+                    navigate("/crm/leads");
+                  }}
+                >
+                  Ver Leads
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
