@@ -12,7 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PenTool, Sparkles, Copy, MessageCircle, Mail, Send } from "lucide-react";
+import { PenTool, Sparkles, MessageCircle, Mail, Send, RefreshCw } from "lucide-react";
+import { AIBadge, AISuggestionCard } from "@/components/ai";
+import { getMessageSuggestions } from "@/lib/aiMocks";
+import { toast } from "sonner";
 
 const placeholders = [
   { key: "{{nome}}", description: "Nome do lead" },
@@ -24,27 +27,10 @@ const placeholders = [
   { key: "{{bonus}}", description: "Lista de bônus" },
 ];
 
-const aiSuggestions = [
-  {
-    id: 1,
-    title: "Urgência",
-    message: "🔥 {{nome}}, restam apenas 3 vagas para {{pitch}}! O preço sobe em 2h. Garanta sua vaga: {{link_sun}}",
-  },
-  {
-    id: 2,
-    title: "Personalizada",
-    message: "Oi {{nome}}! Vi que você participou do {{evento}} e demonstrou interesse em {{pitch}}. Tenho uma proposta especial para você. Posso te enviar? 🚀",
-  },
-  {
-    id: 3,
-    title: "Follow-up",
-    message: "{{nome}}, percebi que você iniciou a inscrição mas não finalizou. Algo te impediu? Se precisar de ajuda, é só me chamar! {{link_sun}}",
-  },
-];
-
 export function EditorContent() {
   const [message, setMessage] = useState("");
   const [channel, setChannel] = useState("whatsapp");
+  const aiSuggestions = getMessageSuggestions();
 
   const insertPlaceholder = (placeholder: string) => {
     setMessage((prev) => prev + placeholder);
@@ -52,6 +38,13 @@ export function EditorContent() {
 
   const applySuggestion = (text: string) => {
     setMessage(text);
+  };
+
+  const handleGenerateNew = () => {
+    toast("Gerando novas sugestões...");
+    setTimeout(() => {
+      toast.success("3 novas sugestões prontas");
+    }, 800);
   };
 
   return (
@@ -172,31 +165,26 @@ export function EditorContent() {
         <div className="space-y-6">
           <Card className="border-primary/20 bg-primary/5">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Sugestões da IA
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                <AIBadge />
+                Sugestões de Copy
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {aiSuggestions.map((suggestion) => (
-                <div
+                <button
                   key={suggestion.id}
-                  className="p-3 rounded-lg bg-background border cursor-pointer hover:border-primary/50 transition-colors"
-                  onClick={() => applySuggestion(suggestion.message)}
+                  type="button"
+                  onClick={() => applySuggestion(suggestion.description)}
+                  className="w-full text-left bg-background rounded-lg hover:border-primary/50 transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary">{suggestion.title}</Badge>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{suggestion.message}</p>
-                </div>
+                  <AISuggestionCard suggestion={suggestion} />
+                </button>
               ))}
 
-              <Button variant="outline" className="w-full">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Gerar Nova Sugestão
+              <Button variant="outline" size="sm" className="w-full" onClick={handleGenerateNew}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Gerar nova sugestão
               </Button>
             </CardContent>
           </Card>
