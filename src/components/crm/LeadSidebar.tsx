@@ -4,12 +4,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Phone, Calendar, DollarSign, ArrowRight, FileText,
-  Link2, Receipt, QrCode, CalendarPlus, Zap, Target, Radio, MapPin,
+  Link2, Receipt, QrCode, CalendarPlus, MapPin,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getLeadSuggestions } from "@/lib/leadSuggestions";
+import { AISuggestionCard, AIBadge } from "@/components/ai";
+import { getEnrichedLeadSuggestions } from "@/lib/aiMocks";
 
 interface LeadSidebarProps {
   lead: {
@@ -45,7 +46,12 @@ function safeTimeAgo(date: Date) {
 
 export function LeadSidebar({ lead }: LeadSidebarProps) {
   const navigate = useNavigate();
-  const suggestions = getLeadSuggestions(lead);
+  const suggestions = getEnrichedLeadSuggestions({
+    stage: lead.stage,
+    score: lead.score,
+    dealValue: lead.dealValue,
+    name: lead.name,
+  });
   const sdrActive = ["qualificado", "Engajado", "lead-frio", "engajado", "warm"].includes(lead.stage);
   const closerActive = !sdrActive;
 
@@ -82,22 +88,13 @@ export function LeadSidebar({ lead }: LeadSidebarProps) {
 
       {/* Seção 2 — Sugestões IA */}
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Sugestões IA <Badge variant="secondary" className="ml-1 text-[10px] py-0">Beta</Badge>
-        </p>
+        <div className="flex items-center gap-2">
+          <AIBadge />
+          <p className="text-xs font-semibold text-foreground">Sugestões para este lead</p>
+        </div>
         <div className="space-y-2">
-          {([
-            { label: "PRÓXIMA AÇÃO", value: suggestions.nextAction, icon: Zap, iconClass: "text-primary" },
-            { label: "MELHOR PITCH", value: suggestions.bestPitch, icon: Target, iconClass: "text-orange-500" },
-            { label: "MELHOR CANAL", value: suggestions.bestChannel, icon: Radio, iconClass: "text-blue-500" },
-          ] as const).map((s) => (
-            <div key={s.label} className="border rounded-lg p-3 space-y-1">
-              <div className="flex items-center gap-1">
-                <s.icon className={`h-3 w-3 ${s.iconClass}`} />
-                <span className="text-[10px] uppercase font-semibold text-muted-foreground">{s.label}</span>
-              </div>
-              <p className="text-xs">{s.value}</p>
-            </div>
+          {suggestions.map((s) => (
+            <AISuggestionCard key={s.id} suggestion={s} />
           ))}
         </div>
       </div>
