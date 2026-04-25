@@ -13,7 +13,10 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, UserX, UserCheck, Users, Database } from "lucide-react";
+import { Plus, Pencil, UserX, UserCheck, Users, Database, Sparkles } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { AIAnalysisBlock } from "@/components/ai";
+import { getTeamPerformanceAnalysis } from "@/lib/aiMocks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -47,6 +50,7 @@ export default function Equipe() {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [selectedMember, setSelectedMember] = useState<SalesUser | null>(null);
 
   const { data: salesUsers = [], isLoading } = useQuery({
     queryKey: ["sales_users"],
@@ -317,6 +321,15 @@ export default function Equipe() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs gap-1"
+                          onClick={() => setSelectedMember(su)}
+                        >
+                          <Sparkles className="h-3 w-3 text-primary" />
+                          Análise IA
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => openEdit(su)}><Pencil className="h-4 w-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => toggleStatusMutation.mutate({ id: su.id, status: su.status })}>
                           {su.status === "active" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
@@ -330,6 +343,19 @@ export default function Equipe() {
           )}
         </CardContent>
       </Card>
+
+      <Sheet open={!!selectedMember} onOpenChange={(v) => !v && setSelectedMember(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Performance individual</SheetTitle>
+          </SheetHeader>
+          {selectedMember && (
+            <div className="mt-6">
+              <AIAnalysisBlock analysis={getTeamPerformanceAnalysis(selectedMember.name)} />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
