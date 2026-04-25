@@ -1,132 +1,111 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  BookOpen,
+  Users,
+  CheckCircle,
+  DollarSign,
+  ExternalLink,
+} from "lucide-react";
+import { formatDistanceToNow, subDays, subHours } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Play, Clock, CheckCircle, Award } from "lucide-react";
+import { MetricCard } from "@/components/MetricCard";
+import { toast } from "@/hooks/use-toast";
 
-const courses = [
-  {
-    id: 1,
-    name: "Fundamentos de Vendas High-Ticket",
-    platform: "Nutror",
-    progress: 75,
-    totalModules: 12,
-    completedModules: 9,
-    lastAccess: "Hoje, 14:30",
-    duration: "24h",
-    certificate: false,
-  },
-  {
-    id: 2,
-    name: "Copywriting para Conversão",
-    platform: "Alpaclass",
-    progress: 100,
-    totalModules: 8,
-    completedModules: 8,
-    lastAccess: "Ontem, 10:00",
-    duration: "16h",
-    certificate: true,
-  },
-  {
-    id: 3,
-    name: "Estratégias de Lançamento",
-    platform: "Nutror",
-    progress: 30,
-    totalModules: 10,
-    completedModules: 3,
-    lastAccess: "3 dias atrás",
-    duration: "20h",
-    certificate: false,
-  },
-  {
-    id: 4,
-    name: "Mindset do Empreendedor",
-    platform: "Alpaclass",
-    progress: 0,
-    totalModules: 6,
-    completedModules: 0,
-    lastAccess: "Nunca acessado",
-    duration: "12h",
-    certificate: false,
-  },
+type Platform = "Nutror" | "Alpaclass" | "Weve";
+
+interface Course {
+  id: number;
+  name: string;
+  platform: Platform;
+  progress: number;
+  totalModules: number;
+  completedModules: number;
+  enrolled: number;
+  revenue: number;
+  lastSync: Date;
+}
+
+const courses: Course[] = [
+  { id: 1, name: "Fundamentos de Vendas High-Ticket", platform: "Nutror", progress: 68, totalModules: 12, completedModules: 8, enrolled: 342, revenue: 171000, lastSync: subHours(new Date(), 6) },
+  { id: 2, name: "Copywriting para Conversão", platform: "Alpaclass", progress: 85, totalModules: 8, completedModules: 7, enrolled: 189, revenue: 94500, lastSync: subHours(new Date(), 12) },
+  { id: 3, name: "Estratégias de Lançamento", platform: "Nutror", progress: 45, totalModules: 10, completedModules: 5, enrolled: 412, revenue: 123600, lastSync: subHours(new Date(), 6) },
+  { id: 4, name: "Mindset do Empreendedor", platform: "Weve", progress: 92, totalModules: 6, completedModules: 6, enrolled: 56, revenue: 28000, lastSync: subDays(new Date(), 1) },
+  { id: 5, name: "Comunicação Persuasiva", platform: "Weve", progress: 34, totalModules: 8, completedModules: 3, enrolled: 78, revenue: 39000, lastSync: subHours(new Date(), 3) },
 ];
 
+const platformOptions: Array<"Todas" | Platform> = ["Todas", "Nutror", "Alpaclass", "Weve"];
+
+function formatCurrencyShort(value: number) {
+  if (value >= 1000) return `R$ ${Math.round(value / 1000)}K`;
+  return `R$ ${value}`;
+}
+
 export default function MeusCursos() {
+  const navigate = useNavigate();
+  const [platformFilter, setPlatformFilter] = useState<"Todas" | Platform>("Todas");
+
+  const filtered = useMemo(
+    () => (platformFilter === "Todas" ? courses : courses.filter((c) => c.platform === platformFilter)),
+    [platformFilter],
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Meus Cursos</h1>
-          <p className="text-muted-foreground">Acesse seus cursos Nutror/Alpaclass</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Cursos Conectados</h1>
+        <p className="text-muted-foreground">
+          Performance dos seus cursos em Nutror, Alpaclass e Weve
+        </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-card">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-primary/10">
-              <BookOpen className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Cursos</p>
-              <p className="text-2xl font-bold">{courses.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-green-500/10">
-              <CheckCircle className="h-6 w-6 text-green-500" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Concluídos</p>
-              <p className="text-2xl font-bold">{courses.filter((c) => c.progress === 100).length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-yellow-500/10">
-              <Award className="h-6 w-6 text-yellow-500" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Certificados</p>
-              <p className="text-2xl font-bold">{courses.filter((c) => c.certificate).length}</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <MetricCard title="Cursos Ativos" value={5} icon={BookOpen} variant="primary" />
+        <MetricCard title="Total de Alunos" value={999} icon={Users} />
+        <MetricCard
+          title="Taxa de Conclusão Média"
+          value="62%"
+          icon={CheckCircle}
+          trend={{ value: 4, isPositive: true }}
+          variant="green"
+        />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        {courses.map((course) => (
+      <div className="flex flex-wrap items-center gap-2">
+        {platformOptions.map((opt) => (
+          <Button
+            key={opt}
+            size="sm"
+            variant={platformFilter === opt ? "default" : "outline"}
+            onClick={() => setPlatformFilter(opt)}
+          >
+            {opt}
+          </Button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filtered.map((course) => (
           <Card key={course.id} className="overflow-hidden">
-            <div className="h-2 bg-muted">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{ width: `${course.progress}%` }}
-              />
-            </div>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-lg">{course.name}</h3>
-                    {course.certificate && (
-                      <Badge className="bg-yellow-500 text-white">
-                        <Award className="h-3 w-3 mr-1" />
-                        Certificado
-                      </Badge>
-                    )}
-                  </div>
-                  <Badge variant="outline">{course.platform}</Badge>
+            <Progress value={course.progress} className="h-2 rounded-none" />
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-lg leading-snug">{course.name}</h3>
+                  <Badge variant="outline" className="mt-1">{course.platform}</Badge>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <p className="text-2xl font-bold text-primary">{course.progress}%</p>
-                  <p className="text-xs text-muted-foreground">Progresso</p>
+                  <p className="text-xs text-muted-foreground">Conclusão média</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-3 rounded-lg bg-muted/50">
                   <BookOpen className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                   <p className="text-sm font-medium">
@@ -135,35 +114,43 @@ export default function MeusCursos() {
                   <p className="text-xs text-muted-foreground">Módulos</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-muted/50">
-                  <Clock className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">{course.duration}</p>
-                  <p className="text-xs text-muted-foreground">Duração</p>
+                  <Users className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm font-medium">{course.enrolled}</p>
+                  <p className="text-xs text-muted-foreground">Alunos</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-muted/50">
-                  <Play className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium truncate">{course.lastAccess}</p>
-                  <p className="text-xs text-muted-foreground">Último acesso</p>
+                  <DollarSign className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm font-medium">{formatCurrencyShort(course.revenue)}</p>
+                  <p className="text-xs text-muted-foreground">Receita</p>
                 </div>
               </div>
 
-              <Button className="w-full">
-                {course.progress === 0 ? (
-                  <>
-                    <Play className="h-4 w-4 mr-2" />
-                    Iniciar Curso
-                  </>
-                ) : course.progress === 100 ? (
-                  <>
-                    <Award className="h-4 w-4 mr-2" />
-                    Ver Certificado
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4 mr-2" />
-                    Continuar
-                  </>
-                )}
-              </Button>
+              <p className="text-xs text-muted-foreground">
+                Último sync:{" "}
+                {formatDistanceToNow(course.lastSync, { addSuffix: true, locale: ptBR })}
+              </p>
+
+              <div className="flex items-center gap-2 pt-1">
+                <Button variant="outline" size="sm" asChild className="flex-1">
+                  <a href="#" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                    Ver no {course.platform}
+                  </a>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    toast({
+                      title: "Filtro por produto em breve",
+                      description: `Em breve você poderá ver os leads de "${course.name}".`,
+                    });
+                    navigate("/crm/leads");
+                  }}
+                >
+                  Ver Leads
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
