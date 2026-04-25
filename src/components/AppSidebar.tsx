@@ -34,6 +34,7 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
+import { Fragment } from "react";
 
 import {
   Sidebar,
@@ -204,7 +205,7 @@ export function AppSidebar() {
         </div>
 
         {menuGroups.map((section) => (
-          <>
+          <Fragment key={section.label}>
           {section.label === "CRM" && (
             <SidebarGroup key="copiloto-ia-highlight">
               <SidebarGroupLabel>IA</SidebarGroupLabel>
@@ -234,7 +235,7 @@ export function AppSidebar() {
               </SidebarGroupContent>
             </SidebarGroup>
           )}
-          <SidebarGroup key={section.label}>
+          <SidebarGroup>
             <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -295,7 +296,7 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          </>
+          </Fragment>
         ))}
 
         {/* User & Logout */}
