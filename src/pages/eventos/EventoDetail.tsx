@@ -15,9 +15,12 @@ import {
   Clock,
   MessageSquare,
   BarChart,
+  Sparkles,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { MetricCard } from "@/components/MetricCard";
+import { AIBadge } from "@/components/ai";
+import { getEventConversionForecast } from "@/lib/aiMocks";
 
 const eventData = {
   id: 1,
@@ -60,6 +63,7 @@ export default function EventoDetail() {
   const { id } = useParams();
   const checkinRate = ((eventData.checkins / eventData.registrations) * 100).toFixed(0);
   const totalPitchRevenue = eventData.pitches.reduce((acc, p) => acc + p.revenue, 0);
+  const forecast = getEventConversionForecast(eventData.name, eventData.registrations);
 
   return (
     <div className="space-y-6">
@@ -79,6 +83,49 @@ export default function EventoDetail() {
           </p>
         </div>
         <Button variant="outline">Editar Evento</Button>
+      </div>
+
+      <div className="border-l-4 border-l-primary bg-primary/5 rounded-lg p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <AIBadge variant="default" />
+          <h3 className="text-sm font-semibold text-foreground">{forecast.title}</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-background/60 border border-border rounded-md p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+              Previsão de conversão
+            </p>
+            <p className="text-2xl font-bold text-foreground mt-1">
+              {forecast.forecastRange.min}–{forecast.forecastRange.max}
+            </p>
+            <p className="text-xs text-muted-foreground">vendas esperadas</p>
+          </div>
+          <div className="bg-background/60 border border-border rounded-md p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+              Receita estimada
+            </p>
+            <p className="text-2xl font-bold text-foreground mt-1">
+              R$ {(forecast.revenueRange.min / 1000).toFixed(0)}k–{(forecast.revenueRange.max / 1000).toFixed(0)}k
+            </p>
+            <p className="text-xs text-muted-foreground">Confiança: {forecast.confidence}%</p>
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-primary/20 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <p className="text-sm font-medium text-foreground">Para maximizar:</p>
+          </div>
+          <ul className="space-y-1">
+            {forecast.recommendations.map((r, i) => (
+              <li key={i} className="text-xs text-muted-foreground flex gap-2">
+                <span className="text-muted-foreground/60">•</span>
+                <span className="leading-relaxed">{r}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className="grid grid-cols-5 gap-4">
