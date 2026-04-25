@@ -153,6 +153,7 @@ const menuGroups: MenuSection[] = [
         title: "Entrega",
         icon: GraduationCap,
         items: [
+          { title: "Portfólio", url: "/entrega/portfolio", icon: LayoutGrid },
           { title: "Cursos", url: "/entrega/cursos", icon: BookOpen },
           { title: "Mentorias", url: "/entrega/mentorias", icon: Heart },
         ],
