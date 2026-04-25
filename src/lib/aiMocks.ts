@@ -128,3 +128,109 @@ export function getOrderBumpRecommendation(
   };
   return profiles[leadProfile];
 }
+
+export function getLeadScoreTooltip(score: number, stage: string): string {
+  if (score >= 85) {
+    return `Score ${score} — atípico para esta etapa. Lead abriu 3 emails, clicou no link do checkout 2x, sem fechar. Tempo de resposta médio dele: 12min. Sugestão: follow-up imediato por WhatsApp.`;
+  }
+  if (score >= 60) {
+    return `Score ${score} — dentro do padrão para ${stage}. Engajamento consistente nas últimas interações. Sugestão: manter cadência atual.`;
+  }
+  return `Score ${score} — baixo para ${stage}. Lead esfriou nas últimas 2 semanas. Sugestão: nova abordagem com conteúdo relevante antes de tentar fechamento.`;
+}
+
+export function getEnrichedLeadSuggestions(lead: {
+  stage: string;
+  score: number;
+  dealValue: number;
+  name: string;
+}): AISuggestion[] {
+  const suggestions: AISuggestion[] = [];
+
+  const actionDesc =
+    lead.score >= 70
+      ? 'Agendar call — lead abriu link de checkout 2x mas não fechou. Tentativa anterior de PIX falhou por expiração. Recomendado oferecer parcelamento em cartão.'
+      : lead.stage === 'reuniao'
+        ? 'Enviar proposta personalizada — lead agendou reunião, demonstrando interesse concreto. Enviar proposta ainda hoje.'
+        : 'Nurturing com conteúdo de valor — lead ainda não engajou o suficiente para oferta direta.';
+
+  suggestions.push({
+    id: 'next-action',
+    label: 'Próxima ação',
+    icon: 'zap',
+    title: lead.score >= 70 ? 'Agendar call imediatamente' : 'Continuar nurturing',
+    description: actionDesc,
+  });
+
+  const pitchTitle =
+    lead.dealValue >= 20000
+      ? 'Mastermind Anual'
+      : lead.dealValue >= 10000
+        ? 'Mentoria Elite'
+        : 'Mentoria em Grupo';
+
+  suggestions.push({
+    id: 'best-pitch',
+    label: 'Melhor pitch',
+    icon: 'target',
+    title: pitchTitle,
+    description: `Padrão de leads similares mostra 43% de fechamento neste produto. Ticket compatível com perfil do ${lead.name}.`,
+    justification: `Ticket médio estimado do lead: R$ ${(lead.dealValue / 1000).toFixed(0)}k`,
+  });
+
+  const channel =
+    lead.score >= 70 ? 'WhatsApp' : lead.score >= 40 ? 'Email + WhatsApp' : 'Email nurturing';
+
+  suggestions.push({
+    id: 'best-channel',
+    label: 'Melhor canal',
+    icon: 'radio',
+    title: channel,
+    description:
+      'Lead respondeu às suas últimas 4 mensagens por WhatsApp com tempo médio de 23min. Email tem taxa de abertura de 12% nesse perfil.',
+  });
+
+  return suggestions;
+}
+
+export function getDailyBriefing(
+  userName: string,
+  _role: 'sdr' | 'closer' | 'manager',
+): {
+  greeting: string;
+  metrics: string[];
+  highlights: { icon: string; text: string }[];
+} {
+  const baseMetrics = [
+    '12 leads novos atribuídos (3 priority 1)',
+    '5 calls agendadas — 1 sem confirmação (Maria Santos, 14h)',
+    '8 follow-ups pendentes (2 atrasados)',
+    'Receita potencial em jogo: R$ 47k',
+  ];
+
+  return {
+    greeting: `Bom dia, ${userName}. Aqui está seu foco para hoje:`,
+    metrics: baseMetrics,
+    highlights: [
+      { icon: '🔥', text: 'Maria Santos respondeu o follow-up ontem à noite — prioridade alta, ela está quente.' },
+      { icon: '📞', text: 'Confirme a call das 14h da Maria antes das 10h — padrão mostra que confirmações antes das 10h reduzem no-show em 40%.' },
+      { icon: '📈', text: 'Sua taxa de conversão subiu 12% vs semana passada — continue no ritmo.' },
+    ],
+  };
+}
+
+export function getTeamPerformanceAnalysis(memberName: string): AIAnalysis {
+  return {
+    id: `team-analysis-${memberName}`,
+    title: `Análise de performance — ${memberName}`,
+    verdict: `${memberName} está com taxa de conversão de 18% nos últimos 15 dias, 20% abaixo da média do time (22,5%).`,
+    causes: [
+      '65% dos leads que recebeu nesse período tinham score <60 (leads mais frios)',
+      'Média do time: 40% de leads com score <60',
+      'Tempo médio de follow-up dele: 3,2h (dentro do padrão)',
+    ],
+    recommendation:
+      'A queda não parece ser por execução dele — ele está recebendo leads mais difíceis que o padrão. Rebalancear atribuição de leads ou dar acesso prioritário a leads com score ≥75 pelos próximos 7 dias.',
+    confidence: 81,
+  };
+}
