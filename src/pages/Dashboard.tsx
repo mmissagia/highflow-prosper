@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
 import { Link } from "react-router-dom";
 import { mockInvoicesData, formatCurrency } from "@/data/checkoutData";
+import { AIInsightCard } from "@/components/ai";
+import { getDashboardDailyInsight, getDashboardAlertContext } from "@/lib/aiMocks";
 import { 
   TrendingUp, 
   Users, 
@@ -16,6 +18,7 @@ import {
   CheckCircle2,
   CreditCard,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import {
   BarChart,
@@ -66,6 +69,9 @@ export default function Dashboard() {
       {/* 1. GlobalContextSelector — largura total */}
       <GlobalContextSelector />
 
+      {/* Resumo do Dia — Insight de IA */}
+      <AIInsightCard insight={getDashboardDailyInsight()} />
+
       {/* 2. Grid 2×2 — 4 cards de ações/riscos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Ações de Hoje */}
@@ -86,6 +92,12 @@ export default function Dashboard() {
                 <span className="text-muted-foreground truncate ml-2">{a.lead}</span>
               </div>
             ))}
+            <div className="flex items-start gap-1.5 mt-2 pt-2 border-t border-border/50">
+              <Sparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] italic text-muted-foreground leading-relaxed">
+                {getDashboardAlertContext('actions')}
+              </p>
+            </div>
             <Link to="/comercial/atividades">
               <Button variant="ghost" size="sm" className="w-full mt-1 text-xs h-7">
                 Ir para Atividades <ArrowRight className="h-3 w-3 ml-1" />
@@ -109,6 +121,12 @@ export default function Dashboard() {
                 <Badge variant="outline" className="text-xs shrink-0">{l.days}d em {l.stage}</Badge>
               </div>
             ))}
+            <div className="flex items-start gap-1.5 mt-2 pt-2 border-t border-border/50">
+              <Sparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] italic text-muted-foreground leading-relaxed">
+                {getDashboardAlertContext('hotLeads')}
+              </p>
+            </div>
             <Link to="/crm/pipeline">
               <Button variant="ghost" size="sm" className="w-full mt-1 text-xs h-7">
                 Ver Pipeline <ArrowRight className="h-3 w-3 ml-1" />
@@ -132,6 +150,12 @@ export default function Dashboard() {
                 <p className="text-xs text-muted-foreground">Maior queda de conversão</p>
                 <p className="text-2xl font-bold text-destructive mt-1">-50%</p>
                 <p className="text-xs text-muted-foreground">Tempo médio: 4.2 dias</p>
+              </div>
+              <div className="flex items-start gap-1.5 mt-2 pt-2 border-t border-border/50">
+                <Sparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                <p className="text-[11px] italic text-muted-foreground leading-relaxed">
+                  {getDashboardAlertContext('bottleneck')}
+                </p>
               </div>
               <Link to="/performance/relatorios">
                 <Button variant="ghost" size="sm" className="w-full text-xs h-7">
@@ -160,6 +184,12 @@ export default function Dashboard() {
                 <span className="font-medium text-foreground shrink-0">R$ {(p.value / 1000).toFixed(0)}K</span>
               </div>
             ))}
+            <div className="flex items-start gap-1.5 mt-2 pt-2 border-t border-border/50">
+              <Sparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] italic text-muted-foreground leading-relaxed">
+                {getDashboardAlertContext('payments')}
+              </p>
+            </div>
             <Link to="/monetizacao/pitches">
               <Button variant="ghost" size="sm" className="w-full mt-1 text-xs h-7">
                 Ir para Monetização <ArrowRight className="h-3 w-3 ml-1" />
