@@ -29,6 +29,10 @@ import {
   RefreshCw,
   Zap,
   LayoutGrid,
+  Filter,
+  Bell,
+  FileText,
+  Smartphone,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -211,26 +215,58 @@ export function AppSidebar() {
               <SidebarGroupLabel>IA</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="border-l-2 border-l-primary bg-primary/10 hover:bg-primary/20 data-[active=true]:bg-primary/20">
-                      <NavLink
-                        to="/ia/copiloto"
-                        end
-                        className="hover:bg-primary/20"
-                        activeClassName="bg-primary/20 text-primary font-medium"
-                      >
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        {state === "expanded" && (
-                          <>
-                            <span className="font-medium">Copiloto IA</span>
-                            <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 h-4">
-                              Novo
-                            </Badge>
-                          </>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <Collapsible
+                    defaultOpen={currentPath.startsWith("/ia/copiloto")}
+                    className="group/collapsible"
+                  >
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton className="w-full justify-between border-l-2 border-l-primary bg-primary/10 hover:bg-primary/20">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-primary" />
+                            {state === "expanded" && (
+                              <>
+                                <span className="font-medium">Copiloto IA</span>
+                                <Badge variant="default" className="ml-1 text-[9px] px-1.5 py-0 h-4">
+                                  Novo
+                                </Badge>
+                              </>
+                            )}
+                          </div>
+                          {state === "expanded" && (
+                            <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          )}
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {[
+                            { title: "Chat", url: "/ia/copiloto", icon: MessageCircle, end: true },
+                            { title: "Acessos", url: "/ia/copiloto/acessos", icon: Users, end: false },
+                            { title: "Perfis", url: "/ia/copiloto/perfis", icon: Shield, end: false },
+                            { title: "Escopo", url: "/ia/copiloto/escopo", icon: Filter, end: false },
+                            { title: "Alertas", url: "/ia/copiloto/alertas", icon: Bell, end: false },
+                            { title: "Logs", url: "/ia/copiloto/logs", icon: FileText, end: false },
+                            { title: "Simulação", url: "/ia/copiloto/simulacao", icon: Smartphone, end: false },
+                          ].map((sub) => (
+                            <SidebarMenuSubItem key={sub.title}>
+                              <SidebarMenuSubButton asChild>
+                                <NavLink
+                                  to={sub.url}
+                                  end={sub.end}
+                                  className="hover:bg-sidebar-accent"
+                                  activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                                >
+                                  <sub.icon className="h-3.5 w-3.5" />
+                                  {state === "expanded" && <span>{sub.title}</span>}
+                                </NavLink>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
