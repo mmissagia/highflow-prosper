@@ -234,3 +234,101 @@ export function getTeamPerformanceAnalysis(memberName: string): AIAnalysis {
     confidence: 81,
   };
 }
+
+export interface MentorshipChurnRisk {
+  id: string;
+  name: string;
+  iem: number;
+  previousIem: number;
+  reason: string;
+  churnProbability: number;
+}
+
+export function getMentorshipChurnInsight(): {
+  title: string;
+  summary: string;
+  mentorees: MentorshipChurnRisk[];
+  suggestion: string;
+  interventionImpact: string;
+} {
+  return {
+    title: '3 mentorados com alto risco de churn nos próximos 30 dias',
+    summary:
+      'Baseado em padrões históricos de mentorados com queda de engajamento semelhante, estes três apresentam alto risco de cancelamento nas próximas 4 semanas.',
+    mentorees: [
+      {
+        id: 'm-001',
+        name: 'Lucas Andrade',
+        iem: 42,
+        previousIem: 78,
+        reason: 'IEM caiu 36 pontos em 3 semanas. Faltou nas últimas 2 sessões.',
+        churnProbability: 87,
+      },
+      {
+        id: 'm-002',
+        name: 'Patricia Sousa',
+        iem: 51,
+        previousIem: 85,
+        reason:
+          'Não entregou as últimas 3 tarefas. Quebra de ritmo nas tarefas é o principal preditor de cancelamento.',
+        churnProbability: 73,
+      },
+      {
+        id: 'm-003',
+        name: 'Rodrigo Lima',
+        iem: 48,
+        previousIem: 62,
+        reason:
+          'Baixa interação na comunidade. Primeiro mês de mentoria — onboarding pode ter falhado.',
+        churnProbability: 68,
+      },
+    ],
+    suggestion: 'Agendar mentoria 1:1 com cada um antes de sexta-feira.',
+    interventionImpact: 'Dados históricos mostram que essa intervenção reduz churn em 63%.',
+  };
+}
+
+export function getEventConversionForecast(
+  eventName: string,
+  _inscritos: number,
+): {
+  title: string;
+  forecastRange: { min: number; max: number };
+  revenueRange: { min: number; max: number };
+  confidence: number;
+  recommendations: string[];
+} {
+  return {
+    title: `Previsão para este evento (${eventName})`,
+    forecastRange: { min: 18, max: 22 },
+    revenueRange: { min: 144000, max: 176000 },
+    confidence: 78,
+    recommendations: [
+      'Enviar lembrete 2h antes do evento — padrão aumenta comparecimento em 15%',
+      'Oferecer order bump de Comunidade Elite no checkout — seus eventos com order bump têm 22% mais ticket médio',
+      'Ativar countdown de escassez 10min antes do pitch',
+    ],
+  };
+}
+
+export function getIntegrationSuggestion(): {
+  title: string;
+  summary: string;
+  benefits: string[];
+  impact: string;
+  cta: string;
+} {
+  return {
+    title: 'Você está perdendo contexto de 45 leads',
+    summary:
+      'Detectamos 45 leads do Instagram cadastrados nos últimos 30 dias sem origem rastreada (UTM vazio). Conectar sua conta Meta Ads revelaria:',
+    benefits: [
+      'Qual campanha específica está trazendo cada lead',
+      'Custo por lead de cada campanha',
+      'ROI real por anúncio',
+    ],
+    impact:
+      'Você poderia redistribuir budget e ganhar +R$ 12k/mês em otimização (baseado no padrão de outros produtores que integraram Meta).',
+    cta: 'Conectar Meta Ads',
+  };
+}

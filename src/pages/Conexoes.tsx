@@ -24,7 +24,12 @@ import {
   AlertTriangle,
   Clock,
   Loader2,
+  Sparkles,
+  TrendingUp,
+  ArrowRight,
 } from "lucide-react";
+import { AIBadge } from "@/components/ai";
+import { getIntegrationSuggestion } from "@/lib/aiMocks";
 
 type Provider = {
   id: string;
@@ -113,11 +118,47 @@ export default function Conexoes() {
   const getConnectionForProvider = (providerId: string) =>
     connections.find((c) => c.provider === providerId);
 
+  const suggestion = getIntegrationSuggestion();
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Conexões</h1>
         <p className="text-muted-foreground">Gerencie suas integrações com plataformas externas</p>
+      </div>
+
+      <div className="border-l-4 border-l-accent bg-accent/5 rounded-lg p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <AIBadge variant="accent" />
+          <h3 className="text-sm font-semibold text-foreground">{suggestion.title}</h3>
+        </div>
+
+        <p className="text-sm text-foreground leading-relaxed">{suggestion.summary}</p>
+
+        <ul className="space-y-1">
+          {suggestion.benefits.map((b, i) => (
+            <li key={i} className="text-xs text-muted-foreground flex gap-2">
+              <span className="text-muted-foreground/60">•</span>
+              <span className="leading-relaxed">{b}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-start gap-2 pt-3 border-t border-accent/20">
+          <TrendingUp className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <p className="text-sm font-medium text-foreground">
+            Impacto estimado: <span className="text-muted-foreground font-normal">{suggestion.impact}</span>
+          </p>
+        </div>
+
+        <Button
+          onClick={() => toast.success("Iniciando conexão com Meta Ads...")}
+          className="gap-2"
+        >
+          <Sparkles className="h-4 w-4" />
+          {suggestion.cta}
+          <ArrowRight className="h-4 w-4" />
+        </Button>
       </div>
 
       {isLoading ? (
