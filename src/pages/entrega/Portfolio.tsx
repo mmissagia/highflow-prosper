@@ -8,6 +8,8 @@ import {
   CheckCircle,
   Plug,
   ExternalLink,
+  AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import { formatDistanceToNow, subDays, subHours, subMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -26,6 +28,9 @@ import {
 import { MetricCard } from "@/components/MetricCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { toast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import { AIBadge } from "@/components/ai";
+import { getMentorshipChurnInsight } from "@/lib/aiMocks";
 import { cn } from "@/lib/utils";
 
 type ProductType = "course" | "mentorship" | "community";
@@ -118,6 +123,12 @@ export default function Portfolio() {
 
   const hasNoConnectedProducts = mockProducts.length === 0;
 
+  const showChurnBlock =
+    !hasNoConnectedProducts &&
+    filtered.some((p) => p.type === "mentorship") &&
+    (typeFilter === "all" || typeFilter === "mentorship");
+  const churnData = getMentorshipChurnInsight();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -206,7 +217,61 @@ export default function Portfolio() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <>
+          {showChurnBlock && (
+            <div className="border-l-4 border-l-destructive bg-destructive/5 rounded-lg p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <AIBadge variant="destructive" />
+                <h3 className="text-sm font-semibold text-foreground">{churnData.title}</h3>
+              </div>
+
+              <p className="text-sm text-foreground leading-relaxed">{churnData.summary}</p>
+
+              <div className="space-y-2">
+                {churnData.mentorees.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-start justify-between gap-3 bg-background/60 border border-border rounded-md p-3"
+                  >
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm text-foreground">{m.name}</span>
+                        <Badge variant="outline" className="text-[10px]">
+                          IEM {m.iem}% (antes {m.previousIem}%)
+                        </Badge>
+                        <Badge variant="destructive" className="text-[10px]">
+                          {m.churnProbability}% risco
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{m.reason}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() =>
+                        sonnerToast.success(
+                          `Intervenção agendada com ${m.name} para sexta-feira`,
+                        )
+                      }
+                    >
+                      Agendar intervenção
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-start gap-2 pt-3 border-t border-destructive/20">
+                <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium text-foreground">{churnData.suggestion}</p>
+                  <p className="text-xs text-muted-foreground">{churnData.interventionImpact}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((product) => (
             <Card key={product.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-5 space-y-4">
@@ -309,7 +374,8 @@ export default function Portfolio() {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
