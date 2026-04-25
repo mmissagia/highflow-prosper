@@ -34,6 +34,7 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
+import { Fragment } from "react";
 
 import {
   Sidebar,
@@ -204,7 +205,37 @@ export function AppSidebar() {
         </div>
 
         {menuGroups.map((section) => (
-          <SidebarGroup key={section.label}>
+          <Fragment key={section.label}>
+          {section.label === "CRM" && (
+            <SidebarGroup key="copiloto-ia-highlight">
+              <SidebarGroupLabel>IA</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="border-l-2 border-l-primary bg-primary/10 hover:bg-primary/20 data-[active=true]:bg-primary/20">
+                      <NavLink
+                        to="/ia/copiloto"
+                        end
+                        className="hover:bg-primary/20"
+                        activeClassName="bg-primary/20 text-primary font-medium"
+                      >
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        {state === "expanded" && (
+                          <>
+                            <span className="font-medium">Copiloto IA</span>
+                            <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 h-4">
+                              Novo
+                            </Badge>
+                          </>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+          <SidebarGroup>
             <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -265,6 +296,7 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+          </Fragment>
         ))}
 
         {/* User & Logout */}
