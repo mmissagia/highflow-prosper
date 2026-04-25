@@ -28,6 +28,7 @@ import {
   Package,
   RefreshCw,
   Zap,
+  LayoutGrid,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -152,6 +153,7 @@ const menuGroups: MenuSection[] = [
         title: "Entrega",
         icon: GraduationCap,
         items: [
+          { title: "Portfólio", url: "/entrega/portfolio", icon: LayoutGrid },
           { title: "Cursos", url: "/entrega/cursos", icon: BookOpen },
           { title: "Mentorias", url: "/entrega/mentorias", icon: Heart },
         ],
