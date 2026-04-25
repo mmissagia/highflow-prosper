@@ -14,6 +14,7 @@ import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
 import { AIAgentFab } from "@/components/ai-agent/AIAgentFab";
 import { AIHeaderBadge } from "@/components/ai-agent/AIHeaderBadge";
 import { useAIToastAlerts } from "@/hooks/useAIToastAlerts";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -109,6 +110,7 @@ function AppLayoutInner() {
           <header className="h-16 border-b border-border bg-background flex items-center px-6">
             <SidebarTrigger className="mr-4" />
             <div className="flex-1" />
+            <ThemeToggle className="mr-2" />
             <AIHeaderBadge alertCount={8} onClick={openAlerts} />
           </header>
           <main className="flex-1 p-6 bg-muted/30">
