@@ -60,9 +60,9 @@ export function getMessageSuggestions(): AISuggestion[] {
       icon: 'zap',
       title: 'Últimas horas',
       description:
-        '🔥 Restam apenas 3 vagas para o grupo que começa segunda-feira. Você é um dos leads que mais engajaram essa semana — bloqueamos sua vaga por 24h. Quer garantir?',
+        '🔥 Restam apenas 3 vagas para o grupo que começa segunda-feira. Você está entre os que mais engajaram essa semana — bloqueamos sua vaga por 24h. Quer garantir?',
       justification:
-        'Baseado em campanhas suas com melhor taxa de conversão em leads do stage Warm',
+        'Baseado em campanhas suas com melhor taxa de conversão em contatos do stage Warm',
     },
     {
       id: 'msg-personal',
