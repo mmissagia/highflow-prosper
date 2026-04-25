@@ -7,12 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Phone, MessageSquare, Calendar, DollarSign, TrendingUp,
   ArrowLeft, ArrowRight, Clock, FileText, UserCheck, Inbox, Briefcase, ShoppingBag,
+  BookOpen, ExternalLink,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Link, useParams } from "react-router-dom";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, subDays, subHours } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LeadSidebar } from "@/components/crm/LeadSidebar";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 /* ─── lead mock (same fields as pipeline cards) ─── */
 const leadData = {
@@ -53,6 +56,58 @@ const mockSunHistory = [
   { product: "Masterclass Copywriting", value: 297, date: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000), status: "pago" },
   { product: "Evento Presencial — Summit Digital", value: 1500, date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), status: "pago" },
 ];
+
+type EnrollmentType = "course" | "mentorship" | "community";
+type EnrollmentStatus = "active" | "completed" | "cancelled";
+
+const mockEnrollments: Array<{
+  id: number;
+  productName: string;
+  type: EnrollmentType;
+  platform: string;
+  status: EnrollmentStatus;
+  progress: number;
+  engagementScore: number;
+  lastActivity: Date;
+}> = [
+  { id: 1, productName: "Fundamentos de Vendas High-Ticket", type: "course", platform: "Nutror", status: "active", progress: 67, engagementScore: 72, lastActivity: subDays(new Date(), 3) },
+  { id: 2, productName: "Mentoria Elite 12 Meses", type: "mentorship", platform: "Alpaclass", status: "active", progress: 40, engagementScore: 82, lastActivity: subDays(new Date(), 1) },
+  { id: 3, productName: "Comunidade VIP Mastermind", type: "community", platform: "Weve", status: "active", progress: 0, engagementScore: 88, lastActivity: subHours(new Date(), 5) },
+];
+
+const enrollmentTypeLabels: Record<EnrollmentType, string> = {
+  course: "Curso",
+  mentorship: "Mentoria",
+  community: "Comunidade",
+};
+
+function getEnrollmentTypeBadgeClass(type: EnrollmentType) {
+  switch (type) {
+    case "mentorship":
+      return "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30";
+    case "community":
+      return "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30";
+    default:
+      return "";
+  }
+}
+
+function getStatusBadge(status: EnrollmentStatus) {
+  switch (status) {
+    case "active":
+      return { variant: "default" as const, label: "Ativo", className: "bg-green-500 hover:bg-green-600 text-white" };
+    case "completed":
+      return { variant: "secondary" as const, label: "Concluído", className: "" };
+    case "cancelled":
+      return { variant: "destructive" as const, label: "Cancelado", className: "" };
+  }
+}
+
+function getIemBadgeClass(value: number) {
+  if (value >= 70) return "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30";
+  if (value >= 50) return "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/30";
+  return "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30";
+}
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -121,14 +176,9 @@ export default function LeadDetail() {
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="comercial">Comercial</TabsTrigger>
             <TabsTrigger value="sun">Histórico SUN</TabsTrigger>
+            <TabsTrigger value="entrega">Entrega</TabsTrigger>
             <TabsTrigger value="eventos" disabled>
               Eventos <Badge variant="secondary" className="ml-1.5 text-[10px] py-0">Em breve</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="cursos" disabled>
-              Cursos <Badge variant="secondary" className="ml-1.5 text-[10px] py-0">Em breve</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="mentorias" disabled>
-              Mentorias <Badge variant="secondary" className="ml-1.5 text-[10px] py-0">Em breve</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -279,8 +329,76 @@ export default function LeadDetail() {
 
           {/* Disabled tabs don't need content */}
           <TabsContent value="eventos" />
-          <TabsContent value="cursos" />
-          <TabsContent value="mentorias" />
+
+          {/* ── Entrega ── */}
+          <TabsContent value="entrega" className="space-y-3 mt-4">
+            {mockEnrollments.length === 0 ? (
+              <EmptyState
+                icon={BookOpen}
+                title="Este lead ainda não está matriculado em nenhum produto conectado."
+                description="Dados de entrega aparecem automaticamente após integração."
+                size="sm"
+              />
+            ) : (
+              mockEnrollments.map((en) => {
+                const status = getStatusBadge(en.status);
+                return (
+                  <Card key={en.id}>
+                    <CardContent className="p-4 space-y-3">
+                      {/* Linha 1: nome + badges */}
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                          <p className="text-sm font-semibold text-foreground">{en.productName}</p>
+                          <Badge variant="outline" className={cn(getEnrollmentTypeBadgeClass(en.type))}>
+                            {enrollmentTypeLabels[en.type]}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">{en.platform}</Badge>
+                        </div>
+                      </div>
+
+                      {/* Linha 2: status */}
+                      <div>
+                        <Badge variant={status.variant} className={cn(status.className)}>
+                          {status.label}
+                        </Badge>
+                      </div>
+
+                      {/* Linha 3: progresso */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Progresso</span>
+                          <span className="font-medium text-foreground">{en.progress}% concluído</span>
+                        </div>
+                        <Progress value={en.progress} className="h-1.5" />
+                      </div>
+
+                      {/* Linha 4: IEM */}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={cn(getIemBadgeClass(en.engagementScore))}>
+                          IEM: {en.engagementScore}%
+                        </Badge>
+                      </div>
+
+                      {/* Linha 5: última atividade */}
+                      <p className="text-xs text-muted-foreground">
+                        Última atividade: {safeTimeAgo(en.lastActivity)}
+                      </p>
+
+                      {/* Linha 6: ação */}
+                      <div>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href="#" target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                            Ver no {en.platform}
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
