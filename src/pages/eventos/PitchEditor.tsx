@@ -34,8 +34,11 @@ import {
   Maximize,
   Landmark,
   Download,
+  Sparkles,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { AIBadge } from "@/components/ai";
+import { getOrderBumpRecommendation } from "@/lib/aiMocks";
 
 const pitchData = {
   id: 1,
@@ -78,6 +81,7 @@ export default function PitchEditor() {
   const [orderBumpEnabled, setOrderBumpEnabled] = useState(false);
   const [orderBumpValue, setOrderBumpValue] = useState(297);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const orderBumpRec = getOrderBumpRecommendation('mindset');
 
   const pitchId = id || "1";
   const qrUrl = `${window.location.origin}/checkout-ht?pitchId=${pitchId}`;
@@ -306,6 +310,7 @@ export default function PitchEditor() {
               <div className={orderBumpEnabled ? "opacity-100" : "opacity-60"}>
                 <div className="flex items-center gap-2">
                   <Label className="text-xs">Valor mensal (R$)</Label>
+                  <AIBadge>Otimizado por IA</AIBadge>
                   <Input
                     type="number"
                     value={orderBumpValue}
@@ -314,6 +319,14 @@ export default function PitchEditor() {
                     disabled={!orderBumpEnabled}
                   />
                 </div>
+                <p className="mt-2 inline-flex items-start gap-1.5 text-xs text-muted-foreground">
+                  <Sparkles className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                  <span>
+                    Para este perfil de lead, a probabilidade de aceite é de{" "}
+                    <span className="font-medium text-foreground">{orderBumpRec.probability}%</span>{" "}
+                    com {orderBumpRec.recommended}.
+                  </span>
+                </p>
                 {orderBumpEnabled && (
                   <p className="text-xs text-primary font-medium mt-2">
                     + R$ {orderBumpValue}/mês adicionado ao total do primeiro ciclo

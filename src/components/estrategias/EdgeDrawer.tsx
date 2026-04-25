@@ -5,6 +5,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Zap, Mail, MessageSquare, Phone, Calendar, Radio, Plus } from 'lucide-react';
 import { useCampaignsByEdge, type Campaign } from '@/hooks/useCampaigns';
 import React from 'react';
+import { AIAnalysisBlock } from '@/components/ai';
+import { getStrategyEdgeAnalysis } from '@/lib/aiMocks';
 
 const CHANNEL_LABELS: Record<Campaign['channel'], string> = {
   whatsapp: 'WhatsApp',
@@ -125,6 +127,12 @@ export function EdgeDrawer({
               ))}
             </div>
           )}
+
+          <div className="mt-6 pt-4 border-t">
+            <AIAnalysisBlock
+              analysis={getStrategyEdgeAnalysis(`${edgeSource}-${edgeTarget}`)}
+            />
+          </div>
         </div>
       </SheetContent>
     </Sheet>
