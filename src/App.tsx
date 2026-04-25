@@ -63,6 +63,12 @@ import Relatorios from "./pages/comercial/Relatorios";
 import CheckoutHighTicket from "./pages/checkout/CheckoutHighTicket";
 const Assinaturas = lazy(() => import('./pages/monetizacao/Assinaturas'));
 const Copiloto = lazy(() => import('./pages/ia/Copiloto'));
+const CopilotAccess = lazy(() => import('./pages/ia/CopilotAccess'));
+const CopilotProfiles = lazy(() => import('./pages/ia/CopilotProfiles'));
+const CopilotScope = lazy(() => import('./pages/ia/CopilotScope'));
+const CopilotAlerts = lazy(() => import('./pages/ia/CopilotAlerts'));
+const CopilotLogs = lazy(() => import('./pages/ia/CopilotLogs'));
+const CopilotSimulation = lazy(() => import('./pages/ia/CopilotSimulation'));
 
 const queryClient = new QueryClient();
 
@@ -133,6 +139,12 @@ function AppLayoutInner() {
 
               {/* IA */}
               <Route path="/ia/copiloto" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><Copiloto /></Suspense>} />
+              <Route path="/ia/copiloto/acessos" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><CopilotAccess /></Suspense>} />
+              <Route path="/ia/copiloto/perfis" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><CopilotProfiles /></Suspense>} />
+              <Route path="/ia/copiloto/escopo" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><CopilotScope /></Suspense>} />
+              <Route path="/ia/copiloto/alertas" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><CopilotAlerts /></Suspense>} />
+              <Route path="/ia/copiloto/logs" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><CopilotLogs /></Suspense>} />
+              <Route path="/ia/copiloto/simulacao" element={<Suspense fallback={<div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}><CopilotSimulation /></Suspense>} />
 
               {/* Redirects de rotas antigas → novas */}
               <Route path="/eventos" element={<Navigate to="/monetizacao/eventos" replace />} />

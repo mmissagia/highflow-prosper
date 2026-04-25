@@ -1,11 +1,20 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Sparkles, Send, MessageCircle, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Sparkles, Send, MessageCircle, Plus, Settings, Users, Shield, Filter, Bell, FileText, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { AIBadge } from '@/components/ai';
 import { useCopilot } from '@/hooks/useCopilot';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const SHORTCUTS: { emoji: string; label: string; prompt: string }[] = [
   { emoji: '📊', label: 'Resumo de hoje', prompt: 'Como estamos hoje?' },
@@ -25,6 +34,7 @@ export default function Copiloto() {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -110,6 +120,35 @@ export default function Copiloto() {
             <Plus className="h-4 w-4 mr-1" />
             Nova conversa
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Configurações do Copiloto">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel>Governança</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/ia/copiloto/acessos')}>
+                <Users className="h-4 w-4" /> Acessos
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/ia/copiloto/perfis')}>
+                <Shield className="h-4 w-4" /> Perfis
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/ia/copiloto/escopo')}>
+                <Filter className="h-4 w-4" /> Escopo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/ia/copiloto/alertas')}>
+                <Bell className="h-4 w-4" /> Alertas
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/ia/copiloto/logs')}>
+                <FileText className="h-4 w-4" /> Logs
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/ia/copiloto/simulacao')}>
+                <Smartphone className="h-4 w-4" /> Simulação
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Messages */}
