@@ -18,7 +18,7 @@ import { getMessageSuggestions } from "@/lib/aiMocks";
 import { toast } from "sonner";
 
 const placeholders = [
-  { key: "{{nome}}", description: "Nome do lead" },
+  { key: "{{nome}}", description: "Nome do contato" },
   { key: "{{evento}}", description: "Nome do evento" },
   { key: "{{pitch}}", description: "Nome do pitch" },
   { key: "{{link_sun}}", description: "Link do Checkout SUN" },
@@ -197,7 +197,7 @@ export function EditorContent() {
               <p>• Use emojis para aumentar engajamento</p>
               <p>• Mensagens curtas têm maior taxa de resposta</p>
               <p>• Inclua sempre um CTA claro</p>
-              <p>• Personalize com o nome do lead</p>
+              <p>• Personalize com o nome do contato</p>
               <p>• Use urgência com moderação</p>
             </CardContent>
           </Card>
