@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle, X } from "lucide-react";
+import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle, X, Sparkles, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +21,8 @@ import { NovoLinkProdutoDrawer } from "./NovoLinkProdutoDrawer";
 import {
   type Invoice, statusConfig, paymentIcons, mockInvoicesData, formatCurrency, formatDate,
 } from "@/data/checkoutData";
+import { AIInsightCard } from "@/components/ai";
+import { getPaymentRecoveryInsight } from "@/lib/aiMocks";
 
 export default function CheckoutHighTicket() {
   const [searchParams] = useSearchParams();
@@ -32,6 +34,10 @@ export default function CheckoutHighTicket() {
   const [cobrancaOpen, setCobrancaOpen] = useState(false);
   const [linkProdutoOpen, setLinkProdutoOpen] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(!!leadName);
+  const [expandedAI, setExpandedAI] = useState<Record<string, boolean>>({});
+
+  const toggleAI = (id: string) =>
+    setExpandedAI((prev) => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     if (action === 'cobranca') {
@@ -153,7 +159,14 @@ export default function CheckoutHighTicket() {
             <TableBody>
               {filtered.map((inv) => {
                 const sc = statusConfig[inv.status];
+                const atRisk = inv.status === "vencida" || inv.status === "cancelada";
+                const expanded = !!expandedAI[inv.id];
+                const reason =
+                  inv.status === "vencida"
+                    ? "expiração do prazo de pagamento"
+                    : "cancelamento da operadora";
                 return (
+                  <>
                   <TableRow key={inv.id}>
                     <TableCell>
                       <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
@@ -162,6 +175,19 @@ export default function CheckoutHighTicket() {
                       <div>
                         <span className="font-medium text-foreground">{inv.clientName}</span>
                         <p className="text-xs text-muted-foreground">{inv.clientEmail}</p>
+                        {atRisk && (
+                          <button
+                            type="button"
+                            onClick={() => toggleAI(inv.id)}
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            {expanded ? "Ocultar sugestão de recuperação" : "Ver sugestão de recuperação"}
+                            <ChevronRight
+                              className={`h-3 w-3 transition-transform ${expanded ? "rotate-90" : ""}`}
+                            />
+                          </button>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(inv.value)}</TableCell>
@@ -204,6 +230,20 @@ export default function CheckoutHighTicket() {
                       </div>
                     </TableCell>
                   </TableRow>
+                  {atRisk && expanded && (
+                    <TableRow key={`${inv.id}-ai`} className="hover:bg-transparent">
+                      <TableCell colSpan={8} className="bg-muted/20 py-3">
+                        <AIInsightCard
+                          insight={getPaymentRecoveryInsight({
+                            leadName: inv.clientName,
+                            reason,
+                            value: inv.value,
+                          })}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  </>
                 );
               })}
             </TableBody>
