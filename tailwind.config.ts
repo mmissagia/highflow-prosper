@@ -22,6 +22,9 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
+          pressed: "hsl(var(--primary-pressed))",
+          subtle: "hsl(var(--primary-subtle))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -30,6 +33,9 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+          hover: "hsl(var(--destructive-hover))",
+          pressed: "hsl(var(--destructive-pressed))",
+          subtle: "hsl(var(--destructive-subtle))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -50,6 +56,30 @@ export default {
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+          hover: "hsl(var(--success-hover))",
+          pressed: "hsl(var(--success-pressed))",
+          subtle: "hsl(var(--success-subtle))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          hover: "hsl(var(--warning-hover))",
+          pressed: "hsl(var(--warning-pressed))",
+          subtle: "hsl(var(--warning-subtle))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          hover: "hsl(var(--info-hover))",
+          pressed: "hsl(var(--info-pressed))",
+          subtle: "hsl(var(--info-subtle))",
+        },
+        ai: {
+          DEFAULT: "hsl(var(--ai))",
+          foreground: "hsl(var(--ai-foreground))",
+          hover: "hsl(var(--ai-hover))",
+          pressed: "hsl(var(--ai-pressed))",
+          subtle: "hsl(var(--ai-subtle))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -73,6 +103,47 @@ export default {
         "gradient-primary": "var(--gradient-primary)",
         "gradient-secondary": "var(--gradient-secondary)",
         "gradient-hero": "var(--gradient-hero)",
+      },
+      fontFamily: {
+        sans: ['"Geist Variable"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"Geist Mono Variable"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+      },
+      fontSize: {
+        display: ['3rem',      { lineHeight: '1.1', letterSpacing: '-0.02em',  fontWeight: '600' }],
+        h1:      ['1.875rem',  { lineHeight: '1.2', letterSpacing: '-0.015em', fontWeight: '600' }],
+        h2:      ['1.25rem',   { lineHeight: '1.3', letterSpacing: '-0.01em',  fontWeight: '600' }],
+        h3:      ['1rem',      { lineHeight: '1.4', letterSpacing: '-0.005em', fontWeight: '600' }],
+        body:    ['0.875rem',  { lineHeight: '1.5', letterSpacing: '0',        fontWeight: '400' }],
+        caption: ['0.75rem',   { lineHeight: '1.4', letterSpacing: '0.005em',  fontWeight: '400' }],
+        micro:   ['0.6875rem', { lineHeight: '1.3', letterSpacing: '0.01em',   fontWeight: '500' }],
+      },
+      boxShadow: {
+        xs:      'var(--shadow-xs)',
+        sm:      'var(--shadow-sm)',
+        md:      'var(--shadow-md)',
+        lg:      'var(--shadow-lg)',
+        overlay: 'var(--shadow-overlay)',
+        focus:   'var(--shadow-focus)',
+      },
+      spacing: {
+        tight:   'var(--space-tight)',
+        default: 'var(--space-default)',
+        loose:   'var(--space-loose)',
+        section: 'var(--space-section)',
+        page:    'var(--space-page)',
+      },
+      transitionTimingFunction: {
+        snap:   'var(--ease-snap)',
+        glide:  'var(--ease-glide)',
+        soften: 'var(--ease-soften)',
+        emerge: 'var(--ease-emerge)',
+        spring: 'var(--ease-spring)',
+      },
+      transitionDuration: {
+        instant:    'var(--duration-instant)',
+        default:    'var(--duration-default)',
+        deliberate: 'var(--duration-deliberate)',
+        cerimonial: 'var(--duration-cerimonial)',
       },
       borderRadius: {
         lg: "var(--radius)",
