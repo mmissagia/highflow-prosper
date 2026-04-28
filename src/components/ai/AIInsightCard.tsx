@@ -9,8 +9,8 @@ interface AIInsightCardProps {
 }
 
 const urgencyStyles: Record<AIUrgency, { container: string; badge: "default" | "accent" | "destructive" }> = {
-  info: { container: "border-l-primary bg-primary/5", badge: "default" },
-  suggestion: { container: "border-l-accent bg-accent/5", badge: "accent" },
+  info: { container: "border-l-ai bg-ai/5", badge: "default" },
+  suggestion: { container: "border-l-ai bg-ai/5", badge: "accent" },
   alert: { container: "border-l-destructive bg-destructive/5", badge: "destructive" },
 };
 

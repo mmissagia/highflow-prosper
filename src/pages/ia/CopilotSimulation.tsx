@@ -44,7 +44,7 @@ export default function CopilotSimulation() {
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">HighFlow Copiloto IA</p>
+              <p className="text-sm font-medium text-white">Pulsa</p>
               <p className="text-[11px] text-emerald-400">online</p>
             </div>
             <Video className="h-5 w-5 text-white/70" />

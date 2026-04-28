@@ -1,6 +1,6 @@
-import { Sparkles } from "lucide-react";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { PulsaGlyph } from "./PulsaGlyph";
 
 interface AIBadgeProps {
   variant?: "default" | "accent" | "destructive";
@@ -9,8 +9,8 @@ interface AIBadgeProps {
 }
 
 const variantStyles: Record<NonNullable<AIBadgeProps["variant"]>, string> = {
-  default: "bg-primary/10 text-primary",
-  accent: "bg-accent/10 text-accent-foreground",
+  default: "bg-ai/10 text-ai",
+  accent: "bg-ai/10 text-ai",
   destructive: "bg-destructive/10 text-destructive",
 };
 
@@ -23,8 +23,8 @@ export function AIBadge({ variant = "default", children, className }: AIBadgePro
         className,
       )}
     >
-      <Sparkles className="h-3 w-3" />
-      {children ?? "HighFlow IA"}
+      <PulsaGlyph size="sm" />
+      {children ?? "Pulsa"}
     </span>
   );
 }

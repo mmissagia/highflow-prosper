@@ -11,7 +11,7 @@ export function AIAnalysisBlock({ analysis, className }: AIAnalysisBlockProps) {
   return (
     <div
       className={cn(
-        "bg-accent/5 border border-accent/20 rounded-lg p-4 space-y-3",
+        "bg-ai/5 border border-ai/20 rounded-lg p-4 space-y-3",
         className,
       )}
     >
@@ -36,7 +36,7 @@ export function AIAnalysisBlock({ analysis, className }: AIAnalysisBlockProps) {
         </div>
       )}
 
-      <div className="border-t border-accent/20 pt-3">
+      <div className="border-t border-ai/20 pt-3">
         <p className="text-sm font-medium text-foreground">{analysis.recommendation}</p>
       </div>
 
