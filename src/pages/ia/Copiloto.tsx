@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Send, MessageCircle, Plus, Settings, Users, Shield, Filter, Bell, FileText, Smartphone } from 'lucide-react';
+import { PulsaGlyph } from '@/components/ai/PulsaGlyph';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -109,11 +110,11 @@ export default function Copiloto() {
       <Card className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-border shrink-0">
-          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Sparkles className="h-5 w-5 text-primary" />
+          <div className="h-9 w-9 rounded-lg bg-ai/10 flex items-center justify-center">
+            <PulsaGlyph size="sm" className="h-5 w-5" />
           </div>
           <div className="flex-1 flex items-center gap-2">
-            <h1 className="text-lg font-semibold">Copiloto WhatsApp IA</h1>
+            <h1 className="text-lg font-semibold">Pulsa WhatsApp</h1>
             <AIBadge />
           </div>
           <Button variant="outline" size="sm" onClick={clearConversation} disabled={messages.length === 0}>
