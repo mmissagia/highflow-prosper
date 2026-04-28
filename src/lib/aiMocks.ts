@@ -1,4 +1,4 @@
-// Mocks estruturados de IA. Todos os retornos são hardcoded e realistas.
+// Mocks estruturados da Pulsa. Todos os retornos são hardcoded e realistas.
 // A única IA real no protótipo é o Copiloto WhatsApp (F10-E) — via Edge Function Supabase.
 
 import type { AIInsight, AIAnalysis, AISuggestion } from "@/types/ai";
@@ -8,10 +8,10 @@ export function getDashboardDailyInsight(): AIInsight {
     id: 'dashboard-daily-insight',
     title: 'Resumo da sua operação hoje',
     summary:
-      'Seu faturamento caiu 12% na última semana comparado com a anterior. O principal motivo foi a queda de conversão no produto Mentoria Elite (de 8% para 3,2%), que respondia por 40% da sua receita. Em contrapartida, o Curso Inicial teve alta de 24% em vendas — possivelmente puxado pela campanha de Instagram iniciada na terça.',
+      'Observei que seu faturamento caiu 12% na última semana comparado com a anterior. O principal vetor é a queda de conversão da Mentoria Elite (de 8% para 3,2%), produto que responde por 40% da receita. Em contrapartida, o Curso Inicial subiu 24% em vendas — coincide com a campanha de Instagram iniciada na terça. Sugiro priorizar a revisão do pitch da Mentoria Elite hoje e investigar a etapa imediatamente anterior à queda no funil.',
     details: [
-      'Foco sugerido para hoje: revisar o pitch da Mentoria Elite e investigar o funil antes da queda',
-      'Confiança do modelo: 82% (baseado em seus últimos 12 meses de dados)',
+      'Calibração: comparação com seus últimos 12 meses de operação',
+      'Sugiro revisar o pitch da Mentoria Elite antes da próxima janela de vendas',
     ],
     urgency: 'info',
     confidence: 82,
@@ -24,13 +24,13 @@ export function getDashboardAlertContext(
 ): string {
   const contexts = {
     actions:
-      '3 deles são leads quentes parados há mais de 24h. Priorize-os — cada hora a mais reduz chance de fechamento em ~6%.',
+      'Observei que 3 deles são leads quentes parados há mais de 24h. No padrão dos seus dados, cada hora a mais nesse estado reduz a chance de fechamento em ~6%. Sugiro priorizá-los antes do próximo bloco de prospecção.',
     hotLeads:
-      'Maria Santos está parada há 5 dias em "Warm". Lead de R$ 20k com score 87. Padrão: leads como ela convertem em até 7 dias ou esfriam.',
+      'Observei que Maria Santos está parada há 5 dias em "Warm" — ticket potencial de R$ 20k, score 87. No padrão dos seus dados, leads desse perfil convertem em até 7 dias ou esfriam. Sugiro abordagem direta hoje.',
     bottleneck:
-      'Atípico. Sua conversão média nessa etapa é 35%. Esta semana está em 17%. Pode ser problema de disponibilidade de agenda dos closers.',
+      'Observei que sua conversão nesta etapa está em 17% nesta semana, abaixo da sua média histórica de 35%. Um vetor possível é a disponibilidade de agenda dos closers. Sugiro checar a ocupação da equipe nas próximas 48h.',
     payments:
-      'PIX do Carlos Mendes expira em 4h. Cartão da Fernanda foi recusado ontem — histórico dela mostra que responde bem a PIX como segunda tentativa.',
+      'Observei que o PIX do Carlos Mendes expira em 4h e o cartão da Fernanda foi recusado ontem. No histórico dela, PIX como segunda tentativa tem taxa de recuperação alta. Sugiro reenviar PIX para a Fernanda e fazer follow-up rápido com o Carlos.',
   };
   return contexts[alertType];
 }
@@ -40,14 +40,14 @@ export function getStrategyEdgeAnalysis(edgeId: string): AIAnalysis {
     id: `edge-analysis-${edgeId}`,
     title: 'Análise desta campanha',
     verdict:
-      'Essa edge (Warm → Call) tem taxa de conversão de 12%, que é 3x menor que a média das outras edges Warm→Call das suas estratégias (36%).',
+      'Observei que esta edge (Warm → Call) está em 12% de conversão, cerca de 3x abaixo da média das outras edges Warm→Call das suas estratégias (36%).',
     causes: [
-      'Canal atual é Email — WhatsApp tem histórico 2,4x melhor em edges similares',
-      'Delay médio entre entrada no stage e envio da mensagem é 48h — ideal para "Warm" é até 12h',
-      'Copy não menciona urgência — padrões bem-sucedidos em edges assim usam escassez',
+      'Calibração: WhatsApp tem histórico 2,4x melhor que Email em edges similares dentro da sua operação',
+      'Calibração: delay médio atual é de 48h; nas edges com melhor performance, o ideal para "Warm" é até 12h',
+      'Calibração: copys com escassez performam acima da média neste tipo de edge',
     ],
     recommendation:
-      'Mudar canal para WhatsApp, reduzir delay para 6h e testar copy com escassez de vagas.',
+      'Sugiro mudar o canal para WhatsApp, reduzir o delay para ~6h e testar uma copy com escassez de vagas.',
     confidence: 78,
   };
 }
@@ -62,7 +62,7 @@ export function getMessageSuggestions(): AISuggestion[] {
       description:
         '🔥 Restam apenas 3 vagas para o grupo que começa segunda-feira. Você está entre os que mais engajaram essa semana — bloqueamos sua vaga por 24h. Quer garantir?',
       justification:
-        'Baseado em campanhas suas com melhor taxa de conversão em contatos do stage Warm',
+        'Calibração: derivado das suas campanhas com melhor taxa de conversão em contatos do stage Warm. Sugiro priorizar contatos com score ≥70.',
     },
     {
       id: 'msg-personal',
@@ -71,7 +71,7 @@ export function getMessageSuggestions(): AISuggestion[] {
       title: 'Personalizada ao lead',
       description:
         'Oi {{nome}}! Vi que você abriu o conteúdo sobre {{evento}} mas não agendou a call ainda. Se tiver 5min hoje, posso te enviar um estudo de caso de alguém com o mesmo perfil que você.',
-      justification: 'Padrão: mensagens com estudo de caso têm 2x mais resposta neste stage',
+      justification: 'Calibração: mensagens com estudo de caso têm 2x mais resposta neste stage. Sugiro envio nas primeiras 12h após o gatilho.',
     },
     {
       id: 'msg-followup',
@@ -80,7 +80,7 @@ export function getMessageSuggestions(): AISuggestion[] {
       title: 'Follow-up leve',
       description:
         'Oi {{nome}}, passando pra saber se conseguiu pensar sobre o que conversamos. Sem pressão — se fizer sentido pra você, me avisa que eu te mando os próximos passos.',
-      justification: 'Tom leve tem 67% mais resposta em leads parados há >3 dias',
+      justification: 'Calibração: tom leve tem 67% mais resposta em contatos parados há mais de 3 dias. Sugiro disparar no fim da tarde.',
     },
   ];
 }
@@ -93,11 +93,11 @@ export function getPaymentRecoveryInsight(payment: {
   return {
     id: `payment-recovery-${payment.leadName}`,
     title: `Sugestão para recuperar cobrança — ${payment.leadName}`,
-    summary: `Cartão foi recusado por ${payment.reason}. Histórico deste lead mostra resposta rápida (<2h) às últimas 3 cobranças, com preferência por PIX como segunda tentativa.`,
+    summary: `Observei que o cartão foi recusado por ${payment.reason}. No histórico deste contato, a resposta às últimas 3 cobranças foi em menos de 2h, com preferência por PIX como segunda tentativa. Sugiro reenviar a cobrança via PIX já hoje.`,
     details: [
-      `Ticket médio histórico: R$ ${(payment.value / 1000).toFixed(1)}k`,
-      'Já pagou 2 produtos anteriores via PIX',
-      'Ação sugerida: reenviar cobrança por PIX com parcelamento em 2x',
+      `Calibração — ticket médio histórico: R$ ${(payment.value / 1000).toFixed(1)}k`,
+      'Calibração: já pagou 2 produtos anteriores via PIX',
+      'Sugiro reenviar a cobrança por PIX com parcelamento em 2x',
     ],
     urgency: 'suggestion',
     action: {
@@ -131,12 +131,12 @@ export function getOrderBumpRecommendation(
 
 export function getLeadScoreTooltip(score: number, stage: string): string {
   if (score >= 85) {
-    return `Score ${score} — atípico para esta etapa. Lead abriu 3 emails, clicou no link do checkout 2x, sem fechar. Tempo de resposta médio dele: 12min. Sugestão: follow-up imediato por WhatsApp.`;
+    return `Observei score ${score} — atípico para esta etapa. O contato abriu 3 emails, clicou no link do checkout 2x, sem fechar. Tempo médio de resposta dele: 12min. Sugiro follow-up imediato por WhatsApp.`;
   }
   if (score >= 60) {
-    return `Score ${score} — dentro do padrão para ${stage}. Engajamento consistente nas últimas interações. Sugestão: manter cadência atual.`;
+    return `Observei score ${score} — dentro do padrão para ${stage}. Engajamento consistente nas últimas interações. Sugiro manter a cadência atual.`;
   }
-  return `Score ${score} — baixo para ${stage}. Lead esfriou nas últimas 2 semanas. Sugestão: nova abordagem com conteúdo relevante antes de tentar fechamento.`;
+  return `Observei score ${score} — baixo para ${stage}. O contato esfriou nas últimas 2 semanas. Sugiro uma nova abordagem com conteúdo relevante antes de tentar fechamento.`;
 }
 
 export function getEnrichedLeadSuggestions(lead: {
@@ -149,10 +149,10 @@ export function getEnrichedLeadSuggestions(lead: {
 
   const actionDesc =
     lead.score >= 70
-      ? 'Agendar call — lead abriu link de checkout 2x mas não fechou. Tentativa anterior de PIX falhou por expiração. Recomendado oferecer parcelamento em cartão.'
+      ? 'Observei que o contato abriu o link de checkout 2x sem fechar e a tentativa anterior de PIX expirou. Sugiro agendar call hoje e oferecer parcelamento em cartão.'
       : lead.stage === 'reuniao'
-        ? 'Enviar proposta personalizada — lead agendou reunião, demonstrando interesse concreto. Enviar proposta ainda hoje.'
-        : 'Nurturing com conteúdo de valor — lead ainda não engajou o suficiente para oferta direta.';
+        ? 'Observei que o contato agendou reunião, sinal de interesse concreto. Sugiro enviar proposta personalizada ainda hoje.'
+        : 'Observei que o contato ainda não engajou o suficiente para oferta direta. Sugiro nurturing com conteúdo de valor.';
 
   suggestions.push({
     id: 'next-action',
@@ -174,7 +174,7 @@ export function getEnrichedLeadSuggestions(lead: {
     label: 'Melhor pitch',
     icon: 'target',
     title: pitchTitle,
-    description: `Padrão de leads similares mostra 43% de fechamento neste produto. Ticket compatível com perfil do ${lead.name}.`,
+    description: `No padrão de contatos similares, observei 43% de fechamento neste produto. Ticket compatível com o perfil do ${lead.name}. Sugiro abrir a conversa por aqui.`,
     justification: `Ticket médio estimado do lead: R$ ${(lead.dealValue / 1000).toFixed(0)}k`,
   });
 
@@ -187,7 +187,7 @@ export function getEnrichedLeadSuggestions(lead: {
     icon: 'radio',
     title: channel,
     description:
-      'Lead respondeu às suas últimas 4 mensagens por WhatsApp com tempo médio de 23min. Email tem taxa de abertura de 12% nesse perfil.',
+      'Observei que o contato respondeu às suas últimas 4 mensagens por WhatsApp em ~23min. Email tem 12% de abertura nesse perfil. Sugiro priorizar WhatsApp.',
   });
 
   return suggestions;
@@ -208,13 +208,14 @@ export function getDailyBriefing(
     'Receita potencial em jogo: R$ 47k',
   ];
 
+  void userName;
   return {
-    greeting: `Bom dia, ${userName}. Aqui está seu foco para hoje:`,
+    greeting: `Observei o pipeline de hoje. Este é o foco sugerido:`,
     metrics: baseMetrics,
     highlights: [
-      { icon: '🔥', text: 'Maria Santos respondeu o follow-up ontem à noite — prioridade alta, ela está quente.' },
-      { icon: '📞', text: 'Confirme a call das 14h da Maria antes das 10h — padrão mostra que confirmações antes das 10h reduzem no-show em 40%.' },
-      { icon: '📈', text: 'Sua taxa de conversão subiu 12% vs semana passada — continue no ritmo.' },
+      { icon: '🔥', text: 'Observei que Maria Santos respondeu o follow-up ontem à noite — sinal forte de interesse. Sugiro contato priorizado pela manhã.' },
+      { icon: '📞', text: 'Calibração: confirmações antes das 10h reduzem no-show em 40%. Sugiro confirmar a call das 14h da Maria antes desse horário.' },
+      { icon: '📈', text: 'Observei que sua taxa de conversão subiu 12% vs semana passada. Sugiro manter a cadência atual.' },
     ],
   };
 }
@@ -223,14 +224,14 @@ export function getTeamPerformanceAnalysis(memberName: string): AIAnalysis {
   return {
     id: `team-analysis-${memberName}`,
     title: `Análise de performance — ${memberName}`,
-    verdict: `${memberName} está com taxa de conversão de 18% nos últimos 15 dias, 20% abaixo da média do time (22,5%).`,
+    verdict: `Observei que ${memberName} está com taxa de conversão de 18% nos últimos 15 dias, cerca de 20% abaixo da média do time (22,5%).`,
     causes: [
-      '65% dos leads que recebeu nesse período tinham score <60 (leads mais frios)',
-      'Média do time: 40% de leads com score <60',
-      'Tempo médio de follow-up dele: 3,2h (dentro do padrão)',
+      'Calibração: 65% dos leads recebidos no período tinham score <60 (mais frios que o normal)',
+      'Calibração: a média do time é 40% de leads com score <60',
+      'Calibração: tempo médio de follow-up dele é 3,2h, dentro do padrão',
     ],
     recommendation:
-      'A queda não parece ser por execução dele — ele está recebendo leads mais difíceis que o padrão. Rebalancear atribuição de leads ou dar acesso prioritário a leads com score ≥75 pelos próximos 7 dias.',
+      'Os dados não apontam falha de execução — ele está recebendo leads mais difíceis que o padrão. Sugiro rebalancear a atribuição ou dar acesso prioritário a leads com score ≥75 pelos próximos 7 dias.',
     confidence: 81,
   };
 }
@@ -252,16 +253,16 @@ export function getMentorshipChurnInsight(): {
   interventionImpact: string;
 } {
   return {
-    title: '3 mentorados com alto risco de churn nos próximos 30 dias',
+    title: 'Observei 3 mentorados com alto risco de churn nos próximos 30 dias',
     summary:
-      'Baseado em padrões históricos de mentorados com queda de engajamento semelhante, estes três apresentam alto risco de cancelamento nas próximas 4 semanas.',
+      'No padrão histórico de mentorados com queda de engajamento semelhante, estes três apresentam alto risco de cancelamento nas próximas 4 semanas.',
     mentorees: [
       {
         id: 'm-001',
         name: 'Lucas Andrade',
         iem: 42,
         previousIem: 78,
-        reason: 'IEM caiu 36 pontos em 3 semanas. Faltou nas últimas 2 sessões.',
+        reason: 'Observei queda de 36 pontos no IEM em 3 semanas e ausência nas últimas 2 sessões.',
         churnProbability: 87,
       },
       {
@@ -270,7 +271,7 @@ export function getMentorshipChurnInsight(): {
         iem: 51,
         previousIem: 85,
         reason:
-          'Não entregou as últimas 3 tarefas. Quebra de ritmo nas tarefas é o principal preditor de cancelamento.',
+          'Observei que não entregou as últimas 3 tarefas. Calibração: quebra de ritmo nas tarefas é o principal preditor de cancelamento.',
         churnProbability: 73,
       },
       {
@@ -279,12 +280,12 @@ export function getMentorshipChurnInsight(): {
         iem: 48,
         previousIem: 62,
         reason:
-          'Baixa interação na comunidade. Primeiro mês de mentoria — onboarding pode ter falhado.',
+          'Observei baixa interação na comunidade no primeiro mês de mentoria. Calibração: pode indicar falha de onboarding.',
         churnProbability: 68,
       },
     ],
-    suggestion: 'Agendar mentoria 1:1 com cada um antes de sexta-feira.',
-    interventionImpact: 'Dados históricos mostram que essa intervenção reduz churn em 63%.',
+    suggestion: 'Sugiro agendar mentoria 1:1 com cada um antes de sexta-feira.',
+    interventionImpact: 'Calibração: nos seus dados históricos, essa intervenção reduz churn em 63%.',
   };
 }
 
@@ -304,9 +305,9 @@ export function getEventConversionForecast(
     revenueRange: { min: 144000, max: 176000 },
     confidence: 78,
     recommendations: [
-      'Enviar lembrete 2h antes do evento — padrão aumenta comparecimento em 15%',
-      'Oferecer order bump de Comunidade Elite no checkout — seus eventos com order bump têm 22% mais ticket médio',
-      'Ativar countdown de escassez 10min antes do pitch',
+      'Calibração: lembrete 2h antes aumenta comparecimento em 15%. Sugiro programar o disparo.',
+      'Calibração: seus eventos com order bump têm 22% mais ticket médio. Sugiro oferecer Comunidade Elite no checkout.',
+      'Sugiro ativar countdown de escassez 10min antes do pitch.',
     ],
   };
 }
@@ -319,22 +320,22 @@ export function getIntegrationSuggestion(): {
   cta: string;
 } {
   return {
-    title: 'Você está perdendo contexto de 45 leads',
+    title: 'Observei que você está perdendo contexto de 45 leads',
     summary:
-      'Detectamos 45 leads do Instagram cadastrados nos últimos 30 dias sem origem rastreada (UTM vazio). Conectar sua conta Meta Ads revelaria:',
+      'Identifiquei 45 leads do Instagram cadastrados nos últimos 30 dias sem origem rastreada (UTM vazio). Conectar sua conta Meta Ads revelaria:',
     benefits: [
       'Qual campanha específica está trazendo cada lead',
       'Custo por lead de cada campanha',
       'ROI real por anúncio',
     ],
     impact:
-      'Você poderia redistribuir budget e ganhar +R$ 12k/mês em otimização (baseado no padrão de outros produtores que integraram Meta).',
+      'Calibração: produtores que integraram Meta ganharam em média +R$ 12k/mês em otimização. Sugiro conectar agora para destravar essa visão.',
     cta: 'Conectar Meta Ads',
   };
 }
 
 export function getCopilotOperationSnapshot(): string {
-  return `Você é o Copiloto IA do HighFlow, plataforma de vendas high-ticket da Eduzz. Responda em português brasileiro, de forma objetiva e curta (máximo 150 palavras por resposta). Sempre que fizer sentido, sugira uma próxima ação. Não invente dados além dos fornecidos abaixo.
+  return `Você é a Pulsa, assistente IA do HighFlow, plataforma de vendas high-ticket da Eduzz. Responda em português brasileiro, em voz consultiva: comece pelo fato observado, traga um dado de calibração quando relevante, e termine com "Sugiro..." quando fizer sentido. Máximo 150 palavras por resposta. Não invente dados além dos fornecidos abaixo.
 
 DADOS DA OPERAÇÃO DO PRODUTOR (snapshot atualizado agora):
 
