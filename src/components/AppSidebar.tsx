@@ -42,6 +42,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "next-themes";
 import { Badge } from "@/components/ui/badge";
 import { Fragment } from "react";
+import { PulsaGlyph } from "@/components/ai/PulsaGlyph";
 
 import {
   Sidebar,
@@ -227,13 +228,10 @@ export function AppSidebar() {
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton className="w-full justify-between border-l-2 border-l-primary bg-primary/10 hover:bg-primary/20">
                           <div className="flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-primary" />
+                            <PulsaGlyph size="sm" />
                             {state === "expanded" && (
                               <>
-                                <span className="font-medium">Copiloto IA</span>
-                                <Badge variant="default" className="ml-1 text-[9px] px-1.5 py-0 h-4">
-                                  Novo
-                                </Badge>
+                                <span className="font-medium">Pulsa</span>
                               </>
                             )}
                           </div>
