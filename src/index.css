@@ -225,3 +225,24 @@ All colors MUST be HSL.
     scroll-behavior: auto !important;
   }
 }
+
+/* === ANIMAÇÕES PULSA F12 === */
+@keyframes pulsa-thinking {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.08); opacity: 0.85; }
+}
+.pulsa-glyph-thinking {
+  animation: pulsa-thinking 1.4s var(--ease-glide) infinite;
+  transform-origin: center;
+}
+
+@keyframes pulsa-speaking {
+  0%   { transform: scale(1); }
+  20%  { transform: scale(1.12); }
+  40%  { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+.pulsa-glyph-speaking {
+  animation: pulsa-speaking 0.8s var(--ease-snap) infinite;
+  transform-origin: center;
+}
