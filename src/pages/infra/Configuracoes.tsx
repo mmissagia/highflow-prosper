@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { toast } from "sonner";
 
 const mockPipelines = [
-  { name: "High Ticket Padrão", stages: ["Novo Lead", "Qualificação", "Reunião Agendada", "Proposta Enviada", "Negociação", "Fechado"], sla: "48h por etapa" },
+  { name: "High Ticket Padrão", stages: ["Novo Lead", "Qualificação", "Call Agendada", "Proposta Enviada", "Negociação", "Fechado"], sla: "48h por etapa" },
   { name: "Evento → Mentoria", stages: ["Inscrito", "Participou", "Interessado", "Call Agendada", "Proposta", "Fechado"], sla: "24h por etapa" },
 ];
 
