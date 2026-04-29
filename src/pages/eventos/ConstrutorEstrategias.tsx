@@ -338,12 +338,12 @@ export default function ConstrutorEstrategias() {
             className="gap-2 text-xs"
           >
             <Wand2 className="h-3.5 w-3.5" />
-            {isSeeding ? 'Gerando...' : 'Gerar dados demo'}
+            {isSeeding ? 'Gerando dados demo' : 'Gerar dados demo'}
           </Button>
           
           <Button size="sm" className="gap-1.5 text-xs" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            Salvar
+            {isSaving ? 'Salvando estratégia' : 'Salvar'}
           </Button>
         </div>
       </div>
