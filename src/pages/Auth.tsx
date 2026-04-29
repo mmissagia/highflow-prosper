@@ -139,7 +139,13 @@ export default function Auth() {
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isLogin ? 'Entrar' : 'Criar Conta'}
+              {loading
+                ? isLogin
+                  ? 'Entrando'
+                  : 'Criando conta'
+                : isLogin
+                  ? 'Entrar'
+                  : 'Criar Conta'}
             </Button>
           </form>
           <div className="mt-4 text-center">
