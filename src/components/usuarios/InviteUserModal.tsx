@@ -81,11 +81,11 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users_access"] });
-      toast.success("Convite enviado com sucesso!");
+      toast.success("Convite enviado");
       resetAndClose();
     },
     onError: (err: Error) => {
-      toast.error(err.message);
+      toast.error(`Convite não foi enviado — ${err.message}`);
     },
   });
 
