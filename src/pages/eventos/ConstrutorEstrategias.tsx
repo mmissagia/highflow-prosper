@@ -361,7 +361,7 @@ export default function ConstrutorEstrategias() {
                   label: "Começar do zero",
                   icon: Plus,
                   onClick: () => {
-                    addNode({ label: "Minha Base de Leads", type: "base-leads" } as ElementType);
+                    addNode({ type: "base-leads", label: "Base de Leads", icon: GitBranch } as unknown as ElementType);
                   },
                 }}
                 secondaryAction={
