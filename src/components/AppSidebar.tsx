@@ -341,7 +341,7 @@ export function AppSidebar() {
         <div className="mt-auto border-t border-sidebar-border p-4">
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="flex items-center gap-2 w-full px-3 py-1.5 mb-2 rounded-md text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-1.5 mb-2 rounded-md text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-instant ease-snap"
             aria-label="Alternar tema"
           >
             {resolvedTheme === "dark" ? (
@@ -363,7 +363,7 @@ export function AppSidebar() {
           )}
           <button
             onClick={() => signOut()}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors duration-instant ease-snap"
           >
             <LogOut className="h-4 w-4" />
             {state === "expanded" && <span>Sair</span>}

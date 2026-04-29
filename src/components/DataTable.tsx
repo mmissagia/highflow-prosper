@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ChevronRight, MoreVertical, type LucideIcon } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -46,6 +46,10 @@ interface DataTableProps<T> {
   emptyState?: DataTableEmptyState;
   rowKey: (row: T) => string;
   className?: string;
+  /** ID da linha recém-criada (aplica microanimação de inserção). */
+  highlightRowId?: string | null;
+  /** Callback ao concluir a animação de destaque (para resetar). */
+  onHighlightComplete?: () => void;
 }
 
 const alignClass = (a?: "left" | "right" | "center") =>
@@ -59,8 +63,32 @@ export function DataTable<T>({
   emptyState,
   rowKey,
   className,
+  highlightRowId,
+  onHighlightComplete,
 }: DataTableProps<T>) {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [highlightPhase, setHighlightPhase] = useState<
+    "entering" | "holding" | "fading" | "idle"
+  >("idle");
+
+  useEffect(() => {
+    if (!highlightRowId) {
+      setHighlightPhase("idle");
+      return;
+    }
+    setHighlightPhase("entering");
+    const t1 = setTimeout(() => setHighlightPhase("holding"), 200);
+    const t2 = setTimeout(() => setHighlightPhase("fading"), 1200);
+    const t3 = setTimeout(() => {
+      setHighlightPhase("idle");
+      onHighlightComplete?.();
+    }, 1800);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [highlightRowId, onHighlightComplete]);
 
   const defaultCols = columns.filter((c) => !c.expandable);
   const expandableCols = columns.filter((c) => c.expandable);
@@ -117,6 +145,15 @@ export function DataTable<T>({
             {data.map((row) => {
               const key = rowKey(row);
               const isHovered = hoveredRow === key;
+              const isHighlighted = highlightRowId === key && highlightPhase !== "idle";
+              const highlightBgClass =
+                isHighlighted && (highlightPhase === "entering" || highlightPhase === "holding")
+                  ? "bg-[hsl(var(--success)/0.05)]"
+                  : "";
+              const highlightEnterClass =
+                isHighlighted && highlightPhase === "entering"
+                  ? "animate-[insertion-enter_200ms_var(--ease-emerge)]"
+                  : "";
               return (
                 <TableRow
                   key={key}
@@ -124,9 +161,11 @@ export function DataTable<T>({
                   onMouseLeave={() => setHoveredRow(null)}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   className={cn(
-                    "transition-shadow duration-instant ease-glide motion-reduce:transition-none",
+                    "transition-all duration-deliberate ease-glide motion-reduce:transition-none",
                     isHovered && "shadow-xs",
-                    onRowClick && "cursor-pointer"
+                    onRowClick && "cursor-pointer",
+                    highlightBgClass,
+                    highlightEnterClass
                   )}
                 >
                   {defaultCols.map((col) => (

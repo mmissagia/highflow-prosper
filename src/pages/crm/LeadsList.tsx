@@ -41,6 +41,7 @@ const CRITICAL_STAGES = new Set(["Call Agendada", "Fechou"]);
 export default function LeadsList() {
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [recentlyCreatedLeadId, setRecentlyCreatedLeadId] = useState<string | null>(null);
   const navigate = useNavigate();
   const hasLeads = mockLeads.length > 0;
 
@@ -218,6 +219,8 @@ export default function LeadsList() {
               actions={actions}
               onRowClick={(row) => navigate(`/crm/lead/${row.id}`)}
               rowKey={(row) => String(row.id)}
+              highlightRowId={recentlyCreatedLeadId}
+              onHighlightComplete={() => setRecentlyCreatedLeadId(null)}
               emptyState={{
                 icon: Users,
                 title: "Seu CRM ainda não tem leads",
@@ -261,7 +264,14 @@ export default function LeadsList() {
       <CreateLeadDrawer
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={() => setCreateOpen(false)}
+        onCreated={(lead) => {
+          if (lead?.id !== undefined) {
+            setRecentlyCreatedLeadId(String(lead.id));
+          } else if (filteredLeads[0]) {
+            setRecentlyCreatedLeadId(String(filteredLeads[0].id));
+          }
+          setCreateOpen(false);
+        }}
       />
     </div>
   );

@@ -246,3 +246,58 @@ All colors MUST be HSL.
   animation: pulsa-speaking 0.8s var(--ease-snap) infinite;
   transform-origin: center;
 }
+
+/* === ANIMAÇÕES F13 === */
+
+/* Fechamento do arranjo — choreography 5 fases */
+@keyframes arrangement-value-out {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes arrangement-value-in {
+  0%   { opacity: 0; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes arrangement-container-breath {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.99); }
+  100% { transform: scale(1); }
+}
+
+@keyframes arrangement-cta-wake {
+  0%   { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@keyframes arrangement-bg-pulse {
+  0%   { background-color: transparent; }
+  50%  { background-color: hsl(var(--success) / 0.05); }
+  100% { background-color: transparent; }
+}
+
+/* Choreography de inserção — 4 fases / 1.8s */
+@keyframes insertion-enter {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes insertion-bg-fade {
+  0%   { background-color: hsl(var(--success) / 0.05); }
+  66%  { background-color: hsl(var(--success) / 0.05); }
+  100% { background-color: transparent; }
+}
+
+/* Check de sucesso (modal Link gerado) */
+@keyframes success-check-in {
+  0%   { opacity: 0; transform: scale(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Micro-feedback botão WhatsApp */
+@keyframes whatsapp-confirm {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
