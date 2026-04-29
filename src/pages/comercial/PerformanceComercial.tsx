@@ -10,12 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MetricCard } from "@/components/MetricCard";
+import { MetricGroup, type MetricItem } from "@/components/MetricGroup";
+import { DataTable, type DataTableColumn } from "@/components/DataTable";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -157,21 +155,36 @@ export default function PerformanceComercial() {
         </Select>
       </div>
 
-      {/* Seção 1 — Atividade */}
-      <div className="grid grid-cols-4 gap-4">
-        <MetricCard title="Contatos" value={totalCalls.toString()} icon={Phone} trend={{ value: 12 }} />
-        <MetricCard title="Reuniões Agendadas" value={meetingsScheduled.toString()} icon={Calendar} trend={{ value: 8 }} />
-        <MetricCard title="Reuniões Realizadas" value={meetingsDone.toString()} icon={CheckCircle} trend={{ value: 5 }} />
-        <MetricCard title="Fechamentos" value={wonDeals.length.toString()} icon={Target} variant="success" trend={{ value: 15 }} />
-      </div>
-
-      {/* Seção 2 — Financeiras */}
-      <div className="grid grid-cols-4 gap-4">
-        <MetricCard title="Receita Gerada" value={`R$ ${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="success" trend={{ value: 24 }} />
-        <MetricCard title="Ticket Médio" value={`R$ ${avgTicket.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} icon={TrendingUp} trend={{ value: 3 }} />
-        <MetricCard title="Taxa Fechamento" value={`${closeRate.toFixed(1)}%`} icon={Target} variant="accent" trend={{ value: 2 }} />
-        <MetricCard title="Taxa Comparecimento" value={`${showRate.toFixed(1)}%`} icon={Users} trend={{ value: -1 }} />
-      </div>
+      {/* MetricGroup: 2 destaque + 6 pills */}
+      <MetricGroup
+        primary={[
+          {
+            id: "receita",
+            title: "Receita Gerada",
+            value: `R$ ${(totalRevenue / 1000).toFixed(0)}K`,
+            icon: DollarSign,
+            variant: "success",
+            trend: { value: 24 },
+            subtitle: "vs. mês anterior",
+          },
+          {
+            id: "taxa-fechamento",
+            title: "Taxa de Fechamento",
+            value: `${closeRate.toFixed(1)}%`,
+            icon: Target,
+            variant: "accent",
+            trend: { value: 2 },
+          },
+        ]}
+        secondary={[
+          { id: "contatos", title: "Contatos", value: totalCalls, icon: Phone },
+          { id: "agendadas", title: "Reuniões agendadas", value: meetingsScheduled, icon: Calendar },
+          { id: "realizadas", title: "Reuniões realizadas", value: meetingsDone, icon: CheckCircle },
+          { id: "fechamentos", title: "Fechamentos", value: wonDeals.length, icon: Target },
+          { id: "ticket", title: "Ticket Médio", value: `R$ ${avgTicket.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`, icon: TrendingUp },
+          { id: "comparecimento", title: "Taxa Comparecimento", value: `${showRate.toFixed(1)}%`, icon: Users },
+        ]}
+      />
 
       {/* Seção 3 — Funil */}
       <Card className="border hover:shadow-md transition-all">
@@ -234,78 +247,85 @@ export default function PerformanceComercial() {
               <Button size="sm" className="mt-2" onClick={() => navigate("/comercial/equipe")}>Cadastrar Equipe</Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Profissional</TableHead>
-                  <TableHead>Função</TableHead>
-                  <TableHead>Contatos</TableHead>
-                  <TableHead>Reuniões</TableHead>
-                  <TableHead>Fechamentos</TableHead>
-                  <TableHead>Receita</TableHead>
-                  <TableHead>Taxa Fech.</TableHead>
-                  <TableHead>Meta</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((prof: any) => {
-                  const m = profMetrics(prof);
-                  const role = (prof.role || "").toUpperCase();
-                  return (
-                    <TableRow key={prof.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                            {initials(prof.name)}
-                          </div>
-                          <span className="font-medium text-sm truncate">{prof.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn("text-[11px] border", roleStyles[role] || "")}>
-                          {prof.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {m.contacts === 0 && role === "CLOSER" ? <span className="text-muted-foreground">—</span> : m.contacts}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {m.meetings === 0 && role === "SDR" ? <span className="text-muted-foreground">—</span> : m.meetings}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {m.won === 0 ? <span className="text-muted-foreground">—</span> : m.won}
-                      </TableCell>
-                      <TableCell className={cn("text-sm font-medium", m.revenue > 0 ? "text-green-600 dark:text-green-400" : "text-muted-foreground")}>
-                        {m.revenue > 0 ? `R$ ${m.revenue.toLocaleString("pt-BR")}` : "R$ 0"}
-                      </TableCell>
-                      <TableCell>
-                        {m.rate > 20 ? (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 text-[11px]">{m.rate.toFixed(1)}%</Badge>
-                        ) : m.rate >= 10 ? (
-                          <span className="text-sm">{m.rate.toFixed(1)}%</span>
-                        ) : (
-                          <Badge className="bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 text-[11px]">{m.rate.toFixed(1)}%</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 min-w-[80px]">
-                          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all",
-                                m.goalPct >= 80 ? "bg-green-500" : m.goalPct >= 50 ? "bg-yellow-500" : "bg-red-500"
-                              )}
-                              style={{ width: `${Math.min(m.goalPct, 100)}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground w-10 text-right">{m.goalPct.toFixed(0)}%</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            (() => {
+              type ProfRow = { prof: any; m: ReturnType<typeof profMetrics>; role: string };
+              const rows: ProfRow[] = filteredUsers.map((prof: any) => ({
+                prof,
+                m: profMetrics(prof),
+                role: (prof.role || "").toUpperCase(),
+              }));
+              const cols: DataTableColumn<ProfRow>[] = [
+                {
+                  id: "profissional",
+                  header: "Profissional",
+                  accessor: ({ prof }) => (
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+                        {initials(prof.name)}
+                      </div>
+                      <span className="font-medium text-sm truncate">{prof.name}</span>
+                    </div>
+                  ),
+                },
+                {
+                  id: "funcao",
+                  header: "Função",
+                  accessor: ({ prof, role }) => (
+                    <Badge variant="outline" className={cn("text-[11px] border", roleStyles[role] || "")}>
+                      {prof.role}
+                    </Badge>
+                  ),
+                },
+                {
+                  id: "fechamentos",
+                  header: "Fechamentos",
+                  accessor: ({ m }) => (m.won === 0 ? <span className="text-muted-foreground">—</span> : m.won),
+                },
+                {
+                  id: "receita",
+                  header: "Receita",
+                  align: "right",
+                  accessor: ({ m }) => (
+                    <span className={cn("text-sm font-medium tabular-nums", m.revenue > 0 ? "text-green-600 dark:text-green-400" : "text-muted-foreground")}>
+                      {m.revenue > 0 ? `R$ ${m.revenue.toLocaleString("pt-BR")}` : "R$ 0"}
+                    </span>
+                  ),
+                },
+                {
+                  id: "taxa",
+                  header: "Taxa Fech.",
+                  accessor: ({ m }) =>
+                    m.rate > 20 ? (
+                      <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 text-[11px]">{m.rate.toFixed(1)}%</Badge>
+                    ) : m.rate >= 10 ? (
+                      <span className="text-sm">{m.rate.toFixed(1)}%</span>
+                    ) : (
+                      <Badge className="bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 text-[11px]">{m.rate.toFixed(1)}%</Badge>
+                    ),
+                },
+                {
+                  id: "contatos",
+                  header: "Contatos",
+                  expandable: true,
+                  accessor: ({ m, role }) =>
+                    m.contacts === 0 && role === "CLOSER" ? "—" : m.contacts,
+                },
+                {
+                  id: "reunioes",
+                  header: "Reuniões",
+                  expandable: true,
+                  accessor: ({ m, role }) =>
+                    m.meetings === 0 && role === "SDR" ? "—" : m.meetings,
+                },
+              ];
+              return (
+                <DataTable<ProfRow>
+                  data={rows}
+                  columns={cols}
+                  rowKey={(r) => String(r.prof.id)}
+                />
+              );
+            })()
           )}
         </CardContent>
       </Card>
