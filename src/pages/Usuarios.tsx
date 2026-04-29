@@ -228,7 +228,7 @@ export default function Usuarios() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">Carregando...</TableCell>
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">Carregando usuários</TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>

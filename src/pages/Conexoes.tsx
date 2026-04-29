@@ -162,8 +162,21 @@ export default function Conexoes() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                  <div className="h-5 w-16 bg-muted rounded animate-pulse" />
+                </div>
+                <div className="h-3 w-3/4 bg-muted rounded animate-pulse mt-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-28 bg-muted rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -255,7 +268,7 @@ export default function Conexoes() {
               onClick={() => connectDialog && connectMutation.mutate({ provider: connectDialog, key: apiKey })}
             >
               {connectMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              Conectar
+              {connectMutation.isPending ? "Conectando" : "Conectar"}
             </Button>
           </DialogFooter>
         </DialogContent>

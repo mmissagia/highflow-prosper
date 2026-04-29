@@ -286,7 +286,7 @@ export default function Equipe() {
         <CardHeader><CardTitle>Profissionais</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground text-center py-8">Carregando...</p>
+            <p className="text-muted-foreground text-center py-8">Carregando equipe</p>
           ) : salesUsers.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">Nenhum profissional cadastrado</p>
           ) : (

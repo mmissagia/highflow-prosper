@@ -190,7 +190,7 @@ export function CreateLeadDrawer({ open, onClose, onCreated, defaultStage }: Cre
 
           <Button className="w-full mt-2" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Criando...</>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Criando lead</>
             ) : (
               "Criar Lead"
             )}
