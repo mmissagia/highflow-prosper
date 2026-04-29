@@ -30,6 +30,7 @@ export default function CheckoutHighTicket() {
   const [cobrancaOpen, setCobrancaOpen] = useState(false);
   const [linkProdutoOpen, setLinkProdutoOpen] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(!!leadName);
+  const [recentlyCreatedChargeId, setRecentlyCreatedChargeId] = useState<string | null>(null);
 
   useEffect(() => {
     if (action === 'cobranca') {
@@ -44,6 +45,7 @@ export default function CheckoutHighTicket() {
       status: "pendente",
     };
     setInvoices((prev) => [newInv, ...prev]);
+    setRecentlyCreatedChargeId(newInv.id);
   }, [invoices.length]);
 
   const filtered = invoices.filter(
@@ -228,6 +230,8 @@ export default function CheckoutHighTicket() {
             columns={columns}
             actions={actions}
             rowKey={(inv) => inv.id}
+            highlightRowId={recentlyCreatedChargeId}
+            onHighlightComplete={() => setRecentlyCreatedChargeId(null)}
           />
           <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
             <span>
