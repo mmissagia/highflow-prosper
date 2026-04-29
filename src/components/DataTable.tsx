@@ -148,7 +148,7 @@ export function DataTable<T>({
               const isHighlighted = highlightRowId === key && highlightPhase !== "idle";
               const highlightBgClass =
                 isHighlighted && (highlightPhase === "entering" || highlightPhase === "holding")
-                  ? "bg-[hsl(var(--success)/0.05)]"
+                  ? "bg-[hsl(var(--success)/0.10)]"
                   : "";
               const highlightEnterClass =
                 isHighlighted && highlightPhase === "entering"
