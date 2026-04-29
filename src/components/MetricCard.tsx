@@ -66,7 +66,7 @@ export function MetricCard({
   const trendNegative = trend ? (trend.isPositive === false || trendValue < 0) : false;
 
   return (
-    <Card className={cn("border transition-all hover:shadow-md", styles.card)}>
+    <Card className={cn("border transition-all duration-default ease-glide hover:shadow-md", styles.card)}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
