@@ -1,22 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Search, Filter, Download, Plus, Eye, Inbox } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, Filter, Download, Plus, Eye, Inbox, MessageCircle, Mail } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LeadSourceSelector from "@/components/crm/LeadSourceSelector";
 import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
 import { useState } from "react";
+import { DataTable, type DataTableColumn, type DataTableAction } from "@/components/DataTable";
+import { cn } from "@/lib/utils";
 
 const mockLeads = [
   { id: 1, name: "João Silva", origin: "Meta Ads", responsible: "Ana Ribeiro", stage: "Engajado", score: 85, iem: 78, valuePotential: 15000, lastInteraction: "2h atrás", nextAction: "Follow-up WhatsApp" },
@@ -29,20 +23,110 @@ const mockLeads = [
   { id: 8, name: "Fernanda Lima", origin: "Instagram", responsible: "Mariana Lopes", stage: "Onboarding", score: 95, iem: 88, valuePotential: 45000, lastInteraction: "2h atrás", nextAction: "Boas-vindas" },
 ];
 
-const stageColors: Record<string, string> = {
-  "Lead Frio": "bg-slate-500",
-  "Engajado": "bg-blue-500",
-  "Warm": "bg-yellow-500",
+type Lead = (typeof mockLeads)[number];
+
+const STAGE_COLORS: Record<string, string> = {
+  "Lead Frio": "bg-slate-400",
+  "Engajado": "bg-blue-400",
+  "Warm": "bg-yellow-400",
   "Call Agendada": "bg-purple-500",
-  "Call Realizada": "bg-indigo-500",
-  "Follow-up": "bg-pink-500",
+  "Call Realizada": "bg-indigo-400",
+  "Follow-up": "bg-pink-400",
   "Fechou": "bg-green-500",
-  "Onboarding": "bg-emerald-500",
+  "Onboarding": "bg-emerald-400",
 };
+const CRITICAL_STAGES = new Set(["Call Agendada", "Fechou"]);
 
 export default function LeadsList() {
   const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
   const hasLeads = mockLeads.length > 0;
+
+  const filteredLeads = mockLeads.filter((l) =>
+    l.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const columns: DataTableColumn<Lead>[] = [
+    {
+      id: "lead",
+      header: "Lead",
+      accessor: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+              {row.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-medium">{row.name}</span>
+        </div>
+      ),
+    },
+    {
+      id: "etapa",
+      header: "Etapa",
+      accessor: (row) => {
+        const isCritical = CRITICAL_STAGES.has(row.stage);
+        return (
+          <div className="flex items-center gap-2">
+            <div className={cn("w-2 h-2 rounded-full", isCritical ? STAGE_COLORS[row.stage] : "bg-muted-foreground/40")} />
+            <span className={cn("text-sm", isCritical && "font-medium")}>{row.stage}</span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "valor",
+      header: "Valor Potencial",
+      align: "right",
+      accessor: (row) => (
+        <span className="font-medium text-success tabular-nums">
+          R$ {row.valuePotential.toLocaleString("pt-BR")}
+        </span>
+      ),
+    },
+    {
+      id: "proxima-acao",
+      header: "Próxima Ação",
+      accessor: (row) => (
+        <Badge variant="secondary" className="text-xs">{row.nextAction || "—"}</Badge>
+      ),
+    },
+    {
+      id: "ultima-interacao",
+      header: "Última Interação",
+      accessor: (row) => (
+        <span className="text-sm text-muted-foreground">{row.lastInteraction}</span>
+      ),
+    },
+    { id: "origem", header: "Origem", expandable: true, accessor: (row) => row.origin },
+    { id: "responsavel", header: "Responsável", expandable: true, accessor: (row) => row.responsible },
+    { id: "score", header: "Score", expandable: true, accessor: (row) => row.score },
+    { id: "iem", header: "IEM", expandable: true, accessor: (row) => `${row.iem}%` },
+  ];
+
+  const actions: DataTableAction<Lead>[] = [
+    {
+      id: "ver",
+      label: "Abrir ficha",
+      icon: Eye,
+      onClick: (row) => navigate(`/crm/lead/${row.id}`),
+    },
+    {
+      id: "whatsapp",
+      label: "WhatsApp",
+      icon: MessageCircle,
+      onClick: (row) => navigate(`/comunicacao/conversas?lead=${row.id}`),
+    },
+    {
+      id: "email",
+      label: "Email",
+      icon: Mail,
+      onClick: () => {
+        /* placeholder */
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -87,7 +171,12 @@ export default function LeadsList() {
             <div className="flex items-center gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar leads..." className="pl-10" />
+                <Input
+                  placeholder="Buscar leads..."
+                  className="pl-10"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
               <Button variant="outline">
                 <Filter className="h-4 w-4 mr-2" />
@@ -96,78 +185,24 @@ export default function LeadsList() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Lead</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Etapa</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>IEM</TableHead>
-                  <TableHead>Valor Potencial</TableHead>
-                  <TableHead>Última Interação</TableHead>
-                  <TableHead>Próxima Ação</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockLeads.map((lead) => (
-                  <TableRow key={lead.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {lead.name.split(" ").map((n) => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{lead.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{lead.origin}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">{lead.responsible}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${stageColors[lead.stage] || "bg-gray-500"}`} />
-                        <span className="text-sm">{lead.stage}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={lead.score >= 80 ? "default" : lead.score >= 60 ? "secondary" : "outline"}>
-                        {lead.score}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {lead.iem > 0 ? (
-                        <Badge variant="outline" className="text-purple-500 border-purple-500/50">{lead.iem}</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium text-success">
-                      R$ {(lead.valuePotential / 1000).toFixed(0)}K
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {lead.lastInteraction}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-xs">{lead.nextAction}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Link to={`/crm/lead/${lead.id}`}>
-                        <Button variant="ghost" size="icon">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable<Lead>
+              data={filteredLeads}
+              columns={columns}
+              actions={actions}
+              onRowClick={(row) => navigate(`/crm/lead/${row.id}`)}
+              rowKey={(row) => String(row.id)}
+              emptyState={{
+                icon: Inbox,
+                title: "Nenhum lead encontrado",
+                description: "Ajuste a busca ou os filtros para ver outros leads.",
+                cta: (
+                  <Button onClick={() => setCreateOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Lead
+                  </Button>
+                ),
+              }}
+            />
           </CardContent>
         </Card>
       )}
