@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import { Search, Filter, Download, Plus, Eye, Inbox, MessageCircle, Mail } from "lucide-react";
+import { Search, Filter, Download, Plus, Eye, Inbox, MessageCircle, Mail, Users, Plug, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LeadSourceSelector from "@/components/crm/LeadSourceSelector";
 import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
 import { useState } from "react";
 import { DataTable, type DataTableColumn, type DataTableAction } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 
 const mockLeads = [
@@ -153,16 +154,42 @@ export default function LeadsList() {
 
       {!hasLeads ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Inbox className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum lead encontrado</h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              Você ainda não tem leads nesse contexto. Clique em "Novo Lead" para adicionar manualmente ou configure uma integração para importar automaticamente.
-            </p>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Lead
-            </Button>
+          <CardContent className="p-0">
+            <EmptyState
+              icon={Users}
+              title="Seu CRM ainda não tem leads"
+              description="Conecte um produto Eduzz, importe um CSV, ou cadastre o primeiro lead manualmente."
+              primaryCta={{
+                label: "Conectar produto",
+                icon: Plug,
+                onClick: () => navigate("/conexoes"),
+              }}
+              secondaryAction={
+                <span className="inline-flex items-center gap-2">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={() => {
+                      /* placeholder importar CSV */
+                    }}
+                  >
+                    <Upload className="h-3.5 w-3.5 mr-1" />
+                    Importar CSV
+                  </Button>
+                  <span aria-hidden="true">·</span>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={() => setCreateOpen(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Adicionar lead
+                  </Button>
+                </span>
+              }
+            />
           </CardContent>
         </Card>
       ) : (
@@ -192,14 +219,39 @@ export default function LeadsList() {
               onRowClick={(row) => navigate(`/crm/lead/${row.id}`)}
               rowKey={(row) => String(row.id)}
               emptyState={{
-                icon: Inbox,
-                title: "Nenhum lead encontrado",
-                description: "Ajuste a busca ou os filtros para ver outros leads.",
+                icon: Users,
+                title: "Seu CRM ainda não tem leads",
+                description: "Conecte um produto Eduzz, importe um CSV, ou cadastre o primeiro lead manualmente.",
                 cta: (
-                  <Button onClick={() => setCreateOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Lead
+                  <Button onClick={() => navigate("/conexoes")}>
+                    <Plug className="h-4 w-4 mr-2" />
+                    Conectar produto
                   </Button>
+                ),
+                secondaryAction: (
+                  <span className="inline-flex items-center gap-2">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0"
+                      onClick={() => {
+                        /* placeholder importar CSV */
+                      }}
+                    >
+                      <Upload className="h-3.5 w-3.5 mr-1" />
+                      Importar CSV
+                    </Button>
+                    <span aria-hidden="true">·</span>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0"
+                      onClick={() => setCreateOpen(true)}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      Adicionar lead
+                    </Button>
+                  </span>
                 ),
               }}
             />
