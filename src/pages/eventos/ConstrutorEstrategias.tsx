@@ -33,15 +33,19 @@ import {
   GitBranch,
   Layers,
   Plus,
+  X,
+  Rocket,
+  Video,
+  Users,
 } from "lucide-react";
 import { EmptyState as LegacyEmptyState } from "@/components/ui/EmptyState";
-import { EmptyState } from "@/components/EmptyState";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 import StrategyNode from '@/components/estrategias/StrategyNode';
@@ -69,39 +73,92 @@ const normalizeEdges = (edges: Edge[], strategyId?: string | null): Edge[] =>
     data: { ...((e.data as any) ?? {}), strategyId: strategyId ?? null, conversionRate: (e.data as any)?.conversionRate ?? null },
   }));
 
+const buildEdge = (id: string, source: string, target: string): Edge => ({
+  id,
+  source,
+  target,
+  type: 'campaign',
+  animated: true,
+  style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
+  markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
+  data: { strategyId: null, conversionRate: null },
+});
+
 const getDefaultNodes = (): Node[] => [
   {
     id: '1',
     type: 'strategyNode',
     position: { x: 50, y: 200 },
-    data: { 
-      label: 'Minha Base de Leads', 
-      type: 'base-leads',
-      metrics: { leads: 1000, conversao: '100%' }
-    },
+    data: { label: 'Base de Leads Blinket', type: 'base-leads', metrics: { leads: 7235, conversao: '100%' } },
   },
   {
     id: '2',
     type: 'strategyNode',
     position: { x: 320, y: 200 },
-    data: { 
-      label: 'E-book Gratuito', 
-      type: 'low-ticket',
-      metrics: { leads: 0, conversao: '0%' }
-    },
+    data: { label: 'E-book Gratuito', type: 'low-ticket', metrics: { leads: 1367, conversao: '18.9%' } },
+  },
+  {
+    id: '3',
+    type: 'strategyNode',
+    position: { x: 590, y: 200 },
+    data: { label: 'Evento de Imersão', type: 'evento', metrics: { leads: 231, conversao: '16.9%' } },
+  },
+  {
+    id: '4',
+    type: 'strategyNode',
+    position: { x: 860, y: 200 },
+    data: { label: 'Mentoria Elite', type: 'mentoria', metrics: { leads: 14, conversao: '6.1%' } },
   },
 ];
 
 const getDefaultEdges = (): Edge[] => [
+  buildEdge('e1-2', '1', '2'),
+  buildEdge('e2-3', '2', '3'),
+  buildEdge('e3-4', '3', '4'),
+];
+
+interface StrategyTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: typeof Layers;
+  nodes: Node[];
+  edges: Edge[];
+}
+
+const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    type: 'campaign',
-    animated: true,
-    style: { stroke: 'hsl(221 83% 53%)', strokeWidth: 2 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(221 83% 53%)' },
-    data: { strategyId: null, conversionRate: null },
+    id: 'blinket',
+    name: 'Lançamento Blinket',
+    description: 'Captura via Blinket → E-book → Evento → Mentoria. Ideal para produtores que vendem mentoria HT via lançamento.',
+    icon: Rocket,
+    nodes: getDefaultNodes(),
+    edges: getDefaultEdges(),
+  },
+  {
+    id: 'webinar',
+    name: 'Webinar HT',
+    description: 'Tráfego pago → Página de webinar → Webinar ao vivo → Oferta direta. Conversão rápida em 7 dias.',
+    icon: Video,
+    nodes: [
+      { id: '1', type: 'strategyNode', position: { x: 50, y: 200 }, data: { label: 'Tráfego Pago', type: 'low-ticket', metrics: { leads: 12000, conversao: '100%' } } },
+      { id: '2', type: 'strategyNode', position: { x: 320, y: 200 }, data: { label: 'Página de Webinar', type: 'crm', metrics: { leads: 2400, conversao: '20%' } } },
+      { id: '3', type: 'strategyNode', position: { x: 590, y: 200 }, data: { label: 'Webinar ao Vivo', type: 'evento', metrics: { leads: 480, conversao: '20%' } } },
+      { id: '4', type: 'strategyNode', position: { x: 860, y: 200 }, data: { label: 'Oferta Direta', type: 'checkout', metrics: { leads: 36, conversao: '7.5%' } } },
+    ],
+    edges: [buildEdge('e1-2', '1', '2'), buildEdge('e2-3', '2', '3'), buildEdge('e3-4', '3', '4')],
+  },
+  {
+    id: 'indicacao',
+    name: 'Indicação Direta',
+    description: 'Cliente atual indica → Call qualificadora → Mentoria. Maior taxa de fechamento, menor volume.',
+    icon: Users,
+    nodes: [
+      { id: '1', type: 'strategyNode', position: { x: 50, y: 200 }, data: { label: 'Indicações', type: 'base-leads', metrics: { leads: 240, conversao: '100%' } } },
+      { id: '2', type: 'strategyNode', position: { x: 320, y: 200 }, data: { label: 'Call Qualificadora', type: 'pitch', metrics: { leads: 180, conversao: '75%' } } },
+      { id: '3', type: 'strategyNode', position: { x: 590, y: 200 }, data: { label: 'Mentoria Premium', type: 'mentoria', metrics: { leads: 60, conversao: '33%' } } },
+    ],
+    edges: [buildEdge('e1-2', '1', '2'), buildEdge('e2-3', '2', '3')],
   },
 ];
 
@@ -120,6 +177,8 @@ export default function ConstrutorEstrategias() {
     edgeTarget: string;
     conversionRate?: number | null;
   } | null>(null);
+  const [demoBannerOpen, setDemoBannerOpen] = useState(true);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useStrategies();
   const [isSeeding, setIsSeeding] = useState(false);
@@ -244,6 +303,14 @@ export default function ConstrutorEstrategias() {
     setEdges(getDefaultEdges());
   };
 
+  const applyTemplate = (template: StrategyTemplate) => {
+    setNodes(template.nodes);
+    setEdges(template.edges);
+    setTemplatesOpen(false);
+    setDemoBannerOpen(false);
+    toast.success('Template aplicado', { description: template.name });
+  };
+
   const handleDeleteStrategy = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     deleteStrategy.mutate(id);
@@ -272,6 +339,11 @@ export default function ConstrutorEstrategias() {
           <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={handleNewStrategy}>
             <FileText className="w-3.5 h-3.5" />
             Nova
+          </Button>
+
+          <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setTemplatesOpen(true)}>
+            <Layers className="w-3.5 h-3.5" />
+            Usar template
           </Button>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -350,33 +422,19 @@ export default function ConstrutorEstrategias() {
 
       {/* Canvas */}
       <Card className="flex-1 overflow-hidden relative">
-        {nodes.length === 0 && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto bg-background/80 backdrop-blur-sm rounded-lg">
-              <EmptyState
-                icon={GitBranch}
-                title="Visualize sua estratégia de aquisição"
-                description="Mapeie o caminho que seus leads percorrem — de captura a fechamento — e calcule conversão por etapa."
-                primaryCta={{
-                  label: "Começar do zero",
-                  icon: Plus,
-                  onClick: () => {
-                    addNode({ type: "base-leads", label: "Base de Leads", icon: GitBranch } as unknown as ElementType);
-                  },
-                }}
-                secondaryAction={
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0"
-                    onClick={() => toast("Em breve", { description: "Templates de estratégia em breve." })}
-                  >
-                    <Layers className="h-3.5 w-3.5 mr-1" />
-                    Usar template
-                  </Button>
-                }
-              />
-            </div>
+        {demoBannerOpen && !currentStrategyId && (
+          <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-ai/10 border border-ai/20 text-foreground rounded-lg px-3 py-2 shadow-sm max-w-[420px]">
+            <Sparkles className="w-3.5 h-3.5 text-ai shrink-0" />
+            <p className="text-xs flex-1">
+              Esta é uma estratégia de exemplo. Crie a sua a partir daqui ou comece do zero.
+            </p>
+            <button
+              onClick={() => setDemoBannerOpen(false)}
+              aria-label="Fechar"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         )}
         <ReactFlow
@@ -425,6 +483,38 @@ export default function ConstrutorEstrategias() {
           </Panel>
         </ReactFlow>
       </Card>
+
+      {/* Templates dialog */}
+      <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Escolha um template</DialogTitle>
+            <DialogDescription>
+              Comece com uma estratégia testada e personalize a partir daí.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+            {STRATEGY_TEMPLATES.map((template) => {
+              const Icon = template.icon;
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => applyTemplate(template)}
+                  className="text-left rounded-lg border border-border hover:border-ai hover:bg-ai/5 p-4 transition-colors duration-default ease-glide space-y-2"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-ai/10 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-ai" />
+                  </div>
+                  <p className="font-semibold text-sm">{template.name}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {template.description}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {selectedEdgeData && (
         <EdgeDrawer

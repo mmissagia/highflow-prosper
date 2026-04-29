@@ -177,8 +177,8 @@ function StrategyNode({ data, selected, id }: NodeProps) {
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{nodeData.label}</p>
-                  <Badge variant="outline" className="text-[10px] h-4">
+                  <p className="font-semibold text-sm truncate leading-tight">{nodeData.label}</p>
+                  <Badge variant="outline" className="text-[10px] h-4 uppercase tracking-wide font-medium">
                     {config.label}
                   </Badge>
                 </div>
@@ -189,11 +189,11 @@ function StrategyNode({ data, selected, id }: NodeProps) {
                 <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-border">
                   <div className="flex items-center gap-1">
                     <Users className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-xs font-medium">{nodeData.metrics.leads.toLocaleString('pt-BR')}</span>
+                    <span className="text-xs font-mono font-medium tabular-nums">{nodeData.metrics.leads.toLocaleString('pt-BR')}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-success" />
-                    <span className="text-xs font-medium text-success">{nodeData.metrics.conversao}</span>
+                    <span className="text-xs font-mono font-medium tabular-nums text-success">{nodeData.metrics.conversao}</span>
                   </div>
                 </div>
               )}

@@ -47,7 +47,7 @@ export function InsertionChoreography({
 
   const bgClass =
     phase === "entering" || phase === "holding"
-      ? "bg-[hsl(var(--success)/0.05)]"
+      ? "bg-[hsl(var(--success)/0.10)]"
       : "bg-transparent";
 
   const enterClass =
