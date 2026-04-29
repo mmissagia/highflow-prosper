@@ -3,18 +3,22 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { GlobalFilterProvider } from "@/contexts/GlobalFilterContext";
 import { StrategyProvider } from "@/contexts/StrategyContext";
 import { Loader2 } from "lucide-react";
-import { useState, useCallback, lazy, Suspense } from "react";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { AIAgentPanel } from "@/components/ai-agent/AIAgentPanel";
 import { AIAgentFab } from "@/components/ai-agent/AIAgentFab";
 import { AIHeaderBadge } from "@/components/ai-agent/AIHeaderBadge";
 import { useAIToastAlerts } from "@/hooks/useAIToastAlerts";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CommandPalette } from "@/components/CommandPalette";
+import { ShortcutsModal } from "@/components/ShortcutsModal";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -94,6 +98,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppLayoutInner() {
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [aiInitialTab, setAiInitialTab] = useState<string | undefined>();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const sidebar = useSidebar();
 
   const openAlerts = useCallback(() => {
     setAiInitialTab("alertas");
@@ -101,6 +108,37 @@ function AppLayoutInner() {
   }, []);
 
   useAIToastAlerts(openAlerts);
+
+  // Persist sidebar collapse across reloads
+  useEffect(() => {
+    const stored = localStorage.getItem("highflow.sidebar.collapsed");
+    if (stored === "true" && sidebar.state === "expanded") {
+      sidebar.setOpen(false);
+    } else if (stored === "false" && sidebar.state === "collapsed") {
+      sidebar.setOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "highflow.sidebar.collapsed",
+      String(sidebar.state === "collapsed")
+    );
+  }, [sidebar.state]);
+
+  useKeyboardShortcuts({
+    onCommandPalette: () => setPaletteOpen((v) => !v),
+    onShortcutsModal: () => setShortcutsOpen(true),
+    onSidebarToggle: () => sidebar.toggleSidebar(),
+    onCreateContextual: () => {
+      /* placeholder */
+    },
+    onFocusSearch: () => {
+      const el = document.querySelector<HTMLInputElement>("[data-search-input]");
+      el?.focus();
+    },
+  });
 
   return (
     <>
@@ -114,6 +152,7 @@ function AppLayoutInner() {
             <AIHeaderBadge alertCount={8} onClick={openAlerts} />
           </header>
           <main className="flex-1 p-6 bg-muted/30">
+            <Breadcrumb className="mb-4" />
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/performance/relatorios" element={<Relatorios />} />
@@ -184,6 +223,8 @@ function AppLayoutInner() {
       </div>
       <AIAgentFab onClick={() => { setAiInitialTab(undefined); setAiPanelOpen(true); }} alertCount={8} />
       <AIAgentPanel open={aiPanelOpen} onOpenChange={setAiPanelOpen} initialTab={aiInitialTab} />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <ShortcutsModal open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </>
   );
 }
