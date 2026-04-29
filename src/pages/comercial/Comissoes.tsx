@@ -79,7 +79,7 @@ export default function Comissoes() {
         <CardHeader><CardTitle>Registros de Comissão</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-center text-muted-foreground py-8">Carregando...</p>
+            <p className="text-center text-muted-foreground py-8">Carregando comissões</p>
           ) : filtered.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhuma comissão registrada</p>
           ) : (

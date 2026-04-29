@@ -76,7 +76,7 @@ export default function Agenda() {
       </div>
 
       {isLoading ? (
-        <p className="text-center text-muted-foreground py-8">Carregando...</p>
+        <p className="text-center text-muted-foreground py-8">Carregando atividades</p>
       ) : planned.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-muted-foreground">Nenhuma atividade agendada</CardContent></Card>
       ) : (

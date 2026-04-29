@@ -89,7 +89,7 @@ export default function Atividades() {
             {(["planned", "done"] as const).map((tab) => (
               <TabsContent key={tab} value={tab}>
                 {isLoading ? (
-                  <p className="text-center text-muted-foreground py-8">Carregando...</p>
+                  <p className="text-center text-muted-foreground py-8">Carregando atividades</p>
                 ) : (tab === "planned" ? planned : done).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">Nenhuma atividade</p>
                 ) : (
