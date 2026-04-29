@@ -35,6 +35,7 @@ export interface DataTableEmptyState {
   title: string;
   description?: string;
   cta?: ReactNode;
+  secondaryAction?: ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -77,6 +78,11 @@ export function DataTable<T>({
           </p>
         )}
         {emptyState.cta}
+        {emptyState.secondaryAction && (
+          <div className="mt-2 text-sm text-muted-foreground">
+            {emptyState.secondaryAction}
+          </div>
+        )}
       </div>
     );
   }
