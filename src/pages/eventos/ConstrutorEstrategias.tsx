@@ -30,8 +30,12 @@ import {
   Wand2,
   Route,
   MousePointerClick,
+  GitBranch,
+  Layers,
+  Plus,
 } from "lucide-react";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { EmptyState as LegacyEmptyState } from "@/components/ui/EmptyState";
+import { EmptyState } from "@/components/EmptyState";
 import {
   Dialog,
   DialogContent,
@@ -287,7 +291,7 @@ export default function ConstrutorEstrategias() {
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                   </div>
                  ) : strategies.length === 0 ? (
-                   <EmptyState icon={Route} title="Nenhuma estratégia salva" description="Crie sua primeira jornada de vendas e salve para reutilizar." size="sm" action={{ label: "Criar Estratégia", onClick: () => { handleNewStrategy(); setIsDialogOpen(false); } }} />
+                   <LegacyEmptyState icon={Route} title="Nenhuma estratégia salva" description="Crie sua primeira jornada de vendas e salve para reutilizar." size="sm" action={{ label: "Criar Estratégia", onClick: () => { handleNewStrategy(); setIsDialogOpen(false); } }} />
                  ) : (
                   strategies.map((strategy) => (
                     <Card 
@@ -346,6 +350,35 @@ export default function ConstrutorEstrategias() {
 
       {/* Canvas */}
       <Card className="flex-1 overflow-hidden">
+        {nodes.length === 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto bg-background/80 backdrop-blur-sm rounded-lg">
+              <EmptyState
+                icon={GitBranch}
+                title="Visualize sua estratégia de aquisição"
+                description="Mapeie o caminho que seus leads percorrem — de captura a fechamento — e calcule conversão por etapa."
+                primaryCta={{
+                  label: "Começar do zero",
+                  icon: Plus,
+                  onClick: () => {
+                    addNode({ label: "Minha Base de Leads", type: "base-leads" } as ElementType);
+                  },
+                }}
+                secondaryAction={
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={() => toast("Em breve", { description: "Templates de estratégia em breve." })}
+                  >
+                    <Layers className="h-3.5 w-3.5 mr-1" />
+                    Usar template
+                  </Button>
+                }
+              />
+            </div>
+          </div>
+        )}
         <ReactFlow
           nodes={nodes}
           edges={edges}
