@@ -349,7 +349,7 @@ export default function ConstrutorEstrategias() {
       </div>
 
       {/* Canvas */}
-      <Card className="flex-1 overflow-hidden">
+      <Card className="flex-1 overflow-hidden relative">
         {nodes.length === 0 && (
           <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto bg-background/80 backdrop-blur-sm rounded-lg">
