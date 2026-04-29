@@ -61,10 +61,11 @@ export default function Auth() {
         const { error } = await signIn(email, password);
         if (error) {
           toast({
-            title: 'Erro ao entrar',
-            description: error.message === 'Invalid login credentials' 
-              ? 'Email ou senha incorretos' 
-              : error.message,
+            title: 'Login não foi concluído — ' + (
+              error.message === 'Invalid login credentials'
+                ? 'email ou senha incorretos. Verifique e tente novamente.'
+                : error.message
+            ),
             variant: 'destructive',
           });
         }
@@ -73,20 +74,18 @@ export default function Auth() {
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
-              title: 'Usuário já cadastrado',
-              description: 'Este email já possui uma conta. Tente fazer login.',
+              title: 'Conta não foi criada — email já cadastrado. Tente fazer login.',
               variant: 'destructive',
             });
           } else {
             toast({
-              title: 'Erro ao criar conta',
-              description: error.message,
+              title: 'Conta não foi criada — ' + error.message,
               variant: 'destructive',
             });
           }
         } else {
           toast({
-            title: 'Conta criada com sucesso!',
+            title: 'Conta criada',
             description: 'Você já pode usar o sistema.',
           });
         }

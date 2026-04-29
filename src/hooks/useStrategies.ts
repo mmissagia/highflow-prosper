@@ -74,11 +74,11 @@ export function useStrategies() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
-      toast({ title: 'Estratégia criada com sucesso!', description: 'Sua jornada de vendas foi salva.' });
+      toast({ title: 'Estratégia criada', description: 'Sua jornada de vendas foi salva.' });
     },
     onError: (error) => {
       console.error('Error creating strategy:', error);
-      toast({ title: 'Erro ao criar estratégia', description: 'Verifique sua conexão e tente novamente.', variant: 'destructive' });
+      toast({ title: 'Estratégia não foi criada — falha ao salvar. Verifique sua conexão e tente novamente.', variant: 'destructive' });
     },
   });
 
@@ -100,11 +100,11 @@ export function useStrategies() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
-      toast({ title: 'Estratégia salva com sucesso!', description: 'Alterações persistidas.' });
+      toast({ title: 'Estratégia salva', description: 'Alterações persistidas.' });
     },
     onError: (error) => {
       console.error('Error updating strategy:', error);
-      toast({ title: 'Erro ao salvar estratégia', description: 'Verifique sua conexão e tente novamente.', variant: 'destructive' });
+      toast({ title: 'Estratégia não foi salva — falha ao persistir. Verifique sua conexão e tente novamente.', variant: 'destructive' });
     },
   });
 
@@ -122,7 +122,7 @@ export function useStrategies() {
       toast({ title: 'Estratégia excluída' });
     },
     onError: () => {
-      toast({ title: 'Erro ao excluir estratégia', variant: 'destructive' });
+      toast({ title: 'Estratégia não foi excluída — tente novamente.', variant: 'destructive' });
     },
   });
 

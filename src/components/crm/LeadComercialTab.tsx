@@ -24,7 +24,7 @@ import { toast } from "sonner";
 
 const activityLabels: Record<string, string> = {
   CALL: "Ligação", WHATSAPP: "WhatsApp", FOLLOW_UP: "Follow-up",
-  MEETING_SCHEDULED: "Reunião Agendada", MEETING_DONE: "Reunião Realizada",
+  MEETING_SCHEDULED: "Call Agendada", MEETING_DONE: "Call Realizada",
   PROPOSAL_SENT: "Proposta Enviada", DEAL_WON: "Venda Fechada",
   DEAL_LOST: "Perda", NO_SHOW: "No-show",
 };
@@ -117,7 +117,7 @@ export default function LeadComercialTab({ leadId }: Props) {
   else if (lostDeal && !openDeal) { commercialStatus = "Perdido"; statusColor = "destructive"; }
   else if (openDeal) { commercialStatus = "Negociação"; statusColor = "outline"; }
   else if (lastActivity?.activity_type === "NO_SHOW") { commercialStatus = "No-show"; statusColor = "destructive"; }
-  else if (lastActivity?.activity_type === "MEETING_SCHEDULED") { commercialStatus = "Reunião marcada"; statusColor = "outline"; }
+  else if (lastActivity?.activity_type === "MEETING_SCHEDULED") { commercialStatus = "Call marcada"; statusColor = "outline"; }
   else if (activities.some((a: any) => a.status === "planned")) { commercialStatus = "Ação pendente"; statusColor = "secondary"; }
   else if (sdr || closer) { commercialStatus = "Atribuído"; statusColor = "secondary"; }
 
@@ -369,7 +369,7 @@ export default function LeadComercialTab({ leadId }: Props) {
       <div>
         <h3 className="font-semibold mb-3">Timeline de Atividades</h3>
         {activities.length === 0 ? (
-          <EmptyState icon={Briefcase} title="Sem atividades comerciais" description="Registre calls, reuniões e follow-ups para acompanhar a negociação." size="sm" />
+          <EmptyState icon={Briefcase} title="Sem atividades comerciais" description="Registre calls e follow-ups para acompanhar a negociação." size="sm" />
         ) : (
           <div className="space-y-3">
             {activities.map((a: any) => {

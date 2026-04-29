@@ -1,4 +1,4 @@
-import { Settings, Workflow, Plug, Globe, Palette, Plus, ExternalLink, ArrowRight } from "lucide-react";
+import { Settings, Workflow, Plug, Globe, Palette, Plus, ExternalLink, ArrowRight, Wand2, ListChecks } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import { EmptyState } from "@/components/EmptyState";
+import { toast } from "sonner";
 
 const mockPipelines = [
-  { name: "High Ticket Padrão", stages: ["Novo Lead", "Qualificação", "Reunião Agendada", "Proposta Enviada", "Negociação", "Fechado"], sla: "48h por etapa" },
+  { name: "High Ticket Padrão", stages: ["Novo Lead", "Qualificação", "Call Agendada", "Proposta Enviada", "Negociação", "Fechado"], sla: "48h por etapa" },
   { name: "Evento → Mentoria", stages: ["Inscrito", "Participou", "Interessado", "Call Agendada", "Proposta", "Fechado"], sla: "24h por etapa" },
 ];
 
@@ -75,9 +77,28 @@ export default function Configuracoes() {
               <CardTitle className="text-base">Campos customizados de Lead</CardTitle>
               <CardDescription>Adicione campos específicos da sua operação aos leads.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center py-8 text-center">
-              <p className="text-sm text-muted-foreground mb-3">Nenhum campo customizado criado ainda.</p>
-              <Button variant="outline" size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Criar campo</Button>
+            <CardContent>
+              <EmptyState
+                icon={Wand2}
+                title="Adicione campos próprios à ficha do lead"
+                description="Capture informações específicas da sua operação — orçamento estimado, segmento, persona — direto na ficha do lead."
+                primaryCta={{
+                  label: "Criar campo",
+                  icon: Plus,
+                  onClick: () =>
+                    toast("Em breve", { description: "Criação de campo customizado." }),
+                }}
+                secondaryAction={
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={() => toast("Em breve", { description: "Lista de campos comuns no HT." })}
+                  >
+                    Ver campos comuns no HT
+                  </Button>
+                }
+              />
             </CardContent>
           </Card>
 
@@ -86,9 +107,27 @@ export default function Configuracoes() {
               <CardTitle className="text-base">Templates de Cadência</CardTitle>
               <CardDescription>Defina sequências de follow-up reutilizáveis.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center py-8 text-center">
-              <p className="text-sm text-muted-foreground mb-3">Nenhum template de cadência criado.</p>
-              <Button variant="outline" size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Criar template</Button>
+            <CardContent>
+              <EmptyState
+                icon={ListChecks}
+                title="Padronize seu follow-up de leads quentes"
+                description="Crie sequências reutilizáveis de mensagens, calls e emails para acelerar a conversão."
+                primaryCta={{
+                  label: "Criar template",
+                  icon: Plus,
+                  onClick: () => toast("Em breve", { description: "Criação de template de cadência." }),
+                }}
+                secondaryAction={
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={() => toast("Em breve", { description: "Templates testados em breve." })}
+                  >
+                    Começar com templates testados
+                  </Button>
+                }
+              />
             </CardContent>
           </Card>
         </TabsContent>
