@@ -1,28 +1,24 @@
-import { useState, useCallback, useEffect, Fragment } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle, X, Sparkles, ChevronRight } from "lucide-react";
+import { Search, Filter, ChevronDown, Download, Plus, Link2, Eye, Copy, MessageCircle, Pencil, XCircle, X, DollarSign, Clock, FileText, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Tooltip, TooltipContent, TooltipTrigger,
+  Tooltip, TooltipContent, TooltipTrigger, TooltipProvider,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { NovaCobrancaDrawer } from "./NovaCobrancaDrawer";
 import { NovoLinkProdutoDrawer } from "./NovoLinkProdutoDrawer";
 import {
   type Invoice, statusConfig, paymentIcons, mockInvoicesData, formatCurrency, formatDate,
 } from "@/data/checkoutData";
-import { AIInsightCard } from "@/components/ai";
-import { getPaymentRecoveryInsight } from "@/lib/aiMocks";
+import { DataTable, type DataTableColumn, type DataTableAction } from "@/components/DataTable";
+import { MetricGroup, type MetricItem } from "@/components/MetricGroup";
 
 export default function CheckoutHighTicket() {
   const [searchParams] = useSearchParams();
@@ -34,10 +30,6 @@ export default function CheckoutHighTicket() {
   const [cobrancaOpen, setCobrancaOpen] = useState(false);
   const [linkProdutoOpen, setLinkProdutoOpen] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(!!leadName);
-  const [expandedAI, setExpandedAI] = useState<Record<string, boolean>>({});
-
-  const toggleAI = (id: string) =>
-    setExpandedAI((prev) => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     if (action === 'cobranca') {
@@ -67,6 +59,100 @@ export default function CheckoutHighTicket() {
   const conversionRate = totalInvoices > 0 ? ((paidCount / totalInvoices) * 100).toFixed(1) : "0";
   const filteredTotal = filtered.reduce((s, i) => s + i.value, 0);
 
+  const primaryMetrics: MetricItem[] = [
+    {
+      id: "faturado",
+      title: "Faturado no mês",
+      value: formatCurrency(paidTotal),
+      icon: DollarSign,
+      variant: "success",
+    },
+    {
+      id: "pendente",
+      title: "Pendente",
+      value: formatCurrency(pendingTotal),
+      icon: Clock,
+      variant: "warning",
+    },
+  ];
+  const secondaryMetrics: MetricItem[] = [
+    { id: "faturas", title: "Faturas geradas", value: totalInvoices, icon: FileText },
+    { id: "conversao", title: "Taxa de conversão", value: `${conversionRate}%`, icon: TrendingUp },
+  ];
+
+  const columns: DataTableColumn<Invoice>[] = [
+    {
+      id: "status",
+      header: "Status",
+      accessor: (inv) => {
+        const sc = statusConfig[inv.status];
+        return <Badge variant="outline" className={sc.className}>{sc.label}</Badge>;
+      },
+    },
+    {
+      id: "cliente",
+      header: "Cliente",
+      accessor: (inv) => (
+        <div>
+          <span className="font-medium text-foreground">{inv.clientName}</span>
+          <p className="text-xs text-muted-foreground">{inv.clientEmail}</p>
+        </div>
+      ),
+    },
+    {
+      id: "valor",
+      header: "Valor",
+      align: "right",
+      accessor: (inv) => (
+        <span className="font-semibold tabular-nums">{formatCurrency(inv.value)}</span>
+      ),
+    },
+    {
+      id: "produto",
+      header: "Produto",
+      accessor: (inv) => <span className="text-muted-foreground">{inv.description}</span>,
+    },
+    {
+      id: "pagamento",
+      header: "Pagamento",
+      accessor: (inv) => (
+        <TooltipProvider>
+          <div className="flex items-center gap-1">
+            {inv.paymentMethods.map((pm) => (
+              <Tooltip key={pm}>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default text-base">{paymentIcons[pm].icon}</span>
+                </TooltipTrigger>
+                <TooltipContent>{paymentIcons[pm].label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </TooltipProvider>
+      ),
+    },
+    {
+      id: "vencimento",
+      header: "Vencimento",
+      accessor: (inv) => (
+        <span className="tabular-nums text-muted-foreground">{formatDate(inv.dueDate)}</span>
+      ),
+    },
+    {
+      id: "closer",
+      header: "Closer",
+      expandable: true,
+      accessor: (inv) => inv.closerName,
+    },
+  ];
+
+  const actions: DataTableAction<Invoice>[] = [
+    { id: "ver", label: "Ver detalhes", icon: Eye, onClick: () => {} },
+    { id: "copy", label: "Copiar link", icon: Copy, onClick: () => {} },
+    { id: "wpp", label: "Reenviar WhatsApp", icon: MessageCircle, onClick: () => {} },
+    { id: "edit", label: "Editar", icon: Pencil, onClick: () => {} },
+    { id: "cancel", label: "Cancelar", icon: XCircle, onClick: () => {}, variant: "destructive" },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Lead banner */}
@@ -82,24 +168,18 @@ export default function CheckoutHighTicket() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-foreground">Checkout High Ticket</h1>
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)" }}
-          >
-            <span className="text-base">💳</span>
-            Z2Pay — É High Ticket
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricMini label="Faturado no mês" value={formatCurrency(paidTotal)} />
-          <MetricMini label="Pendente" value={formatCurrency(pendingTotal)} accent />
-          <MetricMini label="Faturas geradas" value={String(totalInvoices)} />
-          <MetricMini label="Taxa de conversão" value={`${conversionRate}%`} />
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-foreground">Checkout High Ticket</h1>
+        <div
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-white"
+          style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)" }}
+        >
+          <span className="text-base">💳</span>
+          Z2Pay — É High Ticket
         </div>
       </div>
+
+      <MetricGroup primary={primaryMetrics} secondary={secondaryMetrics} />
 
       {/* Actions bar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -143,111 +223,12 @@ export default function CheckoutHighTicket() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Status</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Produto</TableHead>
-                <TableHead>Pagamento</TableHead>
-                <TableHead>Closer</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((inv) => {
-                const sc = statusConfig[inv.status];
-                const atRisk = inv.status === "vencida" || inv.status === "cancelada";
-                const expanded = !!expandedAI[inv.id];
-                const reason =
-                  inv.status === "vencida"
-                    ? "expiração do prazo de pagamento"
-                    : "cancelamento da operadora";
-                return (
-                  <Fragment key={inv.id}>
-                  <TableRow>
-                    <TableCell>
-                      <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <span className="font-medium text-foreground">{inv.clientName}</span>
-                        <p className="text-xs text-muted-foreground">{inv.clientEmail}</p>
-                        {atRisk && (
-                          <button
-                            type="button"
-                            onClick={() => toggleAI(inv.id)}
-                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
-                          >
-                            <Sparkles className="h-3 w-3" />
-                            {expanded ? "Ocultar sugestão de recuperação" : "Ver sugestão de recuperação"}
-                            <ChevronRight
-                              className={`h-3 w-3 transition-transform ${expanded ? "rotate-90" : ""}`}
-                            />
-                          </button>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(inv.value)}</TableCell>
-                    <TableCell className="text-muted-foreground">{inv.description}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {inv.paymentMethods.map((pm) => (
-                          <Tooltip key={pm}>
-                            <TooltipTrigger asChild>
-                              <span className="cursor-default text-base">{paymentIcons[pm].icon}</span>
-                            </TooltipTrigger>
-                            <TooltipContent>{paymentIcons[pm].label}</TooltipContent>
-                          </Tooltip>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{inv.closerInitials}</span>
-                        <span className="text-sm">{inv.closerName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">{formatDate(inv.dueDate)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {[
-                          { icon: Eye, tip: "Ver detalhes" },
-                          { icon: Copy, tip: "Copiar link" },
-                          { icon: MessageCircle, tip: "Reenviar WhatsApp" },
-                          { icon: Pencil, tip: "Editar" },
-                          { icon: XCircle, tip: "Cancelar" },
-                        ].map(({ icon: Icon, tip }) => (
-                          <Tooltip key={tip}>
-                            <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7"><Icon className="h-3.5 w-3.5" /></Button>
-                            </TooltipTrigger>
-                            <TooltipContent>{tip}</TooltipContent>
-                          </Tooltip>
-                        ))}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  {atRisk && expanded && (
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell colSpan={8} className="bg-muted/20 py-3">
-                        <AIInsightCard
-                          insight={getPaymentRecoveryInsight({
-                            leadName: inv.clientName,
-                            reason,
-                            value: inv.value,
-                          })}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  </Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <DataTable<Invoice>
+            data={filtered}
+            columns={columns}
+            actions={actions}
+            rowKey={(inv) => inv.id}
+          />
           <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
             <span>
               {filtered.length} cobranças no valor total de{" "}
@@ -270,16 +251,5 @@ export default function CheckoutHighTicket() {
         onLinkCreated={(data) => addInvoice(data)}
       />
     </div>
-  );
-}
-
-function MetricMini({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <Card className="border-border/60">
-      <CardContent className="px-4 py-3">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className={`mt-0.5 text-lg font-bold tabular-nums ${accent ? "text-amber-500" : "text-foreground"}`}>{value}</p>
-      </CardContent>
-    </Card>
   );
 }
