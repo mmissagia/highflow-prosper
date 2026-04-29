@@ -10,6 +10,9 @@ import {
   ExternalLink,
   AlertTriangle,
   Sparkles,
+  ChevronDown,
+  Calendar,
+  Activity,
 } from "lucide-react";
 import { formatDistanceToNow, subDays, subHours, subMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -18,6 +21,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -31,6 +39,7 @@ import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { AIBadge } from "@/components/ai";
 import { getMentorshipChurnInsight } from "@/lib/aiMocks";
+import { InsertionChoreography } from "@/components/InsertionChoreography";
 import { cn } from "@/lib/utils";
 
 type ProductType = "course" | "mentorship" | "community";
@@ -89,6 +98,32 @@ function getEngagementProgressClass(value: number) {
   return "[&>div]:bg-red-500";
 }
 
+interface EngagementBarProps {
+  value: number;
+  threshold?: number;
+  className?: string;
+}
+
+function EngagementBar({ value, threshold = 50, className }: EngagementBarProps) {
+  const isHealthy = value >= threshold;
+  return (
+    <div className={cn("relative h-1.5 w-full bg-muted rounded-full overflow-hidden", className)}>
+      <div
+        className={cn(
+          "h-full rounded-full transition-all duration-500",
+          isHealthy ? "bg-success" : "bg-warning",
+        )}
+        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+      />
+      <div
+        className="absolute top-0 bottom-0 border-l border-dashed border-foreground/30 pointer-events-none"
+        style={{ left: `${threshold}%` }}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
 function getTypeBadgeClass(type: ProductType) {
   switch (type) {
     case "mentorship":
@@ -105,6 +140,17 @@ export default function Portfolio() {
   const [typeFilter, setTypeFilter] = useState<ProductType | "all">("all");
   const [platformFilter, setPlatformFilter] = useState<ProductPlatform | "all">("all");
   const [statusFilter, setStatusFilter] = useState<ProductStatus>("active");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [recentlyScheduledLeadId, setRecentlyScheduledLeadId] = useState<string | null>(null);
+  const googleCalendarConnected = true;
+
+  const handleIntervention = (mentoree: { id: string; name: string }) => {
+    sonnerToast.success("Mentoria agendada", {
+      description: `Agendada com ${mentoree.name} para amanhã às 14h`,
+    });
+    setRecentlyScheduledLeadId(mentoree.id);
+    setTimeout(() => setRecentlyScheduledLeadId(null), 2000);
+  };
 
   const filtered = useMemo(() => {
     return mockProducts.filter((p) => {
@@ -227,39 +273,65 @@ export default function Portfolio() {
 
               <p className="text-sm text-foreground leading-relaxed">{churnData.summary}</p>
 
-              <div className="space-y-2">
-                {churnData.mentorees.map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex items-start justify-between gap-3 bg-background/60 border border-border rounded-md p-3"
+              <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
                   >
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm text-foreground">{m.name}</span>
-                        <Badge variant="outline" className="text-[10px]">
-                          IEM {m.iem}% (antes {m.previousIem}%)
-                        </Badge>
-                        <Badge variant="destructive" className="text-[10px]">
-                          {m.churnProbability}% risco
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{m.reason}</p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0"
-                      onClick={() =>
-                        sonnerToast.success(
-                          `Intervenção agendada com ${m.name} para sexta-feira`,
-                        )
-                      }
+                    <ChevronDown
+                      className={cn(
+                        "h-3 w-3 transition-transform",
+                        detailsOpen && "rotate-180",
+                      )}
+                    />
+                    {detailsOpen ? "Ocultar detalhes" : "Ver detalhes dos 3 mentorados"}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 mt-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2">
+                  {churnData.mentorees.map((m) => (
+                    <InsertionChoreography
+                      key={m.id}
+                      isNew={recentlyScheduledLeadId === m.id}
+                      onComplete={() => setRecentlyScheduledLeadId(null)}
+                      className="rounded-md"
                     >
-                      Agendar intervenção
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex items-start justify-between gap-3 bg-background/60 border border-border rounded-md p-3">
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-sm text-foreground">{m.name}</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              IEM {m.iem}% (antes {m.previousIem}%)
+                            </Badge>
+                            <Badge variant="destructive" className="text-[10px]">
+                              {m.churnProbability}% risco
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{m.reason}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() => handleIntervention(m)}
+                        >
+                          {googleCalendarConnected ? (
+                            <>
+                              <Calendar className="mr-2 h-3.5 w-3.5" />
+                              Agendar mentoria 1:1
+                            </>
+                          ) : (
+                            <>
+                              <Activity className="mr-2 h-3.5 w-3.5" />
+                              Registrar atividade
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </InsertionChoreography>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
 
               <div className="flex items-start gap-2 pt-3 border-t border-destructive/20">
                 <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -332,10 +404,7 @@ export default function Portfolio() {
                       {product.avgEngagement}%
                     </span>
                   </div>
-                  <Progress
-                    value={product.avgEngagement}
-                    className={cn("h-1.5", getEngagementProgressClass(product.avgEngagement))}
-                  />
+                  <EngagementBar value={product.avgEngagement} threshold={50} />
                 </div>
 
                 {/* Linha 5: último sync */}
