@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2, Check, Copy, MessageCircle, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -115,6 +115,43 @@ export function NovaCobrancaDrawer({
 
   const paymentSum = paymentLines.reduce((s, l) => s + l.value, 0);
   const paymentDiff = finalValue - paymentSum;
+
+  // === F13: Choreography do fechamento do arranjo ===
+  // `remaining` = paymentDiff quando arranjo está sendo construído (faltante).
+  // Considera-se "fechado" quando há linhas e |paymentDiff| <= 0.01.
+  const remaining = paymentLines.length > 0 ? Math.max(0, paymentDiff) : 0;
+  const isArrangementClosed =
+    paymentLines.length > 0 && Math.abs(paymentDiff) <= 0.01;
+
+  const [isClosing, setIsClosing] = useState(false);
+  const [showZero, setShowZero] = useState(false);
+  const previousRemaining = useRef<number | null>(null);
+
+  useEffect(() => {
+    const prev = previousRemaining.current;
+    if (prev !== null && prev > 0 && remaining === 0 && isArrangementClosed) {
+      setIsClosing(true);
+      const t1 = setTimeout(() => setShowZero(true), 200);
+      const t2 = setTimeout(() => setIsClosing(false), 1000);
+      previousRemaining.current = remaining;
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+    if (remaining > 0) {
+      setShowZero(false);
+    }
+    previousRemaining.current = remaining;
+  }, [remaining, isArrangementClosed]);
+
+  // === F13: micro-feedback WhatsApp ===
+  const [whatsappSent, setWhatsappSent] = useState(false);
+  const handleSendWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(generatedLink)}`, "_blank");
+    setWhatsappSent(true);
+    setTimeout(() => setWhatsappSent(false), 1000);
+  };
 
   const addPaymentLine = () => {
     setPaymentLines((prev) => [
@@ -344,17 +381,48 @@ export function NovaCobrancaDrawer({
               <Button variant="outline" size="sm" onClick={addPaymentLine} className="w-full">
                 <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar meio de pagamento
               </Button>
-              {paymentLines.length > 0 && Math.abs(paymentDiff) > 0.01 && (
-                <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-2 text-sm text-red-600">
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
-                  {paymentDiff > 0
-                    ? `Faltam ${formatCurrency(paymentDiff)} para completar o valor total`
-                    : `Excede em ${formatCurrency(Math.abs(paymentDiff))}`}
-                </div>
-              )}
-              {paymentLines.length > 0 && Math.abs(paymentDiff) <= 0.01 && (
-                <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-2 text-sm text-emerald-600">
-                  <Check className="h-4 w-4 shrink-0" /> Arranjo completo — {formatCurrency(paymentSum)}
+              {paymentLines.length > 0 && (
+                <div
+                  className={cn(
+                    "rounded-md p-2 text-sm",
+                    isClosing && "animate-[arrangement-container-breath_300ms_var(--ease-glide)_500ms]",
+                    isArrangementClosed
+                      ? "bg-emerald-500/10 text-emerald-600"
+                      : paymentDiff > 0
+                        ? "bg-red-500/10 text-red-600"
+                        : "bg-red-500/10 text-red-600"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs uppercase tracking-wider opacity-70">
+                      {isArrangementClosed ? "Arranjo completo" : "Valor restante"}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-base font-semibold tabular-nums inline-block",
+                        isClosing && !showZero && "animate-[arrangement-value-out_200ms_var(--ease-soften)_forwards]",
+                        isClosing && showZero && "animate-[arrangement-value-in_400ms_var(--ease-spring)] origin-center"
+                      )}
+                    >
+                      {isArrangementClosed || showZero
+                        ? formatCurrency(paymentSum)
+                        : paymentDiff > 0
+                          ? `Faltam ${formatCurrency(paymentDiff)}`
+                          : `Excede ${formatCurrency(Math.abs(paymentDiff))}`}
+                    </span>
+                  </div>
+                  {isArrangementClosed && (
+                    <div className="mt-1 flex items-center gap-1.5 text-xs">
+                      <Check className="h-3.5 w-3.5 shrink-0" />
+                      Arranjo completo — pronto para gerar link
+                    </div>
+                  )}
+                  {!isArrangementClosed && paymentDiff < 0 && (
+                    <div className="mt-1 flex items-center gap-1.5 text-xs">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                      Excede o valor total
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -410,7 +478,14 @@ export function NovaCobrancaDrawer({
 
             {/* Actions */}
             <div className="flex gap-2 pt-2">
-              <Button className="flex-1" onClick={handleGenerate} disabled={!selectedLeadId || totalValue <= 0}>
+              <Button
+                className={cn(
+                  "flex-1 transition-opacity duration-default ease-glide",
+                  isClosing && "animate-[arrangement-cta-wake_200ms_var(--ease-emerge)_800ms_forwards]"
+                )}
+                onClick={handleGenerate}
+                disabled={!selectedLeadId || totalValue <= 0}
+              >
                 Gerar Link de Pagamento
               </Button>
               <Button variant="outline" onClick={() => handleClose(false)}>
@@ -422,10 +497,10 @@ export function NovaCobrancaDrawer({
           /* Confirmation step */
           <div className="mt-6 space-y-6">
             <div className="flex flex-col items-center gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 animate-[success-check-in_400ms_var(--ease-spring)]">
                 <Check className="h-6 w-6 text-emerald-600" />
               </div>
-              <div>
+              <div className="animate-[insertion-enter_300ms_var(--ease-emerge)_400ms_both]">
                 <p className="text-lg font-semibold text-foreground">Link gerado com sucesso!</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Cobrança de {formatCurrency(finalValue)} para {selectedLead?.name}
@@ -449,9 +524,14 @@ export function NovaCobrancaDrawer({
               </Button>
               <Button
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(generatedLink)}`, "_blank")}
+                onClick={handleSendWhatsApp}
               >
-                <MessageCircle className="mr-2 h-4 w-4" /> Enviar via WhatsApp
+                {whatsappSent ? (
+                  <Check className="mr-2 h-4 w-4 animate-[whatsapp-confirm_400ms_var(--ease-spring)]" />
+                ) : (
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                )}
+                {whatsappSent ? "Enviado" : "Enviar via WhatsApp"}
               </Button>
             </div>
 
