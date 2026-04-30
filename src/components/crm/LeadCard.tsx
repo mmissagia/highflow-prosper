@@ -1,8 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { DollarSign, Clock, FileText, Phone, Mail, MessageCircle, Flame, Sparkles, User, Package, Globe } from "lucide-react";
+import { Clock, Flame, Sparkles, User, Package, Globe } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { getLeadScoreTooltip } from "@/lib/aiMocks";
 import { formatDistanceToNow } from "date-fns";
