@@ -12,16 +12,17 @@ import { LeadCard, type LeadData } from "@/components/crm/LeadCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
 
+const CRITICAL_STAGE_IDS = new Set(["call-agendada", "fechou"]);
 const pipelineStages = [
-  { id: "lead-frio", title: "Lead Frio", color: "bg-slate-500" },
-  { id: "engajado", title: "Engajado", color: "bg-blue-500" },
-  { id: "warm", title: "Warm", color: "bg-yellow-500" },
-  { id: "agendou", title: "Agendou", color: "bg-orange-500" },
+  { id: "lead-frio", title: "Lead Frio", color: "bg-muted-foreground/40" },
+  { id: "engajado", title: "Engajado", color: "bg-muted-foreground/40" },
+  { id: "warm", title: "Warm", color: "bg-muted-foreground/40" },
+  { id: "agendou", title: "Agendou", color: "bg-muted-foreground/40" },
   { id: "call-agendada", title: "Call Agendada", color: "bg-purple-500" },
-  { id: "call-realizada", title: "Call Realizada", color: "bg-indigo-500" },
-  { id: "follow-up", title: "Follow-up", color: "bg-pink-500" },
+  { id: "call-realizada", title: "Call Realizada", color: "bg-muted-foreground/40" },
+  { id: "follow-up", title: "Follow-up", color: "bg-muted-foreground/40" },
   { id: "fechou", title: "Fechou", color: "bg-green-500" },
-  { id: "onboarding", title: "Onboarding", color: "bg-emerald-500" },
+  { id: "onboarding", title: "Onboarding", color: "bg-muted-foreground/40" },
 ];
 
 const initialLeads: LeadData[] = [
