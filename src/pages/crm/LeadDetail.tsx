@@ -404,8 +404,9 @@ export default function LeadDetail() {
       </div>
 
       {/* ── Sidebar direita ── */}
-      <div className="hidden lg:flex w-80 shrink-0 border-l flex-col overflow-y-auto">
+      <div className="hidden lg:flex flex-col">
         <LeadDetailSidebar
+          className="w-80 shrink-0 border-l"
           lead={{
             id: leadData.id,
             name: leadData.name,
