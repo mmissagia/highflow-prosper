@@ -14,6 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import { formatDistanceToNow, format, subDays, subHours } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LeadSidebar } from "@/components/crm/LeadSidebar";
+import { LeadDetailSidebar } from "@/components/LeadDetailSidebar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -403,7 +404,18 @@ export default function LeadDetail() {
       </div>
 
       {/* ── Sidebar direita ── */}
-      <LeadSidebar lead={leadData} />
+      <div className="hidden lg:flex w-80 shrink-0 border-l flex-col overflow-y-auto">
+        <LeadDetailSidebar
+          lead={{
+            id: leadData.id,
+            name: leadData.name,
+            stage: leadData.stage,
+            score: leadData.score,
+            timeInStage: "5 dias",
+          }}
+        />
+        <LeadSidebar lead={leadData} />
+      </div>
     </div>
   );
 }
