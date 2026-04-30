@@ -90,9 +90,24 @@ export default function LeadsList() {
     {
       id: "proxima-acao",
       header: "Próxima Ação",
-      accessor: (row) => (
-        <Badge variant="secondary" className="text-xs">{row.nextAction || "—"}</Badge>
-      ),
+      accessor: (row) => {
+        if (!row.nextAction) return <span className="text-xs text-muted-foreground">—</span>;
+        // Urgência: lead com lastInteraction em "min" (vence agora) e ação que exige resposta
+        const isUrgent = /min|hoje/i.test(row.lastInteraction) && /confirmar/i.test(row.nextAction);
+        return (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-xs",
+              isUrgent
+                ? "bg-destructive/10 text-destructive border-destructive/30"
+                : "bg-muted text-muted-foreground border-transparent",
+            )}
+          >
+            {row.nextAction}
+          </Badge>
+        );
+      },
     },
     {
       id: "ultima-interacao",
