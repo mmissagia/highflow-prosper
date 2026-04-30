@@ -404,9 +404,8 @@ export default function LeadDetail() {
       </div>
 
       {/* ── Sidebar direita ── */}
-      <div className="hidden lg:flex flex-col">
+      <div className="hidden lg:block w-80 shrink-0 border-l overflow-y-auto">
         <LeadDetailSidebar
-          className="w-80 shrink-0 border-l"
           lead={{
             id: leadData.id,
             name: leadData.name,
@@ -415,7 +414,10 @@ export default function LeadDetail() {
             timeInStage: "5 dias",
           }}
         />
-        <LeadSidebar lead={leadData} />
+        <div className="border-t">
+          {/* LeadSidebar carries its own w-80 + border-l; rendered inside this wrapper it inherits flow. */}
+          <LeadSidebar lead={leadData} />
+        </div>
       </div>
     </div>
   );
