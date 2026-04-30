@@ -423,7 +423,7 @@ export default function ConstrutorEstrategias() {
       {/* Canvas */}
       <Card className="flex-1 overflow-hidden relative">
         {demoBannerOpen && !currentStrategyId && (
-          <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-ai/10 border border-ai/20 text-foreground rounded-lg px-3 py-2 shadow-sm max-w-[420px]">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-ai/10 border border-ai/20 text-foreground rounded-lg px-3 py-2 shadow-sm max-w-[420px]">
             <Sparkles className="w-3.5 h-3.5 text-ai shrink-0" />
             <p className="text-xs flex-1">
               Esta é uma estratégia de exemplo. Crie a sua a partir daqui ou comece do zero.

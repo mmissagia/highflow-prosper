@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlobalContextSelector } from "@/components/GlobalContextSelector";
-import { Search, Filter, Download, Plus, Eye, Inbox, MessageCircle, Mail, Users, Plug, Upload } from "lucide-react";
+import { Search, Filter, Download, Plus, Eye, Inbox, MessageCircle, Mail, Users, Plug, Upload, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LeadSourceSelector from "@/components/crm/LeadSourceSelector";
 import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
@@ -90,9 +90,24 @@ export default function LeadsList() {
     {
       id: "proxima-acao",
       header: "Próxima Ação",
-      accessor: (row) => (
-        <Badge variant="secondary" className="text-xs">{row.nextAction || "—"}</Badge>
-      ),
+      accessor: (row) => {
+        if (!row.nextAction) return <span className="text-xs text-muted-foreground">—</span>;
+        // Urgência: lead com lastInteraction em "min" (vence agora) e ação que exige resposta
+        const isUrgent = /min|hoje/i.test(row.lastInteraction) && /confirmar/i.test(row.nextAction);
+        return (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-xs",
+              isUrgent
+                ? "bg-destructive/10 text-destructive border-destructive/30"
+                : "bg-muted text-muted-foreground border-transparent",
+            )}
+          >
+            {row.nextAction}
+          </Badge>
+        );
+      },
     },
     {
       id: "ultima-interacao",
@@ -211,6 +226,20 @@ export default function LeadsList() {
                 Filtros
               </Button>
             </div>
+            {search.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                <span>Filtros de sessão aplicados</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 gap-1 text-xs"
+                  onClick={() => setSearch("")}
+                >
+                  <X className="h-3 w-3" />
+                  Limpar
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <DataTable<Lead>
