@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,32 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { MessageCircle, Send, QrCode, Link as LinkIcon, Search, Phone, Sparkles, CreditCard } from "lucide-react";
+import { MessageCircle, Send, QrCode, Link as LinkIcon, Search, Phone, Sparkles, CreditCard, ArrowUp, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { mockInvoicesData, formatCurrency, statusConfig } from "@/data/checkoutData";
 import { NovaCobrancaDrawer } from "@/pages/checkout/NovaCobrancaDrawer";
+import { PulsaGlyph } from "@/components/ai/PulsaGlyph";
+import { formatRelativeTime } from "@/lib/utils";
+
+const now = Date.now();
+const conversationTimestamps: Record<number, string> = {
+  1: new Date(now - 2 * 60 * 1000).toISOString(),
+  2: new Date(now - 15 * 60 * 1000).toISOString(),
+  3: new Date(now - 60 * 60 * 1000).toISOString(),
+  4: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
+};
+
+const PULSA_SUGGESTION = {
+  text: "Oi {nome}, vi que você abriu nossa proposta ontem. Conseguiu dar uma olhada? Posso esclarecer qualquer ponto agora.",
+  reasoning:
+    "Lead abriu proposta há 18h sem responder. Padrão dos seus dados: abordagem direta em 24h converte 2.3x melhor.",
+};
 
 const conversations = [
-  { id: 1, name: "João Silva", email: "joao@email.com", lastMessage: "Qual o valor da mentoria?", time: "2min", unread: 2, stage: "Warm" },
-  { id: 2, name: "Maria Santos", email: "maria@email.com", lastMessage: "Recebi o link, vou olhar!", time: "15min", unread: 0, stage: "Follow-up" },
-  { id: 3, name: "Pedro Costa", email: "pedro@email.com", lastMessage: "Posso parcelar em quantas vezes?", time: "1h", unread: 1, stage: "Call Agendada" },
-  { id: 4, name: "Ana Oliveira", email: "ana@email.com", lastMessage: "Obrigada pelas informações!", time: "2h", unread: 0, stage: "Engajado" },
+  { id: 1, name: "João Silva", email: "joao@email.com", lastMessage: "Qual o valor da mentoria?", lastMessageAt: conversationTimestamps[1], unread: 2, stage: "Warm" },
+  { id: 2, name: "Maria Santos", email: "maria@email.com", lastMessage: "Recebi o link, vou olhar!", lastMessageAt: conversationTimestamps[2], unread: 0, stage: "Follow-up" },
+  { id: 3, name: "Pedro Costa", email: "pedro@email.com", lastMessage: "Posso parcelar em quantas vezes?", lastMessageAt: conversationTimestamps[3], unread: 1, stage: "Call Agendada" },
+  { id: 4, name: "Ana Oliveira", email: "ana@email.com", lastMessage: "Obrigada pelas informações!", lastMessageAt: conversationTimestamps[4], unread: 0, stage: "Engajado" },
 ];
 
 const currentChat = {
@@ -44,9 +60,24 @@ export default function Conversas() {
   const [chatMessages, setChatMessages] = useState(currentChat.messages);
   const [cobrancaOpen, setCobrancaOpen] = useState(false);
   const [pickInvoiceOpen, setPickInvoiceOpen] = useState(false);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Reset Pulsa suggestion when switching conversation
+  useEffect(() => {
+    setSuggestionDismissed(false);
+  }, [selectedConversation.id]);
 
   const selectedConvData = conversations.find((c) => c.id === selectedConversation.id);
   const leadName = selectedConvData?.name || selectedConversation.name;
+  const firstName = leadName.split(" ")[0];
+  const suggestionText = PULSA_SUGGESTION.text.replace(/\{nome\}/g, firstName);
+
+  const handleUseSuggestion = () => {
+    setMessage(suggestionText);
+    setSuggestionDismissed(true);
+    inputRef.current?.focus();
+  };
 
   // Pending invoices for the selected lead
   const pendingInvoices = mockInvoicesData.filter(
@@ -97,7 +128,7 @@ export default function Conversas() {
 
       <div className="grid grid-cols-4 gap-6 h-[calc(100vh-220px)]">
         {/* Lista de Conversas */}
-        <Card className="col-span-1">
+        <Card className="col-span-1 flex flex-col">
           <CardHeader className="pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -121,7 +152,9 @@ export default function Conversas() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="font-medium truncate">{conv.name}</p>
-                        <span className="text-xs text-muted-foreground">{conv.time}</span>
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {formatRelativeTime(conv.lastMessageAt)}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
@@ -135,6 +168,19 @@ export default function Conversas() {
               ))}
             </ScrollArea>
           </CardContent>
+          {/* Footer: Pulsa indicator */}
+          <div className="border-t p-3 mt-auto">
+            <div className="flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-1.5">
+              <PulsaGlyph size="sm" />
+              <p className="text-xs font-medium text-foreground flex-1">
+                Pulsa ativa no seu WhatsApp
+              </p>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+              </span>
+            </div>
+          </div>
         </Card>
 
         {/* Chat Ativo */}
@@ -177,8 +223,42 @@ export default function Conversas() {
           </CardContent>
 
           <div className="p-4 border-t">
+            {!suggestionDismissed && (
+              <div className="mb-3 rounded-lg border border-ai/20 bg-ai/5 p-3">
+                <div className="flex items-start gap-2.5">
+                  <PulsaGlyph size="sm" className="mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-ai">
+                      Pulsa sugere
+                    </p>
+                    <p className="text-sm text-foreground leading-snug">
+                      {suggestionText}
+                    </p>
+                    <p className="text-xs text-muted-foreground italic">
+                      {PULSA_SUGGESTION.reasoning}
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button size="sm" variant="default" onClick={handleUseSuggestion} className="h-7 gap-1.5">
+                        <ArrowUp className="h-3 w-3" />
+                        Usar sugestão
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => setSuggestionDismissed(true)}
+                        aria-label="Dispensar sugestão"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Input
+                ref={inputRef}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Digite sua mensagem..."
