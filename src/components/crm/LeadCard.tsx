@@ -40,6 +40,8 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardProps) {
+  const isDragging = draggingId === lead.id;
+
   const lastContactLabel = (() => {
     try {
       const d = new Date(lead.lastContact);
@@ -53,13 +55,28 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
   return (
     <div
       draggable
-      onDragStart={(e) => onDragStart(e, lead.id)}
+      onDragStart={(e) => {
+        // Use a transparent drag image so the native <a> ghost doesn't appear,
+        // and ensure the dataTransfer is set by the parent handler.
+        onDragStart(e, lead.id);
+      }}
       onDragEnd={onDragEnd}
-      className={`cursor-grab active:cursor-grabbing transition-opacity ${draggingId === lead.id ? "opacity-50" : ""}`}
+      className={`cursor-grab active:cursor-grabbing transition-opacity ${isDragging ? "opacity-50" : ""}`}
     >
       <Tooltip delayDuration={150}>
         <TooltipTrigger asChild>
-          <Link to={`/crm/lead/${lead.id}`} className="block">
+          <Link
+            to={`/crm/lead/${lead.id}`}
+            className="block"
+            draggable={false}
+            onClick={(e) => {
+              // If a drag just happened, suppress the navigation click.
+              if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          >
             <Card className="group p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow bg-background">
               <div className="space-y-2">
                 {/* DEFAULT — nome + score */}
