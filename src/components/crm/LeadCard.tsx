@@ -69,12 +69,6 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
             to={`/crm/lead/${lead.id}`}
             className="block"
             draggable={false}
-            onDragStart={(e) => {
-              // Prevent the <a>'s native drag (which sets URL as drag data
-              // and shows a link ghost). The parent div handles the drag.
-              e.preventDefault();
-              e.stopPropagation();
-            }}
             onClick={(e) => {
               // If a drag just happened, suppress the navigation click.
               if (isDragging) {
