@@ -218,7 +218,7 @@ export function NovaCobrancaDrawer({
       <SheetContent className="w-full sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-xl">Nova Cobrança</SheetTitle>
-          <SheetDescription>Crie uma fatura individualizada para um lead específico.</SheetDescription>
+          <SheetDescription>Fatura individualizada com arranjo de pagamento personalizado</SheetDescription>
         </SheetHeader>
 
         {step === "form" ? (
