@@ -128,7 +128,7 @@ export default function Conversas() {
 
       <div className="grid grid-cols-4 gap-6 h-[calc(100vh-220px)]">
         {/* Lista de Conversas */}
-        <Card className="col-span-1">
+        <Card className="col-span-1 flex flex-col">
           <CardHeader className="pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
