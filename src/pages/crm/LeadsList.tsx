@@ -8,46 +8,44 @@ import { Search, Filter, Download, Plus, Eye, Inbox, MessageCircle, Mail, Users,
 import { useNavigate } from "react-router-dom";
 import LeadSourceSelector from "@/components/crm/LeadSourceSelector";
 import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTable, type DataTableColumn, type DataTableAction } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
+import useUnifiedLeads from "@/hooks/useUnifiedLeads";
+import { useLeadStageOverrides } from "@/hooks/useLeadStage";
+import { formatStageLabel, STAGE_COLORS, CRITICAL_STAGE_IDS } from "@/lib/leadUtils";
+import type { UnifiedLead } from "@/types/lead";
 
-const mockLeads = [
-  { id: 1, name: "João Silva", origin: "Meta Ads", responsible: "Ana Ribeiro", stage: "Engajado", score: 85, iem: 78, valuePotential: 15000, lastInteraction: "2h atrás", nextAction: "Follow-up WhatsApp" },
-  { id: 2, name: "Maria Santos", origin: "Evento", responsible: "Rafael Costa", stage: "Warm", score: 92, iem: 85, valuePotential: 25000, lastInteraction: "1d atrás", nextAction: "Enviar proposta" },
-  { id: 3, name: "Pedro Costa", origin: "Indicação", responsible: "Lucas Martins", stage: "Call Agendada", score: 78, iem: 72, valuePotential: 12000, lastInteraction: "30min", nextAction: "Confirmar call" },
-  { id: 4, name: "Ana Oliveira", origin: "Low Ticket", responsible: "Ana Ribeiro", stage: "Lead Frio", score: 45, iem: 0, valuePotential: 10000, lastInteraction: "3d atrás", nextAction: "Qualificar" },
-  { id: 5, name: "Carlos Mendes", origin: "Evento", responsible: "Mariana Lopes", stage: "Fechou", score: 98, iem: 92, valuePotential: 35000, lastInteraction: "1h atrás", nextAction: "Onboarding" },
-  { id: 6, name: "Lucia Ferreira", origin: "Meta Ads", responsible: "Rafael Costa", stage: "Follow-up", score: 88, iem: 80, valuePotential: 20000, lastInteraction: "4h atrás", nextAction: "Recontato" },
-  { id: 7, name: "Roberto Almeida", origin: "Instagram", responsible: "Lucas Martins", stage: "Call Realizada", score: 75, iem: 65, valuePotential: 18000, lastInteraction: "6h atrás", nextAction: "Enviar proposta" },
-  { id: 8, name: "Fernanda Lima", origin: "Instagram", responsible: "Mariana Lopes", stage: "Onboarding", score: 95, iem: 88, valuePotential: 45000, lastInteraction: "2h atrás", nextAction: "Boas-vindas" },
-];
-
-type Lead = (typeof mockLeads)[number];
-
-const STAGE_COLORS: Record<string, string> = {
-  "Lead Frio": "bg-slate-400",
-  "Engajado": "bg-blue-400",
-  "Warm": "bg-yellow-400",
-  "Call Agendada": "bg-purple-500",
-  "Call Realizada": "bg-indigo-400",
-  "Follow-up": "bg-pink-400",
-  "Fechou": "bg-green-500",
-  "Onboarding": "bg-emerald-400",
-};
-const CRITICAL_STAGES = new Set(["Call Agendada", "Fechou"]);
+type Lead = UnifiedLead;
 
 export default function LeadsList() {
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [recentlyCreatedLeadId, setRecentlyCreatedLeadId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const hasLeads = mockLeads.length > 0;
 
-  const filteredLeads = mockLeads.filter((l) =>
-    l.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const { leads: unifiedLeads } = useUnifiedLeads();
+  const { data: stageOverrides } = useLeadStageOverrides();
+
+  const leads: Lead[] = useMemo(() => {
+    return unifiedLeads.map((l) => {
+      if (l.source === "manual") return l;
+      const override = stageOverrides?.get(l.id);
+      return override ? { ...l, stage: override } : l;
+    });
+  }, [unifiedLeads, stageOverrides]);
+
+  const hasLeads = leads.length > 0;
+
+  const filteredLeads = leads.filter((l) => {
+    const q = search.toLowerCase();
+    return (
+      l.name.toLowerCase().includes(q) ||
+      (l.email ?? "").toLowerCase().includes(q) ||
+      (l.phone ?? "").toLowerCase().includes(q)
+    );
+  });
 
   const columns: DataTableColumn<Lead>[] = [
     {
@@ -68,11 +66,11 @@ export default function LeadsList() {
       id: "etapa",
       header: "Etapa",
       accessor: (row) => {
-        const isCritical = CRITICAL_STAGES.has(row.stage);
+        const isCritical = CRITICAL_STAGE_IDS.has(row.stage);
         return (
           <div className="flex items-center gap-2">
             <div className={cn("w-2 h-2 rounded-full", isCritical ? STAGE_COLORS[row.stage] : "bg-muted-foreground/40")} />
-            <span className={cn("text-sm", isCritical && "font-medium")}>{row.stage}</span>
+            <span className={cn("text-sm", isCritical && "font-medium")}>{formatStageLabel(row.stage)}</span>
           </div>
         );
       },
@@ -83,43 +81,26 @@ export default function LeadsList() {
       align: "right",
       accessor: (row) => (
         <span className="font-medium text-success tabular-nums">
-          R$ {row.valuePotential.toLocaleString("pt-BR")}
+          R$ {(row.pipeline_value ?? 0).toLocaleString("pt-BR")}
         </span>
       ),
     },
     {
       id: "proxima-acao",
       header: "Próxima Ação",
-      accessor: (row) => {
-        if (!row.nextAction) return <span className="text-xs text-muted-foreground">—</span>;
-        // Urgência: lead com lastInteraction em "min" (vence agora) e ação que exige resposta
-        const isUrgent = /min|hoje/i.test(row.lastInteraction) && /confirmar/i.test(row.nextAction);
-        return (
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-xs",
-              isUrgent
-                ? "bg-destructive/10 text-destructive border-destructive/30"
-                : "bg-muted text-muted-foreground border-transparent",
-            )}
-          >
-            {row.nextAction}
-          </Badge>
-        );
-      },
+      accessor: () => <span className="text-xs text-muted-foreground">—</span>,
     },
     {
       id: "ultima-interacao",
       header: "Última Interação",
       accessor: (row) => (
-        <span className="text-sm text-muted-foreground">{row.lastInteraction}</span>
+        <span className="text-sm text-muted-foreground">{row.last_contact ?? "Recém-criado"}</span>
       ),
     },
     { id: "origem", header: "Origem", expandable: true, accessor: (row) => row.origin },
-    { id: "responsavel", header: "Responsável", expandable: true, accessor: (row) => row.responsible },
-    { id: "score", header: "Score", expandable: true, accessor: (row) => row.score },
-    { id: "iem", header: "IEM", expandable: true, accessor: (row) => `${row.iem}%` },
+    { id: "responsavel", header: "Responsável", expandable: true, accessor: (row) => row.responsible ?? "—" },
+    { id: "score", header: "Score", expandable: true, accessor: (row) => row.score ?? "—" },
+    { id: "iem", header: "IEM", expandable: true, accessor: (row) => (row.iem !== null ? `${row.iem}%` : "—") },
   ];
 
   const actions: DataTableAction<Lead>[] = [
@@ -247,7 +228,7 @@ export default function LeadsList() {
               columns={columns}
               actions={actions}
               onRowClick={(row) => navigate(`/crm/lead/${row.id}`)}
-              rowKey={(row) => String(row.id)}
+              rowKey={(row) => row.id}
               highlightRowId={recentlyCreatedLeadId}
               onHighlightComplete={() => setRecentlyCreatedLeadId(null)}
               emptyState={{
