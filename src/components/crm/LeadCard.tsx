@@ -8,17 +8,17 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export interface LeadData {
-  id: number;
+  id: string;
   name: string;
   stage: string;
   origin: string;
-  score: number;
+  score: number | null;
   dealValue: number;
-  responsible: string;
-  lastContact: string;
+  responsible: string | null;
+  lastContact: string | null;
   pitch: string | null;
-  phone: string;
-  email: string;
+  phone: string | null;
+  email: string | null;
 }
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -34,8 +34,8 @@ function getScoreClasses(score: number) {
 
 interface LeadCardProps {
   lead: LeadData;
-  draggingId: number | null;
-  onDragStart: (e: React.DragEvent, leadId: number) => void;
+  draggingId: string | null;
+  onDragStart: (e: React.DragEvent, leadId: string) => void;
   onDragEnd: () => void;
 }
 
@@ -43,6 +43,7 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
   const isDragging = draggingId === lead.id;
 
   const lastContactLabel = (() => {
+    if (!lead.lastContact) return "Recém-criado";
     try {
       const d = new Date(lead.lastContact);
       if (isNaN(d.getTime())) return "—";
@@ -84,6 +85,7 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
                   <p className="text-sm font-medium text-foreground truncate flex-1">
                     {lead.name}
                   </p>
+                  {lead.score !== null && (
                   <div
                     onClick={(e) => {
                       e.preventDefault();
@@ -98,6 +100,7 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
                     {lead.score >= 85 && <Flame className="h-3 w-3" />}
                     <span>{lead.score}</span>
                   </div>
+                  )}
                 </div>
 
                 {/* DEFAULT — valor */}
@@ -117,7 +120,7 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
           <div className="flex items-center gap-2 text-xs">
             <User className="h-3 w-3 text-muted-foreground" />
             <span className="text-muted-foreground">Responsável:</span>
-            <span className="font-medium">{lead.responsible}</span>
+            <span className="font-medium">{lead.responsible ?? "—"}</span>
           </div>
           <div className="flex items-center gap-2 text-xs">
             <Package className="h-3 w-3 text-muted-foreground" />
@@ -132,7 +135,7 @@ export function LeadCard({ lead, draggingId, onDragStart, onDragEnd }: LeadCardP
           <div className="pt-1.5 mt-1.5 border-t flex items-start gap-1.5">
             <Sparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
             <p className="text-[11px] text-muted-foreground leading-snug">
-              {getLeadScoreTooltip(lead.score, lead.stage)}
+              {getLeadScoreTooltip(lead.score ?? 0, lead.stage)}
             </p>
           </div>
         </TooltipContent>
