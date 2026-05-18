@@ -18,15 +18,11 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-
-const mockLeads = [
-  { id: "1", name: "João Silva", email: "joao@email.com", pipelineValue: 25000 },
-  { id: "2", name: "Maria Santos", email: "maria@email.com", pipelineValue: 50000 },
-  { id: "3", name: "Pedro Costa", email: "pedro@email.com", pipelineValue: 15000 },
-  { id: "4", name: "Ana Oliveira", email: "ana@email.com", pipelineValue: 35000 },
-  { id: "5", name: "Carlos Mendes", email: "carlos@email.com", pipelineValue: 12000 },
-  { id: "6", name: "Fernanda Lima", email: "fernanda@email.com", pipelineValue: 42000 },
-];
+import LeadComboboxWithCreate from "@/components/LeadComboboxWithCreate";
+import LeadInlineCreateForm, { type ValidState } from "@/components/LeadInlineCreateForm";
+import useUnifiedLeads from "@/hooks/useUnifiedLeads";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const mockProducts = [
   "Mentoria Elite",
@@ -35,11 +31,13 @@ const mockProducts = [
   "Imersão Presencial",
 ];
 
-const mockClosers = [
-  { id: "c1", name: "Ana Ribeiro", initials: "AR" },
-  { id: "c2", name: "Rafael Costa", initials: "RC" },
-  { id: "c3", name: "Lucas Martins", initials: "LM" },
-];
+const initialsFromName = (n: string) =>
+  n
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
 
 type PaymentLineType = "pix" | "cartao" | "tmb";
 
@@ -86,15 +84,39 @@ export function NovaCobrancaDrawer({
   const [discountValue, setDiscountValue] = useState(0);
   const [couponCode, setCouponCode] = useState("");
   const [paymentLines, setPaymentLines] = useState<PaymentLine[]>([]);
-  const [closerId, setCloserId] = useState("c1");
+  const [closerId, setCloserId] = useState<string>("");
   const [dueDate, setDueDate] = useState<Date>();
   const [notes, setNotes] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
 
+  // Inline lead creation state
+  const [inlineDraftOpen, setInlineDraftOpen] = useState(false);
+  const [inlineQuery, setInlineQuery] = useState("");
+  const [inlineDraftState, setInlineDraftState] = useState<ValidState | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Unified leads (used for prefill matching and preview card)
+  const { leads: unifiedLeads } = useUnifiedLeads();
+
+  // Sales users from Supabase (closers / leaders)
+  const [salesUsers, setSalesUsers] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("sales_users")
+        .select("id, name, role")
+        .eq("status", "active")
+        .order("name");
+      if (!cancelled && data) setSalesUsers(data);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Prefill lead when prop provided
   useEffect(() => {
     if (open && prefilledLead) {
-      const match = mockLeads.find(
+      const match = unifiedLeads.find(
         (l) => l.name === prefilledLead.name || l.email === prefilledLead.email
       );
       if (match) {
@@ -102,9 +124,14 @@ export function NovaCobrancaDrawer({
         setTotalValue(prefilledLead.pipelineValue);
       }
     }
-  }, [open, prefilledLead]);
+  }, [open, prefilledLead, unifiedLeads]);
 
-  const selectedLead = mockLeads.find((l) => l.id === selectedLeadId);
+  const selectedLead = unifiedLeads.find((l) => l.id === selectedLeadId);
+  const closer = useMemo(() => {
+    const found = salesUsers.find((s) => s.id === closerId);
+    if (!found) return null;
+    return { id: found.id, name: found.name, initials: initialsFromName(found.name) };
+  }, [salesUsers, closerId]);
 
   const discountAmount = useMemo(() => {
     if (!discountEnabled || discountValue <= 0) return 0;
@@ -180,23 +207,25 @@ export function NovaCobrancaDrawer({
     setDiscountValue(0);
     setCouponCode("");
     setPaymentLines([]);
-    setCloserId("c1");
+    setCloserId("");
     setDueDate(undefined);
     setNotes("");
     setGeneratedLink("");
+    setInlineDraftOpen(false);
+    setInlineQuery("");
+    setInlineDraftState(null);
   };
 
-  const handleGenerate = () => {
-    const closer = mockClosers.find((c) => c.id === closerId)!;
+  const finishWithInvoice = (clientName: string, clientEmail: string) => {
+    if (!closer) return;
     const desc = product === "__custom" ? customProduct : product;
     const methods = [...new Set(paymentLines.map((l) => l.type))];
-
     const link = `https://z2pay.co/cht/${crypto.randomUUID().slice(0, 8)}`;
     setGeneratedLink(link);
 
     onInvoiceCreated({
-      clientName: selectedLead?.name || "Cliente",
-      clientEmail: selectedLead?.email || "",
+      clientName: clientName || "Cliente",
+      clientEmail: clientEmail || "",
       value: finalValue,
       description: desc || "Cobrança avulsa",
       paymentMethods: methods.length > 0 ? methods : ["pix"],
@@ -204,9 +233,76 @@ export function NovaCobrancaDrawer({
       closerInitials: closer.initials,
       dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
     });
-
     setStep("confirmation");
   };
+
+  const handleGenerate = async () => {
+    if (!closer) {
+      toast.error("Selecione um closer responsável");
+      return;
+    }
+
+    // Caso 1: lead existente selecionado
+    if (selectedLeadId && !inlineDraftOpen) {
+      finishWithInvoice(selectedLead?.name || "Cliente", selectedLead?.email || "");
+      return;
+    }
+
+    // Caso 2: criação inline
+    if (inlineDraftOpen) {
+      if (!inlineDraftState?.isValid || !inlineDraftState.draft) {
+        toast.error("Preencha os dados do novo lead");
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData.user?.id;
+        if (!userId) {
+          toast.error("Sessão expirada. Faça login novamente.");
+          return;
+        }
+        const { data: newLead, error } = await supabase
+          .from("manual_leads")
+          .insert({
+            user_id: userId,
+            name: inlineDraftState.draft.name,
+            email: inlineDraftState.draft.email,
+            phone: inlineDraftState.draft.phone,
+            closer_user_id: closer.id,
+            origin: "Venda Direta",
+            created_via: "checkout_ht",
+            stage: "fechou",
+            pipeline_value: totalValue || null,
+            pitch: product === "__custom" ? customProduct : product || null,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          if (error.code === "23505") {
+            toast.error("Lead já existe", {
+              description: "Já existe lead com este email ou telefone. Selecione o lead existente.",
+            });
+          } else {
+            toast.error("Erro ao criar lead", { description: error.message });
+          }
+          return;
+        }
+
+        finishWithInvoice(newLead.name, newLead.email ?? "");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const isSubmitDisabled =
+    !closer ||
+    !totalValue ||
+    totalValue <= 0 ||
+    isSubmitting ||
+    (inlineDraftOpen ? !inlineDraftState?.isValid : !selectedLeadId);
 
   const handleClose = (v: boolean) => {
     if (!v) reset();
@@ -226,25 +322,46 @@ export function NovaCobrancaDrawer({
             {/* Lead */}
             <div className="space-y-2">
               <Label>Lead vinculado</Label>
-              <Select value={selectedLeadId} onValueChange={(v) => {
-                setSelectedLeadId(v);
-                const lead = mockLeads.find((l) => l.id === v);
-                if (lead) setTotalValue(lead.pipelineValue);
-              }}>
-                <SelectTrigger><SelectValue placeholder="Selecione um lead..." /></SelectTrigger>
-                <SelectContent>
-                  {mockLeads.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>
-                      {l.name} — {l.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedLead && (
+              {!inlineDraftOpen ? (
+                <LeadComboboxWithCreate
+                  value={selectedLeadId || null}
+                  onSelect={(lead) => {
+                    setSelectedLeadId(lead?.id ?? "");
+                    if (lead?.pipeline_value) setTotalValue(lead.pipeline_value);
+                  }}
+                  onRequestCreate={(q) => {
+                    setInlineQuery(q);
+                    setInlineDraftOpen(true);
+                    setSelectedLeadId("");
+                  }}
+                />
+              ) : (
+                <LeadInlineCreateForm
+                  initialQuery={inlineQuery}
+                  closerUserId={closer?.id ?? ""}
+                  closerName={closer?.name ?? "—"}
+                  pipelineValue={totalValue || null}
+                  pitch={product === "__custom" ? customProduct : product}
+                  onCancel={() => {
+                    setInlineDraftOpen(false);
+                    setInlineQuery("");
+                    setInlineDraftState(null);
+                  }}
+                  onUseExisting={(lead) => {
+                    setInlineDraftOpen(false);
+                    setSelectedLeadId(lead.id);
+                    setInlineDraftState(null);
+                  }}
+                  onValidChange={setInlineDraftState}
+                />
+              )}
+              {selectedLead && !inlineDraftOpen && (
                 <div className="rounded-md bg-muted/50 p-3 text-sm">
                   <p className="font-medium text-foreground">{selectedLead.name}</p>
-                  <p className="text-muted-foreground">{selectedLead.email}</p>
-                  <p className="text-muted-foreground">Valor potencial: {formatCurrency(selectedLead.pipelineValue)}</p>
+                  <p className="text-muted-foreground">{selectedLead.email ?? selectedLead.phone ?? "—"}</p>
+                  {selectedLead.pipeline_value != null && (
+                    <p className="text-muted-foreground">Valor potencial: {formatCurrency(selectedLead.pipeline_value)}</p>
+                  )}
                 </div>
               )}
             </div>
@@ -431,9 +548,9 @@ export function NovaCobrancaDrawer({
             <div className="space-y-2">
               <Label>Closer responsável</Label>
               <Select value={closerId} onValueChange={setCloserId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o closer..." /></SelectTrigger>
                 <SelectContent>
-                  {mockClosers.map((c) => (
+                  {salesUsers.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -484,9 +601,9 @@ export function NovaCobrancaDrawer({
                   isClosing && "animate-[arrangement-cta-wake_200ms_var(--ease-emerge)_800ms_forwards]"
                 )}
                 onClick={handleGenerate}
-                disabled={!selectedLeadId || totalValue <= 0}
+                disabled={isSubmitDisabled}
               >
-                Gerar Link de Pagamento
+                {isSubmitting ? "Gerando..." : "Gerar Link de Pagamento"}
               </Button>
               <Button variant="outline" onClick={() => handleClose(false)}>
                 Cancelar
