@@ -88,6 +88,7 @@ export function NovaCobrancaDrawer({
   const [dueDate, setDueDate] = useState<Date>();
   const [notes, setNotes] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
+  const [confirmedClientName, setConfirmedClientName] = useState("");
 
   // Inline lead creation state
   const [inlineDraftOpen, setInlineDraftOpen] = useState(false);
@@ -222,6 +223,7 @@ export function NovaCobrancaDrawer({
     const methods = [...new Set(paymentLines.map((l) => l.type))];
     const link = `https://z2pay.co/cht/${crypto.randomUUID().slice(0, 8)}`;
     setGeneratedLink(link);
+    setConfirmedClientName(clientName);
 
     onInvoiceCreated({
       clientName: clientName || "Cliente",
@@ -620,7 +622,7 @@ export function NovaCobrancaDrawer({
               <div className="animate-[insertion-enter_300ms_var(--ease-emerge)_400ms_both]">
                 <p className="text-lg font-semibold text-foreground">Link gerado com sucesso!</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Cobrança de {formatCurrency(finalValue)} para {selectedLead?.name}
+                  Cobrança de {formatCurrency(finalValue)} para {confirmedClientName || selectedLead?.name}
                 </p>
               </div>
             </div>
