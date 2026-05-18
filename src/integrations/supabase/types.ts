@@ -400,6 +400,72 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_leads: {
+        Row: {
+          closer_user_id: string
+          created_at: string
+          created_via: string
+          email: string | null
+          id: string
+          name: string
+          origin: string
+          phone: string | null
+          pipeline_value: number | null
+          pitch: string | null
+          sdr_user_id: string | null
+          stage: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closer_user_id: string
+          created_at?: string
+          created_via?: string
+          email?: string | null
+          id?: string
+          name: string
+          origin?: string
+          phone?: string | null
+          pipeline_value?: number | null
+          pitch?: string | null
+          sdr_user_id?: string | null
+          stage?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closer_user_id?: string
+          created_at?: string
+          created_via?: string
+          email?: string | null
+          id?: string
+          name?: string
+          origin?: string
+          phone?: string | null
+          pipeline_value?: number | null
+          pitch?: string | null
+          sdr_user_id?: string | null
+          stage?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_leads_closer_user_id_fkey"
+            columns: ["closer_user_id"]
+            isOneToOne: false
+            referencedRelation: "sales_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_leads_sdr_user_id_fkey"
+            columns: ["sdr_user_id"]
+            isOneToOne: false
+            referencedRelation: "sales_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_enrollments: {
         Row: {
           completed_at: string | null
