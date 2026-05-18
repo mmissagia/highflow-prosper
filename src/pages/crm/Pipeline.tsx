@@ -191,11 +191,11 @@ export default function Pipeline() {
                         <div className={`w-3 h-3 rounded-full ${stage.color}`} />
                         <CardTitle className="text-sm font-medium">{stage.title}</CardTitle>
                       </div>
-                      {!stagesLoading && (
+                      {!showSkeleton && (
                         <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
                       )}
                     </div>
-                    {!stagesLoading && (
+                    {!showSkeleton && (
                       <p className="text-xs text-muted-foreground">R$ {(stageValue / 1000).toFixed(0)}K</p>
                     )}
                   </CardHeader>
