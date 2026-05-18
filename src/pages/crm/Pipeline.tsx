@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import { useLeadStageOverrides, useUpdateLeadStage } from "@/hooks/useLeadStage"
 import { LeadCard, type LeadData } from "@/components/crm/LeadCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CreateLeadDrawer } from "@/components/crm/CreateLeadDrawer";
+import useUnifiedLeads from "@/hooks/useUnifiedLeads";
+import { supabase } from "@/integrations/supabase/client";
+import type { UnifiedLead } from "@/types/lead";
 
 const CRITICAL_STAGE_IDS = new Set(["call-agendada", "fechou"]);
 const pipelineStages = [
@@ -25,80 +28,81 @@ const pipelineStages = [
   { id: "onboarding", title: "Onboarding", color: "bg-muted-foreground/40" },
 ];
 
-const initialLeads: LeadData[] = [
-  {
-    id: 1, name: "Rafael Mendonça", stage: "engajado", origin: "Instagram", score: 85,
-    dealValue: 18000, responsible: "Carlos Lima",
-    lastContact: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    pitch: "Mentoria Elite 12 meses", phone: "11991234567", email: "rafael@email.com",
-  },
-  {
-    id: 2, name: "Fernanda Alves", stage: "call-agendada", origin: "Indicação", score: 62,
-    dealValue: 12000, responsible: "Ana Souza",
-    lastContact: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    pitch: "Imersão Presencial", phone: "21987654321", email: "fernanda@email.com",
-  },
-  {
-    id: 3, name: "Thiago Correia", stage: "warm", origin: "Facebook", score: 38,
-    dealValue: 8500, responsible: "Carlos Lima",
-    lastContact: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    pitch: null, phone: "31976543210", email: "thiago@email.com",
-  },
-  {
-    id: 4, name: "Juliana Martins", stage: "lead-frio", origin: "LinkedIn", score: 91,
-    dealValue: 24000, responsible: "Ana Souza",
-    lastContact: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    pitch: "Mastermind Anual", phone: "41965432109", email: "juliana@email.com",
-  },
-  {
-    id: 5, name: "Bruno Figueiredo", stage: "fechou", origin: "Instagram", score: 77,
-    dealValue: 15000, responsible: "Carlos Lima",
-    lastContact: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    pitch: "Mentoria Elite 12 meses", phone: "51954321098", email: "bruno@email.com",
-  },
-  {
-    id: 6, name: "Lucia Ferreira", stage: "follow-up", origin: "Meta Ads", score: 88,
-    dealValue: 20000, responsible: "Rafael Costa",
-    lastContact: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    pitch: "Mentoria Elite", phone: "11998887766", email: "lucia@email.com",
-  },
-];
-
 export default function Pipeline() {
-  const [leads, setLeads] = useState(initialLeads);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const { leads: unifiedLeads, isLoading: leadsLoading, refetch } = useUnifiedLeads();
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: stageOverrides, isLoading: stagesLoading } = useLeadStageOverrides();
   const updateLeadStage = useUpdateLeadStage();
 
-  const getEffectiveStage = (lead: LeadData): string =>
-    stageOverrides?.get(String(lead.id)) ?? lead.stage;
+  const leads: LeadData[] = useMemo(() => {
+    return unifiedLeads.map((l) => {
+      const effectiveStage =
+        l.source === "manual"
+          ? l.stage
+          : stageOverrides?.get(l.id) ?? l.stage;
+      return {
+        id: l.id,
+        name: l.name,
+        stage: effectiveStage,
+        origin: l.origin,
+        score: l.score,
+        dealValue: l.pipeline_value ?? 0,
+        responsible: l.responsible,
+        lastContact: l.last_contact,
+        pitch: l.pitch,
+        phone: l.phone,
+        email: l.email,
+      };
+    });
+  }, [unifiedLeads, stageOverrides]);
+
+  const leadsById = useMemo(() => {
+    const map = new Map<string, UnifiedLead>();
+    unifiedLeads.forEach((l) => map.set(l.id, l));
+    return map;
+  }, [unifiedLeads]);
 
   const getLeadsByStage = (stageId: string) =>
-    leads.filter((lead) => getEffectiveStage(lead) === stageId);
+    leads.filter((lead) => lead.stage === stageId);
 
   const totalValue = leads.reduce((acc, lead) => acc + lead.dealValue, 0);
-  const avgScore = Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length);
+  const scored = leads.filter((l) => l.score !== null) as Array<LeadData & { score: number }>;
+  const avgScore =
+    scored.length === 0 ? null : Math.round(scored.reduce((a, l) => a + l.score, 0) / scored.length);
 
-  const handleDragStart = (e: React.DragEvent, leadId: number) => {
-    e.dataTransfer.setData("leadId", String(leadId));
+  const handleDragStart = (e: React.DragEvent, leadId: string) => {
+    e.dataTransfer.setData("leadId", leadId);
     setDraggingId(leadId);
   };
 
   const handleDragEnd = () => setDraggingId(null);
 
-  const handleDrop = (e: React.DragEvent, stageId: string) => {
+  const handleDrop = async (e: React.DragEvent, stageId: string) => {
     e.preventDefault();
-    const leadId = Number(e.dataTransfer.getData("leadId"));
-    const lead = leads.find((l) => l.id === leadId);
+    const leadId = e.dataTransfer.getData("leadId");
+    const lead = leadsById.get(leadId);
     if (!lead) return;
 
-    const currentStage = getEffectiveStage(lead);
+    const currentStage =
+      lead.source === "manual" ? lead.stage : stageOverrides?.get(lead.id) ?? lead.stage;
     if (currentStage === stageId) return;
 
-    updateLeadStage.mutate({ leadId: String(leadId), stage: stageId });
+    if (lead.source === "manual") {
+      const { error } = await supabase
+        .from("manual_leads")
+        .update({ stage: stageId })
+        .eq("id", lead.id);
+      if (error) {
+        toast({ title: "Erro ao mover lead", description: error.message, variant: "destructive" });
+      } else {
+        await refetch();
+      }
+    } else {
+      updateLeadStage.mutate({ leadId: lead.id, stage: stageId });
+    }
 
     if (stageId === "fechou") {
       toast({
@@ -116,9 +120,11 @@ export default function Pipeline() {
 
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
-  const handleLeadCreated = (novoLead: LeadData) => {
-    setLeads((prev) => [novoLead, ...prev]);
+  const handleLeadCreated = (_novoLead: LeadData) => {
+    void refetch();
   };
+
+  const showSkeleton = stagesLoading || leadsLoading;
 
   return (
     <div className="space-y-6">
@@ -160,7 +166,7 @@ export default function Pipeline() {
         <Card className="bg-card transition-all duration-150 hover:shadow-md">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="p-3 rounded-lg bg-accent/10"><TrendingUp className="h-6 w-6 text-accent" /></div>
-            <div><p className="text-sm text-muted-foreground">Score Médio</p><p className="text-2xl font-bold">{avgScore}%</p></div>
+            <div><p className="text-sm text-muted-foreground">Score Médio</p><p className="text-2xl font-bold">{avgScore === null ? "—" : `${avgScore}%`}</p></div>
           </CardContent>
         </Card>
       </div>
@@ -185,16 +191,16 @@ export default function Pipeline() {
                         <div className={`w-3 h-3 rounded-full ${stage.color}`} />
                         <CardTitle className="text-sm font-medium">{stage.title}</CardTitle>
                       </div>
-                      {!stagesLoading && (
+                      {!showSkeleton && (
                         <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
                       )}
                     </div>
-                    {!stagesLoading && (
+                    {!showSkeleton && (
                       <p className="text-xs text-muted-foreground">R$ {(stageValue / 1000).toFixed(0)}K</p>
                     )}
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {stagesLoading && (
+                    {showSkeleton && (
                       <>
                         {[1, 2, 3].map((i) => (
                           <Skeleton key={i} className="h-32 w-full rounded-lg" />
@@ -202,7 +208,7 @@ export default function Pipeline() {
                       </>
                     )}
 
-                    {!stagesLoading && stageLeads.length === 0 && (
+                    {!showSkeleton && stageLeads.length === 0 && (
                       <EmptyState
                         icon={Inbox}
                         title="Nenhum lead aqui"
@@ -211,7 +217,7 @@ export default function Pipeline() {
                       />
                     )}
 
-                    {!stagesLoading && stageLeads.map((lead) => (
+                    {!showSkeleton && stageLeads.map((lead) => (
                       <LeadCard
                         key={lead.id}
                         lead={lead}

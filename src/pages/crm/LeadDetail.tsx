@@ -7,31 +7,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Phone, MessageSquare, Calendar, DollarSign, TrendingUp,
   ArrowLeft, ArrowRight, Clock, FileText, UserCheck, Inbox, Briefcase, ShoppingBag,
-  BookOpen, ExternalLink,
+  BookOpen, ExternalLink, CreditCard,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { formatDistanceToNow, format, subDays, subHours } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LeadSidebar } from "@/components/crm/LeadSidebar";
 import { LeadDetailSidebar } from "@/components/LeadDetailSidebar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-
-/* ─── lead mock (same fields as pipeline cards) ─── */
-const leadData = {
-  id: 1,
-  name: "Rafael Mendonça",
-  email: "rafael@email.com",
-  phone: "11991234567",
-  stage: "Engajado",
-  origin: "Instagram",
-  score: 85,
-  dealValue: 18000,
-  responsible: "Carlos Lima",
-  lastContact: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  pitch: "Mentoria Elite 12 meses",
-};
+import useUnifiedLeads from "@/hooks/useUnifiedLeads";
+import { useMemo } from "react";
+import { formatStageLabel } from "@/lib/leadUtils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /* ─── mock data ─── */
 const mockTimeline = [
@@ -136,10 +125,58 @@ function safeTimeAgo(date: Date) {
 }
 
 export default function LeadDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { leads, isLoading } = useUnifiedLeads();
+  const lead = useMemo(() => leads.find((l) => l.id === id), [leads, id]);
 
-  const initials = leadData.name.split(" ").map((n) => n[0]).join("");
-  const sunTotal = mockSunHistory.reduce((s, i) => s + i.value, 0);
+  if (isLoading && !lead) {
+    return (
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-12 w-full max-w-md" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="p-6">
+        <EmptyState
+          icon={Inbox}
+          title="Lead não encontrado"
+          description="O lead solicitado não existe ou foi removido."
+          size="sm"
+        />
+        <div className="mt-4">
+          <Button onClick={() => navigate("/crm/leads")} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para leads
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const isManualCheckout = lead.source === "manual" && lead.created_via === "checkout_ht";
+  const initials = lead.name.split(" ").map((n) => n[0]).join("");
+  const sunTotal = isManualCheckout ? 0 : mockSunHistory.reduce((s, i) => s + i.value, 0);
+  const sunHistory = isManualCheckout ? [] : mockSunHistory;
+  const timeline = isManualCheckout
+    ? [
+        {
+          id: 1,
+          type: "stage" as const,
+          icon: "TrendingUp" as const,
+          channel: null,
+          description: `Criado via Checkout HT em ${
+            lead.created_at ? format(new Date(lead.created_at), "dd/MM/yyyy HH:mm") : "—"
+          }`,
+          createdAt: lead.created_at ? new Date(lead.created_at) : new Date(),
+        },
+      ]
+    : mockTimeline;
 
   return (
     <div className="flex h-full gap-0 overflow-hidden">
@@ -162,12 +199,20 @@ export default function LeadDetail() {
             </AvatarFallback>
           </Avatar>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-semibold text-foreground">{leadData.name}</h1>
-            <Badge variant="outline">{leadData.stage}</Badge>
-            <Badge variant="secondary">{leadData.origin}</Badge>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getScoreClasses(leadData.score)}`}>
-              {leadData.score}
-            </div>
+            <h1 className="text-xl font-semibold text-foreground">{lead.name}</h1>
+            <Badge variant="outline">{formatStageLabel(lead.stage)}</Badge>
+            <Badge variant="secondary">{lead.origin}</Badge>
+            {lead.score !== null && (
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getScoreClasses(lead.score)}`}>
+                {lead.score}
+              </div>
+            )}
+            {isManualCheckout && (
+              <Badge variant="outline" className="gap-1.5 border-primary/30 text-primary">
+                <CreditCard className="h-3 w-3" />
+                Criado via Checkout HT
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -185,10 +230,10 @@ export default function LeadDetail() {
 
           {/* ── Timeline ── */}
           <TabsContent value="timeline" className="space-y-3 mt-4">
-            {mockTimeline.length === 0 ? (
+            {timeline.length === 0 ? (
               <EmptyState icon={Inbox} title="Nenhum evento na timeline" description="Interações, mudanças de estágio e mensagens aparecerão aqui." size="sm" />
             ) : (
-              mockTimeline.map((ev) => {
+              timeline.map((ev) => {
                 const Icon = iconMap[ev.icon];
                 return (
                   <div key={ev.id} className="flex gap-3 p-3 rounded-lg bg-muted/50">
@@ -302,7 +347,7 @@ export default function LeadDetail() {
 
           {/* ── Histórico SUN ── */}
           <TabsContent value="sun" className="space-y-4 mt-4">
-            {mockSunHistory.length === 0 ? (
+            {sunHistory.length === 0 ? (
               <EmptyState icon={ShoppingBag} title="Sem compras registradas" description="Quando o lead comprar produtos low-ticket ou ingressos, o histórico aparecerá aqui." size="sm" />
             ) : (
               <>
@@ -311,7 +356,7 @@ export default function LeadDetail() {
                   <p className="text-xl font-bold text-foreground">{currencyFormatter.format(sunTotal)}</p>
                 </div>
                 <div className="space-y-3">
-                  {mockSunHistory.map((item, i) => (
+                  {sunHistory.map((item, i) => (
                     <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{item.product}</p>
@@ -407,16 +452,28 @@ export default function LeadDetail() {
       <div className="hidden lg:block w-80 shrink-0 border-l overflow-y-auto">
         <LeadDetailSidebar
           lead={{
-            id: leadData.id,
-            name: leadData.name,
-            stage: leadData.stage,
-            score: leadData.score,
+            id: lead.id,
+            name: lead.name,
+            stage: lead.stage,
+            score: lead.score ?? 0,
             timeInStage: "5 dias",
           }}
         />
         <div className="border-t">
           {/* LeadSidebar carries its own w-80 + border-l; rendered inside this wrapper it inherits flow. */}
-          <LeadSidebar lead={leadData} />
+          <LeadSidebar
+            lead={{
+              id: Number.isFinite(Number(lead.id)) ? Number(lead.id) : 0,
+              name: lead.name,
+              phone: lead.phone ?? "",
+              stage: lead.stage,
+              origin: lead.origin,
+              score: lead.score ?? 0,
+              dealValue: lead.pipeline_value ?? 0,
+              lastContact: lead.last_contact ?? lead.created_at ?? new Date().toISOString(),
+              pitch: lead.pitch,
+            }}
+          />
         </div>
       </div>
     </div>
