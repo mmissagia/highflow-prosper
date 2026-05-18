@@ -212,6 +212,7 @@ export function NovaCobrancaDrawer({
     setDueDate(undefined);
     setNotes("");
     setGeneratedLink("");
+    setConfirmedClientName("");
     setInlineDraftOpen(false);
     setInlineQuery("");
     setInlineDraftState(null);
