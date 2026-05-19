@@ -252,7 +252,7 @@ export default function PitchEditor() {
                     </SelectContent>
                   </Select>
                 </div>
-                <p className="text-xs text-muted-foreground ml-6">Parcele em até 18x. Processado via Z2Pay — É High Ticket.</p>
+                <p className="text-xs text-muted-foreground ml-6">Parcele em até 18x. Processado via Z2Pay — TMB — PIX.</p>
               </div>
 
               {/* Cartão à vista */}

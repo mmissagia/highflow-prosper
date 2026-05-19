@@ -177,7 +177,7 @@ export default function CheckoutHighTicket() {
           style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)" }}
         >
           <span className="text-base">💳</span>
-          Z2Pay — É High Ticket
+          Z2Pay — TMB — PIX
         </div>
       </div>
 
