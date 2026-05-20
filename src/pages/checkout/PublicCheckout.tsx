@@ -150,10 +150,6 @@ function CustomerFields({
 }
 
 function CardFields() {
-  return <CardFieldsInner />;
-}
-
-function CardFieldsInner() {
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
   return (
     <div className="space-y-3">
@@ -238,8 +234,44 @@ function MethodForm({
   );
 }
 
+function PixForm({
+  line, customer, setCustomer, prefilled, onPay, isPaying,
+}: {
+  line: PaymentLine;
+  customer: { name: string; cpf: string; email: string; phone: string };
+  setCustomer: (c: typeof customer) => void;
+  prefilled: { name: boolean; email: boolean; phone: boolean };
+  onPay: (m: PayType) => void;
+  isPaying: boolean;
+}) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="space-y-4">
+      <CustomerFields data={customer} onChange={setCustomer} prefilled={prefilled} />
+      {!shown ? (
+        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isPaying} onClick={() => setShown(true)}>
+          Gerar QR Code Pix {formatCurrency(line.value)}
+        </Button>
+      ) : (
+        <div className="space-y-3">
+          <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-md border-2 border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
+            QR PIX MOCK
+          </div>
+          <div className="rounded-md border border-border bg-muted/30 p-3">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pix copia e cola</p>
+            <code className="block break-all text-xs">{crypto.randomUUID().slice(0, 8)}-pix-mock</code>
+          </div>
+          <Button className="w-full" disabled={isPaying} onClick={() => onPay("pix")}>
+            {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Confirmar pagamento
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PublicCheckout() {
-  // placeholder to keep diff anchor
   const { linkId } = useParams<{ linkId: string }>();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PaymentLinkRow | null>(null);
