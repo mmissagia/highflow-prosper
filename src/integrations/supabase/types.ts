@@ -466,6 +466,63 @@ export type Database = {
           },
         ]
       }
+      payment_links: {
+        Row: {
+          closer_initials: string | null
+          closer_name: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          expires_at: string | null
+          id: string
+          lead_email: string | null
+          lead_name: string
+          lead_phone: string | null
+          paid_at: string | null
+          paid_method: string | null
+          payment_lines: Json
+          producer_id: string
+          status: string
+          value: number
+        }
+        Insert: {
+          closer_initials?: string | null
+          closer_name?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          expires_at?: string | null
+          id: string
+          lead_email?: string | null
+          lead_name: string
+          lead_phone?: string | null
+          paid_at?: string | null
+          paid_method?: string | null
+          payment_lines?: Json
+          producer_id: string
+          status?: string
+          value: number
+        }
+        Update: {
+          closer_initials?: string | null
+          closer_name?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          expires_at?: string | null
+          id?: string
+          lead_email?: string | null
+          lead_name?: string
+          lead_phone?: string | null
+          paid_at?: string | null
+          paid_method?: string | null
+          payment_lines?: Json
+          producer_id?: string
+          status?: string
+          value?: number
+        }
+        Relationships: []
+      }
       product_enrollments: {
         Row: {
           completed_at: string | null
