@@ -50,6 +50,7 @@ interface PaymentLine {
 }
 
 interface InvoiceResult {
+  linkId: string;
   clientName: string;
   clientEmail: string;
   value: number;
@@ -218,15 +219,49 @@ export function NovaCobrancaDrawer({
     setInlineDraftState(null);
   };
 
-  const finishWithInvoice = (clientName: string, clientEmail: string) => {
+  const finishWithInvoice = async (
+    clientName: string,
+    clientEmail: string,
+    clientPhone?: string,
+  ) => {
     if (!closer) return;
     const desc = product === "__custom" ? customProduct : product;
     const methods = [...new Set(paymentLines.map((l) => l.type))];
-    const link = `https://z2pay.co/cht/${crypto.randomUUID().slice(0, 8)}`;
+    const linkId = crypto.randomUUID().slice(0, 8);
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      return;
+    }
+
+    const { error } = await supabase.from("payment_links").insert({
+      id: linkId,
+      producer_id: userId,
+      lead_name: clientName || "Cliente",
+      lead_email: clientEmail || null,
+      lead_phone: clientPhone || null,
+      description: desc || "Cobrança avulsa",
+      value: finalValue,
+      payment_lines: paymentLines as unknown as object[],
+      closer_name: closer.name,
+      closer_initials: closer.initials,
+      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
+      status: "pending",
+    });
+
+    if (error) {
+      toast.error("Erro ao gerar link", { description: error.message });
+      return;
+    }
+
+    const link = `${window.location.origin}/pay/${linkId}`;
     setGeneratedLink(link);
     setConfirmedClientName(clientName);
 
     onInvoiceCreated({
+      linkId,
       clientName: clientName || "Cliente",
       clientEmail: clientEmail || "",
       value: finalValue,
@@ -247,7 +282,11 @@ export function NovaCobrancaDrawer({
 
     // Caso 1: lead existente selecionado
     if (selectedLeadId && !inlineDraftOpen) {
-      finishWithInvoice(selectedLead?.name || "Cliente", selectedLead?.email || "");
+      await finishWithInvoice(
+        selectedLead?.name || "Cliente",
+        selectedLead?.email || "",
+        selectedLead?.phone || undefined,
+      );
       return;
     }
 
@@ -293,7 +332,7 @@ export function NovaCobrancaDrawer({
           return;
         }
 
-        finishWithInvoice(newLead.name, newLead.email ?? "");
+        await finishWithInvoice(newLead.name, newLead.email ?? "", newLead.phone ?? undefined);
       } finally {
         setIsSubmitting(false);
       }
