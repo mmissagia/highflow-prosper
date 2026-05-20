@@ -358,7 +358,7 @@ export default function Conversas() {
         open={cobrancaOpen}
         onOpenChange={setCobrancaOpen}
         onInvoiceCreated={(data) => {
-          const link = `https://z2pay.co/pay/${crypto.randomUUID().slice(0, 8)}`;
+          const link = `${window.location.origin}/pay/${data.linkId}`;
           setChatMessages((prev) => [
             ...prev,
             {
