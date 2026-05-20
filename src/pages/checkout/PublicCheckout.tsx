@@ -215,31 +215,7 @@ function MethodForm({
   }
 
   if (line.type === "pix") {
-    const [shown, setShown] = useState(false);
-    return (
-      <div className="space-y-4">
-        <CustomerFields data={customer} onChange={setCustomer} prefilled={prefilled} />
-        {!shown ? (
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isPaying} onClick={() => setShown(true)}>
-            Gerar QR Code Pix {formatCurrency(line.value)}
-          </Button>
-        ) : (
-          <div className="space-y-3">
-            <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-md border-2 border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
-              QR PIX MOCK
-            </div>
-            <div className="rounded-md border border-border bg-muted/30 p-3">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pix copia e cola</p>
-              <code className="block break-all text-xs">{crypto.randomUUID().slice(0, 8)}-pix-mock</code>
-            </div>
-            <Button className="w-full" disabled={isPaying} onClick={() => onPay("pix")}>
-              {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Confirmar pagamento
-            </Button>
-          </div>
-        )}
-      </div>
-    );
+    return <PixForm line={line} customer={customer} setCustomer={setCustomer} prefilled={prefilled} onPay={onPay} isPaying={isPaying} />;
   }
 
   // tmb
@@ -259,6 +235,7 @@ function MethodForm({
 }
 
 export default function PublicCheckout() {
+  // placeholder to keep diff anchor
   const { linkId } = useParams<{ linkId: string }>();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PaymentLinkRow | null>(null);
