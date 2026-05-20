@@ -66,6 +66,7 @@ import Comissoes from "./pages/comercial/Comissoes";
 import Agenda from "./pages/comercial/Agenda";
 import Relatorios from "./pages/comercial/Relatorios";
 import CheckoutHighTicket from "./pages/checkout/CheckoutHighTicket";
+import PublicCheckout from "./pages/checkout/PublicCheckout";
 const Assinaturas = lazy(() => import('./pages/monetizacao/Assinaturas'));
 const Copiloto = lazy(() => import('./pages/ia/Copiloto'));
 const CopilotAccess = lazy(() => import('./pages/ia/CopilotAccess'));
@@ -252,6 +253,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/pay/:linkId" element={<PublicCheckout />} />
             <Route path="/*" element={<AppLayout />} />
           </Routes>
         </AuthProvider>
