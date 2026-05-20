@@ -11,6 +11,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const mockProducts = [
   "Mentoria Elite",
@@ -23,6 +25,7 @@ const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
 interface LinkResult {
+  linkId: string;
   clientName: string;
   clientEmail: string;
   value: number;
@@ -80,16 +83,51 @@ export function NovoLinkProdutoDrawer({
     onOpenChange(v);
   };
 
-  const handleGenerate = () => {
-    const link = `https://z2pay.co/offer/${crypto.randomUUID().slice(0, 8)}`;
-    setGeneratedLink(link);
-
+  const handleGenerate = async () => {
     const methods: ("pix" | "cartao" | "tmb")[] = [];
     if (pixEnabled) methods.push("pix");
     if (cartaoEnabled) methods.push("cartao");
     if (tmbEnabled) methods.push("tmb");
 
+    const paymentLines: Array<{
+      id: string;
+      type: "pix" | "cartao" | "tmb";
+      value: number;
+      installments: number;
+    }> = [];
+    if (pixEnabled) paymentLines.push({ id: crypto.randomUUID(), type: "pix", value, installments: 1 });
+    if (cartaoEnabled) paymentLines.push({ id: crypto.randomUUID(), type: "cartao", value, installments: cartaoMaxInstallments });
+    if (tmbEnabled) paymentLines.push({ id: crypto.randomUUID(), type: "tmb", value, installments: tmbMaxInstallments });
+
+    const linkId = crypto.randomUUID().slice(0, 8);
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      return;
+    }
+
+    const { error } = await supabase.from("payment_links").insert({
+      id: linkId,
+      producer_id: userId,
+      lead_name: "Cliente (link de produto)",
+      description: offerName || product,
+      value,
+      payment_lines: paymentLines as unknown as never,
+      due_date: format(new Date(), "yyyy-MM-dd"),
+      status: "pending",
+    });
+
+    if (error) {
+      toast.error("Erro ao gerar link", { description: error.message });
+      return;
+    }
+
+    const link = `${window.location.origin}/pay/${linkId}`;
+    setGeneratedLink(link);
+
     onLinkCreated({
+      linkId,
       clientName: "Link de Produto",
       clientEmail: offerName || product,
       value,
