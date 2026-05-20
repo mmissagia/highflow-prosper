@@ -244,7 +244,7 @@ export function NovaCobrancaDrawer({
       lead_phone: clientPhone || null,
       description: desc || "Cobrança avulsa",
       value: finalValue,
-      payment_lines: paymentLines as unknown as object[],
+      payment_lines: paymentLines as unknown as never,
       closer_name: closer.name,
       closer_initials: closer.initials,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
