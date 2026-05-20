@@ -150,6 +150,10 @@ function CustomerFields({
 }
 
 function CardFields() {
+  return <CardFieldsInner />;
+}
+
+function CardFieldsInner() {
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
   return (
     <div className="space-y-3">
